@@ -1,0 +1,12 @@
+# vscode 세팅 폴더
+.vscode/
+
+# 민감정보
+.env
+
+# node.js 라이브러리 환경
+node_modules/
+
+# 파이썬 컴파일 결과 파일
+__pycache__/
+*.pyc
