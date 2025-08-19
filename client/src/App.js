@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaHome, FaChartLine, FaLightbulb, FaWallet, FaHistory, FaBars, FaTimes } from "react-icons/fa";
+import SproutLogo from './componenets/SproutLogo';
+
 
 // --- Main App Component ---
 export default function App() {
@@ -32,6 +34,7 @@ function NavSidebar({ activeSection, setActiveSection }) {
     { name: 'Portfolio', icon: FaWallet },
     { name: 'History', icon: FaHistory },
   ];
+
 
   return (
     <>
@@ -96,6 +99,10 @@ function NavSidebar({ activeSection, setActiveSection }) {
                 );
               })}
             </ul>
+          </div>
+          <div className="text-center text-sm text-gray-500 flex items-center justify-center p-4 cursor-pointer hover:bg-lime-100 rounded-md transition-colors duration-200">
+             <FaHistory className="w-4 h-4 mr-2" />
+            <p>로그인</p>
           </div>
           <div className="text-center text-sm text-gray-500">
             <p>&copy; 2025 Tussac</p>
@@ -207,18 +214,155 @@ function Market() {
 
 function Home() {
   return (
-    <div className="p-8 text-center text-gray-400">
-      <h1 className="text-3xl font-bold mb-4">Welcome to the Dashboard!</h1>
-      <p>This is the homepage of your stock market application.</p>
+    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
+      <div className="flex flex-col lg:flex-row lg:space-x-8 space-y-8 lg:space-y-0">
+        <div className="flex-1 space-y-8">
+          <SearchBar />
+          <StockRank />
+          <InvestorRank />
+        </div>
+
+        <div className="w-full lg:w-96 space-y-8">
+          <LoginCard />
+          <ChatWindow />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+function SearchBar() {
+    return (
+        <div className="flex items-center w-full bg-white rounded-lg p-2 shadow-sm">
+            {/* <FaSearch className="w-4 h-4 text-gray-400 mx-2" /> */}
+            <input 
+                type="text" 
+                placeholder="종목 검색"
+                className="flex-1 p-2 focus:outline-none placeholder-gray-400 text-gray-800"
+            />
+        </div>
+    );
+}
+
+// --- Stock Rank Component ---
+function StockRank() {
+    const stockData = [
+        { name: '대한전선', volume: 13120, change: 0.54, up: true },
+        { name: '삼성전자', volume: 64200, change: 0.54, up: true },
+        { name: '현대자동차', volume: 121000, change: -0.54, up: false },
+        { name: 'SK텔레콤', volume: 121000, change: -0.54, up: false },
+    ];
+
+    return (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">거래량 순위</h2>
+                <a href="#" className="flex items-center text-sm text-lime-600 font-semibold">
+                    더보기 
+                    {/* <FaChevronRight className="ml-1 w-3 h-3" /> */}
+                </a>
+            </div>
+            <ul>
+                {stockData.map((stock, index) => (
+                    <li key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                        <div className="flex items-center">
+                            <span className="w-6 text-center font-bold text-gray-500">{index + 1}</span>
+                            <span className="ml-4 font-medium">{stock.name}</span>
+                        </div>
+                        <div className="flex items-center">
+                            <span className="text-gray-600 mr-4">{stock.volume.toLocaleString()}</span>
+                            <span className={`flex items-center font-semibold ${stock.up ? 'text-red-500' : 'text-blue-500'}`}>
+                                {/* {stock.up ? <FaArrowUp className="w-3 h-3 mr-1" /> : <FaArrowDown className="w-3 h-3 mr-1" />} */}
+                                {stock.change.toFixed(2)}%
+                            </span>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+
+function InvestorRank() {
+    const investorData = [
+        { name: '김주식', gain: 130.00 },
+        { name: '박투자', gain: 95.50 },
+        { name: '최새싹', gain: 30.25 },
+        { name: '이초보', gain: 15.07 },
+    ];
+
+    return (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">투자 랭킹</h2>
+                <a href="#" className="flex items-center text-sm text-lime-600 font-semibold">
+                    더보기 
+                    {/* <FaChevronRight className="ml-1 w-3 h-3" /> */}
+                </a>
+            </div>
+            <ul>
+                {investorData.map((investor, index) => (
+                    <li key={index} className="flex items-center py-2 border-b last:border-b-0">
+                        <span className="w-6 text-center font-bold text-gray-500">{index + 1}</span>
+                        <div className="w-8 h-8 rounded-full bg-gray-300 ml-4 flex items-center justify-center text-xs">
+                        </div>
+                        <span className="ml-4 font-medium flex-1">{investor.name}</span>
+                        <span className="text-red-500 font-bold">
+                            +{investor.gain.toFixed(2)} %
+                        </span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+function LoginCard() {
+  return (
+    <div className="bg-lime-100 rounded-xl shadow-lg p-6 flex flex-col items-center justify-center space-y-4">
+      <div className="bg-yellow-400 p-2 rounded-lg inline-flex items-center text-gray-800 font-semibold shadow-md cursor-pointer">
+        {/* <RiKakaoTalkFill className="w-5 h-5 mr-2" /> */}
+        <span>카카오 로그인</span>
+      </div>
+      <p className="text-sm text-gray-500">관심종목을 조회 또는 추가하려면<br/>로그인이 필요합니다.</p>
     </div>
   );
 }
+
+function ChatWindow() {
+    return (
+      <div className="bg-lime-100 rounded-xl shadow-lg p-4 h-96 flex flex-col justify-between">
+        <div className="flex-1 overflow-y-auto mb-4 space-y-2">
+            {/* Chat bubbles */}
+            <div className="bg-white p-3 rounded-xl rounded-bl-none text-gray-800 max-w-3/4 self-start">
+                <p>무어라무어라</p>
+            </div>
+            <div className="bg-lime-200 p-3 rounded-xl rounded-br-none text-gray-800 max-w-3/4 self-end ml-auto">
+                <p>그렇군그렇군</p>
+            </div>
+        </div>
+        <div className="flex items-center border-t border-gray-200 pt-4">
+          <input 
+            type="text" 
+            placeholder="메시지를 입력하세요" 
+            className="flex-1 p-2 bg-white rounded-full text-gray-800 placeholder-gray-400 focus:outline-none"
+          />
+          <button className="bg-lime-600 text-white rounded-full p-3 ml-2 hover:bg-lime-700 transition-colors duration-200">
+            {/* <BsSend className="w-4 h-4" /> */}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
 
 function Insight() {
   return (
     <div className="p-8 text-center text-gray-400">
       <h1 className="text-3xl font-bold mb-4">Market Insights</h1>
-      <p>This section will provide valuable insights and analysis.</p>
+      <p>This section will provide keywords and news!!</p>
     </div>
   );
 }
