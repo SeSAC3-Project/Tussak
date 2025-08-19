@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { FaHome, FaChartLine, FaLightbulb, FaWallet, FaHistory, FaBars, FaTimes } from "react-icons/fa";
-import SproutLogo from './componenets/SproutLogo';
-
 
 // --- Main App Component ---
 export default function App() {
@@ -35,13 +33,12 @@ function NavSidebar({ activeSection, setActiveSection }) {
     { name: 'History', icon: FaHistory },
   ];
 
-
   return (
     <>
       {/* Mobile-only hamburger menu button */}
       <button 
         onClick={() => setIsSidebarOpen(true)}
-        className="fixed top-4 left-4 z-40 p-2 text-[#8A8A8A] bg-white rounded-lg sm:hidden"
+        className="fixed top-4 left-4 z-40 h-screen p-2 text-[#8A8A8A] bg-white rounded-lg sm:hidden"
       >
         <FaBars className="w-6 h-6" />
       </button>
@@ -49,7 +46,7 @@ function NavSidebar({ activeSection, setActiveSection }) {
       {/* Mobile-only overlay when the sidebar is open */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-gray-400 opacity-50 z-30 sm:hidden" 
+          className="fixed inset-0 bg-gray-400 h-screen opacity-50 z-30 sm:hidden" 
           onClick={() => setIsSidebarOpen(false)}
         ></div>
       )}
@@ -257,7 +254,7 @@ function StockRank() {
     return (
         <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">거래량 순위</h2>
+                <h2 className="text-xl font-bold text-black">거래량 순위</h2>
                 <a href="#" className="flex items-center text-sm text-lime-600 font-semibold">
                     더보기 
                     {/* <FaChevronRight className="ml-1 w-3 h-3" /> */}
@@ -268,7 +265,7 @@ function StockRank() {
                     <li key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
                         <div className="flex items-center">
                             <span className="w-6 text-center font-bold text-gray-500">{index + 1}</span>
-                            <span className="ml-4 font-medium">{stock.name}</span>
+                            <span className="ml-4 font-medium text-black">{stock.name}</span>
                         </div>
                         <div className="flex items-center">
                             <span className="text-gray-600 mr-4">{stock.volume.toLocaleString()}</span>
@@ -296,7 +293,7 @@ function InvestorRank() {
     return (
         <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">투자 랭킹</h2>
+                <h2 className="text-xl font-bold text-black">투자 랭킹</h2>
                 <a href="#" className="flex items-center text-sm text-lime-600 font-semibold">
                     더보기 
                     {/* <FaChevronRight className="ml-1 w-3 h-3" /> */}
@@ -308,7 +305,7 @@ function InvestorRank() {
                         <span className="w-6 text-center font-bold text-gray-500">{index + 1}</span>
                         <div className="w-8 h-8 rounded-full bg-gray-300 ml-4 flex items-center justify-center text-xs">
                         </div>
-                        <span className="ml-4 font-medium flex-1">{investor.name}</span>
+                        <span className="ml-4 font-medium flex-1 text-black">{investor.name}</span>
                         <span className="text-red-500 font-bold">
                             +{investor.gain.toFixed(2)} %
                         </span>
