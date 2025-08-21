@@ -110,104 +110,108 @@ function NavSidebar({ activeSection, setActiveSection }) {
   );
 }
 
+
 function Market() {
-  const [stock, setStock] = useState(null);
-  const [symbol, setSymbol] = useState('AAPL');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const fetchStockData = async () => {
-    setIsLoading(true);
-    setError(null);
-    setStock(null);
-    try {
-      const response = await fetch(`http://127.0.0.1:5000/api/stock/${symbol}`);
-      if (!response.ok) {
-        throw new Error('Stock not found or server error');
-      }
-      const data = await response.json();
-      setStock(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStockData();
-  }, [symbol]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const newSymbol = e.target.elements.symbolInput.value.toUpperCase();
-    if (newSymbol) {
-      setSymbol(newSymbol);
-    }
-  };
-
-  return (
-    <div className="w-full max-w-2xl mx-auto bg-gray-800 p-8 rounded-xl shadow-lg">
-      <h1 className="text-4xl font-bold text-center text-teal-400 mb-6">Stock Tracker</h1>
-      
-      <form onSubmit={handleSubmit} className="mb-8 flex justify-center">
-        <input
-          type="text"
-          id="symbolInput"
-          placeholder="Enter stock symbol (e.g., GOOGL)"
-          className="p-3 w-2/3 md:w-1/2 rounded-l-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400"
-        />
-        <button
-          type="submit"
-          className="p-3 bg-teal-500 hover:bg-teal-600 text-white rounded-r-lg font-semibold transition duration-200"
-        >
-          Search
-        </button>
-      </form>
-
-      {isLoading && (
-        <p className="text-center text-gray-400 text-xl animate-pulse">Loading stock data...</p>
-      )}
-
-      {error && (
-        <div className="bg-red-900 border border-red-700 text-red-300 p-4 rounded-lg text-center">
-          <p className="font-semibold">Error:</p>
-          <p>{error}</p>
-        </div>
-      )}
-
-      {stock && (
-        <div className="bg-gray-700 p-6 rounded-lg shadow-inner">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-3xl font-bold text-teal-300">{stock.symbol}</h2>
-            <span className={`text-2xl font-bold ${stock.price >= stock.open ? 'text-green-400' : 'text-red-400'}`}>
-              ${stock.price.toFixed(2)}
-            </span>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-300">
-            <div className="bg-gray-600 p-4 rounded-lg">
-              <p className="text-sm uppercase font-semibold text-gray-400">Open</p>
-              <p className="text-lg font-medium">${stock.open.toFixed(2)}</p>
-            </div>
-            <div className="bg-gray-600 p-4 rounded-lg">
-              <p className="text-sm uppercase font-semibold text-gray-400">High</p>
-              <p className="text-lg font-medium">${stock.high.toFixed(2)}</p>
-            </div>
-            <div className="bg-gray-600 p-4 rounded-lg">
-              <p className="text-sm uppercase font-semibold text-gray-400">Low</p>
-              <p className="text-lg font-medium">${stock.low.toFixed(2)}</p>
-            </div>
-            <div className="bg-gray-600 p-4 rounded-lg">
-              <p className="text-sm uppercase font-semibold text-gray-400">Previous Close</p>
-              <p className="text-lg font-medium">${stock.prevClose.toFixed(2)}</p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  pass
 }
+// function Market() {
+//   const [stock, setStock] = useState(null);
+//   const [symbol, setSymbol] = useState('AAPL');
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [error, setError] = useState(null);
+
+//   const fetchStockData = async () => {
+//     setIsLoading(true);
+//     setError(null);
+//     setStock(null);
+//     try {
+//       const response = await fetch(`http://127.0.0.1:5000/api/stock/${symbol}`);
+//       if (!response.ok) {
+//         throw new Error('Stock not found or server error');
+//       }
+//       const data = await response.json();
+//       setStock(data);
+//     } catch (err) {
+//       setError(err.message);
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchStockData();
+//   }, [symbol]);
+
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     const newSymbol = e.target.elements.symbolInput.value.toUpperCase();
+//     if (newSymbol) {
+//       setSymbol(newSymbol);
+//     }
+//   };
+
+//   return (
+//     <div className="w-full max-w-2xl mx-auto bg-gray-800 p-8 rounded-xl shadow-lg">
+//       <h1 className="text-4xl font-bold text-center text-teal-400 mb-6">Stock Tracker</h1>
+      
+//       <form onSubmit={handleSubmit} className="mb-8 flex justify-center">
+//         <input
+//           type="text"
+//           id="symbolInput"
+//           placeholder="Enter stock symbol (e.g., GOOGL)"
+//           className="p-3 w-2/3 md:w-1/2 rounded-l-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400"
+//         />
+//         <button
+//           type="submit"
+//           className="p-3 bg-teal-500 hover:bg-teal-600 text-white rounded-r-lg font-semibold transition duration-200"
+//         >
+//           Search
+//         </button>
+//       </form>
+
+//       {isLoading && (
+//         <p className="text-center text-gray-400 text-xl animate-pulse">Loading stock data...</p>
+//       )}
+
+//       {error && (
+//         <div className="bg-red-900 border border-red-700 text-red-300 p-4 rounded-lg text-center">
+//           <p className="font-semibold">Error:</p>
+//           <p>{error}</p>
+//         </div>
+//       )}
+
+//       {stock && (
+//         <div className="bg-gray-700 p-6 rounded-lg shadow-inner">
+//           <div className="flex items-center justify-between mb-4">
+//             <h2 className="text-3xl font-bold text-teal-300">{stock.symbol}</h2>
+//             <span className={`text-2xl font-bold ${stock.price >= stock.open ? 'text-green-400' : 'text-red-400'}`}>
+//               ${stock.price.toFixed(2)}
+//             </span>
+//           </div>
+          
+//           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-300">
+//             <div className="bg-gray-600 p-4 rounded-lg">
+//               <p className="text-sm uppercase font-semibold text-gray-400">Open</p>
+//               <p className="text-lg font-medium">${stock.open.toFixed(2)}</p>
+//             </div>
+//             <div className="bg-gray-600 p-4 rounded-lg">
+//               <p className="text-sm uppercase font-semibold text-gray-400">High</p>
+//               <p className="text-lg font-medium">${stock.high.toFixed(2)}</p>
+//             </div>
+//             <div className="bg-gray-600 p-4 rounded-lg">
+//               <p className="text-sm uppercase font-semibold text-gray-400">Low</p>
+//               <p className="text-lg font-medium">${stock.low.toFixed(2)}</p>
+//             </div>
+//             <div className="bg-gray-600 p-4 rounded-lg">
+//               <p className="text-sm uppercase font-semibold text-gray-400">Previous Close</p>
+//               <p className="text-lg font-medium">${stock.prevClose.toFixed(2)}</p>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
 
 function Home() {
   return (
