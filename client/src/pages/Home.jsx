@@ -1,24 +1,34 @@
 import React from 'react';
 import { FaSearch, FaChevronRight } from 'react-icons/fa';
 
+
 function Home() {
     return (
-        <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
-            <div className="flex flex-col lg:flex-row lg:space-x-8 space-y-8 lg:space-y-0">
-                <div className="flex-1 space-y-8">
-                    <SearchBar />
-                    <StockRank />
-                    <InvestorRank />
-                </div>
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
 
-                <div className="w-full lg:w-96 space-y-8">
-                    <LoginCard />
-                    <CharWindow />
-                </div>
+        <div className="flex justify-end items-center">
+            <div className="w-full lg:w-1/2">
+                <SearchBar />
             </div>
         </div>
-    );
-};
+
+        <WatchList />
+
+        <div className="flex flex-col lg:flex-row lg:space-x-8 space-y-8 lg:space-y-0">
+            
+            <div className="flex-1 space-y-8">
+            <StockRank />
+            <InvestorRank />
+            </div>
+
+            <div className="w-full lg:w-96 space-y-8">
+            <LoginCard />
+            <ChatWindow />
+            </div>
+        </div>
+    </div>
+    )
+}
 
 
 function SearchBar() {
@@ -39,27 +49,61 @@ const HeartIcon = ({ active }) => (
     </svg>
 );
 
+
 function WatchlistCard({ stock }) {
-    const { name, code, market, price, change, up, active } = stock;
-    return (
-        <div className="bg-white rounded-xl shadow-lg p-4 flex flex-col justify-between">
-            <div>
-                <div className="flex justify-between items-start mb-2">
-                    <div className="w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center font-bold text-lime-500 text-lg">
-                        {name.charAt(0)}
-                    </div>
-                    <HeartIcon active={active} />
-                </div>
-                <p className="text-xs text-gray-500">{code} · {market}</p>
-                <p className="text-lg font-bold text-black mt-1">{name}</p>
-            </div>
-            <div>
-                <p className="text-2xl font-bold text-black mt-4">{price.toLocaleString()}</p>
-                {/* /components/StockCard 에서 받아오자 .. */}
-            </div>
+  const { name, id, market, price, change, changePercent, direction } = stock;
+
+  // 변화율 스타일 (상승/하락 색상)
+  const changeColor =
+    direction === "up" ? "text-red-500" : direction === "down" ? "text-blue-500" : "text-gray-500";
+
+  return (
+    <div className="bg-white rounded-xl shadow-md p-4 flex flex-col justify-between hover:shadow-lg transition-shadow duration-200">
+      {/* 상단: 종목명 + 코드 */}
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <p className="text-sm font-semibold text-gray-900">{name}</p>
+          <p className="text-xs text-gray-500">{id} · {market}</p>
         </div>
-    )
-}
+        {/* 하트 아이콘 영역 */}
+        <HeartIcon active={stock.active} />
+      </div>
+
+      {/* 가격 정보 */}
+      <div className="mt-2">
+        <p className="text-lg font-bold text-gray-900">{price.toLocaleString()}원</p>
+        <p className={`text-sm font-medium ${changeColor}`}>
+          {change >= 0 ? `+${change.toLocaleString()}` : change.toLocaleString()} 
+          ({changePercent.toFixed(2)}%)
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// function WatchlistCard({ stock }) {
+//     const { name, code, market, price, change, up, active } = stock;
+//     return (
+//         <div className="bg-white rounded-xl shadow-md p-4 flex flex-col justify-between hover:shadow-lg transition-shadow duration-200">
+//             {/* 상단부 */}
+//             <div>
+//                 <div className="flex justify-between items-start mb-2">
+//                     <div className="w-10h-10 bg-lime-100 rounded-full flex items-center justify-center font-bold text-lime-500 text-lg">
+//                         {name.charAt(0)}
+//                     </div>
+//                     <HeartIcon active={active} />
+//                 </div>
+//             </div>
+//             {/* 하단부 */}
+//             <div>
+//                 <p className="text-xs text-gray-500">{code} · {market}</p>
+//                 <p className="text-lg font-bold text-black mt-1">{name}</p>
+//                 <p className="text-2xl font-bold text-black mt-4">{price.toLocaleString()}</p>
+//                 {/* /components/StockCard 에서 받아오자 .. */}
+//             </div>
+//         </div>
+//     )
+// }
 
 
 function WatchList() {
@@ -84,8 +128,8 @@ function WatchList() {
 
 function StockRank() {
     const stockData = [
-        { name: '대한전선', volume: 13120, change: 0.54, up: true },
-        { name: '삼성전자', volume: 64200, change: 0.54, up: true },
+        { name: '대한전선', volume: 13120, change: +0.54, up: true },
+        { name: '삼성전자', volume: 64200, change: +0.54, up: true },
         { name: '현대자동차', volume: 121000, change: -0.54, up: false },
         { name: 'SK텔레콤', volume: 121000, change: -0.54, up: false },
     ];
@@ -99,12 +143,97 @@ function StockRank() {
                     <FaChevronRight className="ml-1 w-3 h-3" />
                 </a>
             </div>
-
             <ul>
                 {stockData.map((stock, index) => (
-                    <li key={index} className=";flex justify-between items-center py-2 border-b-0"></li>
+                    <li key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                        <div className="flex items-center">
+                            <span className="w-6 text-center font-bold text-gray-500">{index + 1}</span>
+                            <span className="ml-4 font-medium text-black">{stock.name}</span>
+                        </div>
+                        <div className="flex items-center">
+                            <span className="text-gray-600 mr-4">{stock.volume.toLocaleString()}</span>
+                            <span className={`flex items-center font-semibold ${stock.up ? 'text-red-500' : 'text-blue-500'}`}>
+                                {stock.up ? '▲' : '▼'}
+                                {stock.change >= 0 ? `+${stock.change.toFixed(2)}%` : `${stock.change.toFixed(2)}%`}
+                            </span>
+                        </div>
+                    </li>
                 ))}
             </ul>
         </div>
     )
+};
+
+function InvestorRank() {
+    const investorData = [
+        { name: '김주식', gain: 130.00 },
+        { name: '박투자', gain: 95.50 },
+        { name: '최새싹', gain: 30.25 },
+        { name: '이초보', gain: 15.07 },
+    ];
+
+    return (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-black">투자 랭킹</h2>
+                <a href="#" className="flex items-center text-sm text-lime-600 font-semibold">
+                    더보기
+                    <FaChevronRight className="ml-1 w-3 h-3" />
+                </a>
+            </div>
+            <ul>
+                {investorData.map((investor, index) => (
+                    <li key={index} className="flex items-center py-2 border-b last:border-b-0">
+                        <span className="w-6 text-center font-bold text-gray-500">{index+1}</span>
+                        <div className="w-8 h-8 rounded-full bg-gray-300 ml-4 flex items-center justify-center text-xs"></div>
+                        <span className="ml-4 font-medium flex-1 text-black">{investor.name}</span>
+                        <span className="text-red-500 font-bold">
+                            +{investor.gain.toFixed(2)} %
+                        </span>
+                    </li>
+                ))};
+            </ul>
+        </div>
+    )
+};
+
+function LoginCard() {
+    return (
+        <div className="bg-lime-100 rounded-xl shadow-lg p-6 flex flex-col items-center justify-center space-y-4">
+            <img className="shadow-md cursor-pointer" src="/icon/kakao_login.png" />
+            <p className="text-sm text-gray-500" alt="카카오 로그인">모의 투자를 진행하려면<br/>로그인이 필요합니다.</p>
+        </div>
+    );
 }
+
+const SendIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+    </svg>
+);
+
+function ChatWindow() {
+    return (
+        <div className="bg-lime-50 rounded-xl shadow-lg p-4 h-96 flex flex-col justify-between">
+            <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-2">
+                <div className="bg-white p-3 rounded-xl rounded-br-none text-gray-800 max-w-xs sm:max-w-sm ml-auto">
+                    <p>엄청난 부자가 될거야 !!</p>
+                </div>
+                <div className="flex justify-start">
+                    <div className="bg-lime-200 p-3 rounded-xl rounded-bl-none text-gray-800 max-w-xs sm:max-w-sm">
+                        <p>힘내 \^o^/</p>
+                    </div>
+                </div>
+            </div>
+            <div className="flex items-center border-t border-gray-200 pt-3 w-full">
+                <input type="text" placeholder="메시지를 입력하세요" className="flex-1 p-2 px-4 bg-white rounded-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-500" />
+                <button className="bg-lime-600 text-white rounded-full p-3 ml-2 hover:bg-lime-700transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2"
+                >
+                    <SendIcon />
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default Home;

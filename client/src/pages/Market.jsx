@@ -54,16 +54,18 @@ function Market() {
     return (
         <div className="p-8 bg-lime min-h-screen flex-col">
             {/* 검색 부분 */}
-            {/* flex items-center w-full bg-white rounded-lg p-2 shadow-sm 
-            flex-1 p-2 focus:outline-none placeholder-gray-400 text-gray-800*/}
             <div className="flex justify-end mb-6">
-                <div className="relative w-full max-w-xs">
+                <div className="flex items-center w-full lg:w-1/2 bg-white rounded-lg p-2 shadow-sm border border-gray-200 focus-within:ring-2 focus-within:ring-green-500">
+                    <FaSearch className="w-4 h-4 text-gray-400 mx-2"/>
+                    <input type="text" placeholder="종목 검색" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 p-1 bg-transparent focus:outline-none placeholder-gray-400 text-gray-800" />
+                </div>
+                {/* <div className="relative w-full max-w-xs">
                     <input type="text" placeholder="종목 검색" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full py-2 pl-10 pr-4 border border-gray-300  rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500
                     shadow-sm
                     placeholder-gray-400 text-gray-800" />
                     <FaSearch className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-400" />
-                </div>
+                </div> */}
             </div>
 
             {/* 로딩 상태도 넣으면 좋겠다 */}
