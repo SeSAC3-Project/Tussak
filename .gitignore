@@ -10,3 +10,7 @@ node_modules/
 # 파이썬 컴파일 결과 파일
 __pycache__/
 *.pyc
+
+.DS_Store
+
+venv/
