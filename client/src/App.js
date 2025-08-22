@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FaHome, FaChartLine, FaLightbulb, FaWallet, FaHistory, FaBars, FaTimes } from "react-icons/fa";
+import { FaHome, FaChartLine, FaLightbulb, FaWallet, FaHistory, FaBars, FaTimes, FaSearch } from "react-icons/fa";
+import Market from './pages/Market'
 
 // --- Main App Component ---
 export default function App() {
-  const [activeSection, setActiveSection] = useState('Market');
+  const [activeSection, setActiveSection] = useState('Home');
 
   return (
     <div className="flex min-h-screen text-white font-sans">
@@ -72,7 +73,8 @@ function NavSidebar({ activeSection, setActiveSection }) {
               <img 
                 src="/icon/sprout.png" 
                 alt="Description of Image" 
-                className="w-8 h-8" // Resize image and add right margin
+                className="w-8 h-8" 
+                // Resize image and add right margin
               />
               투싹증권
             </div>
@@ -111,9 +113,6 @@ function NavSidebar({ activeSection, setActiveSection }) {
 }
 
 
-function Market() {
-  pass
-}
 // function Market() {
 //   const [stock, setStock] = useState(null);
 //   const [symbol, setSymbol] = useState('AAPL');
@@ -235,12 +234,15 @@ function Home() {
 
 function SearchBar() {
     return (
-        <div className="flex items-center w-full bg-white rounded-lg p-2 shadow-sm">
-            {/* <FaSearch className="w-4 h-4 text-gray-400 mx-2" /> */}
+        <div className="flex items-center w-full bg-white rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-green-500">
+            <FaSearch className="w-4 h-4 text-gray-400 mx-2" />
             <input 
                 type="text" 
                 placeholder="종목 검색"
-                className="flex-1 p-2 focus:outline-none placeholder-gray-400 text-gray-800"
+                className="flex-1 p-2 
+                focus:outline-none 
+                focus:ring-2 focus:ring-green-500
+                placeholder-gray-400 text-gray-800"
             />
         </div>
     );
@@ -261,7 +263,7 @@ function StockRank() {
                 <h2 className="text-xl font-bold text-black">거래량 순위</h2>
                 <a href="#" className="flex items-center text-sm text-lime-600 font-semibold">
                     더보기 
-                    {/* <FaChevronRight className="ml-1 w-3 h-3" /> */}
+                    
                 </a>
             </div>
             <ul>
@@ -337,11 +339,11 @@ function ChatWindow() {
       <div className="bg-lime-100 rounded-xl shadow-lg p-4 h-96 flex flex-col justify-between">
         <div className="flex-1 overflow-y-auto mb-4 space-y-2">
             {/* Chat bubbles */}
-            <div className="bg-white p-3 rounded-xl rounded-bl-none text-gray-800 max-w-3/4 self-start">
-                <p>무어라무어라</p>
+            <div className="bg-white p-3 rounded-xl rounded-bl-none text-gray-800 max-w-3/4 self-start ml-auto text-right">
+                <p>부자가 될거야!!!</p>
             </div>
-            <div className="bg-lime-200 p-3 rounded-xl rounded-br-none text-gray-800 max-w-3/4 self-end ml-auto">
-                <p>그렇군그렇군</p>
+            <div className="bg-lime-200 p-3 rounded-xl rounded-br-none text-gray-800 max-w-3/4 self-end mr-auto text-left">
+                <p>힘내</p>
             </div>
         </div>
         <div className="flex items-center border-t border-gray-200 pt-4">
