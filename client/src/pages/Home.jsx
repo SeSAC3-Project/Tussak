@@ -16,12 +16,12 @@ function Home() {
 
         <div className="flex flex-col lg:flex-row lg:space-x-8 space-y-8 lg:space-y-0">
             
-            <div className="flex-1 space-y-8">
+            <div className="flex-1 flex flex-col space-y-8">
             <StockRank />
             <InvestorRank />
             </div>
 
-            <div className="w-full lg:w-96 space-y-8">
+            <div className="w-full lg:w-96 flex flex-col space-y-8">
             <LoginCard />
             <ChatWindow />
             </div>
@@ -214,7 +214,7 @@ const SendIcon = () => (
 
 function ChatWindow() {
     return (
-        <div className="bg-lime-50 rounded-xl shadow-lg p-4 h-96 flex flex-col justify-between">
+        <div className="bg-lime-50 rounded-xl shadow-lg p-4 flex flex-col flex-1">
             <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-2">
                 <div className="bg-white p-3 rounded-xl rounded-br-none text-gray-800 max-w-xs sm:max-w-sm ml-auto">
                     <p>엄청난 부자가 될거야 !!</p>
