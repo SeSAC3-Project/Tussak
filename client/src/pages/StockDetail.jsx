@@ -71,8 +71,509 @@ const StockDashboard = () => {
             basePrice += (close - basePrice) * 0.1;
         }
 
+        data.forEach((item, index) => {
+            const ma5Data = data.slice(Math.max(0, index-4), index + 1);
+            item.ma5 = ma5Data.reduce((sum, d) => sum + d.close, 0) / ma5Data.length;
+
+            const ma20Data = data.slice(Math.max(0, index-19), index + 1);
+            item.ma20 = ma20Data.reduce((sum, d) => sum + d.close, 0) / ma20Data.length;
+
+            const ma60Data = data.slice(Math.max(0, index-59), index + 1);
+            item.ma60 = ma60Data.reduce((sum, d) => sum + d.close, 0) / ma60Data.length;
+
+            const ma120Data = data.slice(Math.max(0, index-119), index + 1);
+            item.ma120 = ma120Data.reduce((sum, d) => sum + d.close, 0) / ma120Data.length;
+        });
+
         return data;
-    }
+    };
+
+    const candleData = generatePeriodData(chartState.selectedPeriod);
+
+    const visibleData = candleData.slice( 
+        chartState.startIndex,
+        chartState.startIndex + chartState.visibleCandles
+    );
+
+    const currentPrice = candleData.length >0 ? candleData[candleData.length -1].close : 235000;
+
+    const handlePeriodChange = (period) => {
+        const newData = generatePeriodData(period);
+        // const visibleCandles = period === '1일' ? 60 : period === '1주' ? 25 : period === '1개월' ? 22 : 40;
+        const visibleCandles = 60;
+        const startIndex = Math.max(0, newData.length - visibleCandles);
+
+        setChartState(prev => ({
+            ...prev,
+            selectedPeriod: period,
+            startIndex: startIndex,
+            visibleCandles: visibleCandles
+        }));
+    };
+
+    const handleWheel = useCallback((event) => {
+        event.preventDefault();
+
+        const rect = chartRef.current.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left - 40;
+
+        setChartState(prev => {
+            const delta = event.deltaY;
+            const zoomFactor = delta > 0 ? 1.15 : 1 / 1.15;
+            const newVisibleCandles = Math.max(10, Math.min(Math.min(candleData.length, 150), prev.visibleCandles * zoomFactor));
+
+            const chartWidth = 600;
+            const mouseRatio = mouseX / chartWidth;
+            const currentCenterIndex = prev.startIndex + (prev.visibleCandles * mouseRatio);
+
+            let newStartIndex = Math.round(currentCenterIndex - (newVisibleCandles * mouseRatio));
+            newStartIndex = Math.max(0, Math.min(candleData.length - newVisibleCandles, newStartIndex));
+
+            return {
+                ...prev,
+                startIndex: Math.floor(newStartIndex),
+                visibleCandles: Math.floor(newVisibleCandles)
+            };
+        });
+    }, [candleData.length]);
+
+    const handleMouseDown = useCallback((event) => {
+        if (event.button !== 0) return;
+
+        const rect = chartRef.current.getBoundingClientRect();
+        dragRef.current = {
+            isDragging: true, 
+            startX: event.clientX - rect.left,
+            startIndex: chartState.startIndex
+        };
+
+        setChartState(prev => ({ ...prev, isDragging: true}));
+        event.preventDefault();
+    }, [chartState.startIndex]);
+
+    const handleMouseMove = useCallback((event) => {
+        if (!dragRef.current.isDragging) return;
+
+        const rect = chartRef.current.getBoundingClientRect();
+        const currentX = event.clientX - rect.left;
+        const deltaX = currentX - dragRef.current.startX;
+
+        const chartWidth = 600;
+        const candleWidth = Math.max(4, Math.min(16, chartWidth / chartState.visibleCandles));
+        const spacing = candleWidth + 2;
+        const candlesMoved = Math.round(-deltaX / spacing);
+
+        setChartState(prev => {
+            const newStartIndex = Math.max(0,
+                Math.min(candleData.length - prev.visibleCandles, dragRef.current.startIndex + candlesMoved)
+            );
+            
+            return {
+                ...prev,
+                startIndex: newStartIndex
+            };
+        });
+    }, [candleData.length, chartState.visibleCandles]);
+
+    const handleMouseUp = useCallback(() => {
+        dragRef.current.isDragging = false;
+        setChartState(prev => ({ ...prev, isDragging: false}));
+    }, []);
+
+    const handleMouseMoveChart = useCallback((event) => {
+        if (!chartRef.current || dragRef.current.isDragging) return;
+
+        const rect = chartRef.current.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const isInChartArea = x > 40 && x < rect.width - 10 && y > 20 && y < 300;
+
+        setChartState(prev => ({
+            ...prev,
+            crosshair:{
+                x: x-40,
+                y: y-20,
+                visible: isInChartArea
+            }
+        }));
+    }, []);
+
+    const handleMouseLeaveChart = useCallback(() => {
+        setChartState(prev => ({
+            ...prev,
+            crosshair: { ...prev.crosshair, visible: false }
+        }));
+    }, []);
+    
+    const formatDate = (date, period) => {
+        if (period === '1일') {
+            return date.toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+        } else {
+            return date.toLocaleDateString('ko-KR', {
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\./g, '/').replace(/ /g, '');
+        }
+    };
+
+    const handleKeyDown = useCallback((event) => {
+        if (!chartRef.current) return;
+
+        switch(event.key) {
+            case 'ArrowLeft':
+                event.preventDefault();
+                setChartState(prev => ({
+                    ...prev,
+                    startIndex: Math.max(0, prev.startIndex - 5)
+                }));
+                break;
+            case 'ArrowRight':
+                event.preventDefault();
+                setChartState(prev => ({
+                    ...prev,
+                    startIndex: Math.min(candleData.length - prev.visibleCandles, prev.startIndex + 5)
+                }));
+                break;
+            case 'Home':
+                event.preventDefault();
+                setChartState(prev => ({
+                    ...prev,
+                    startIndex: Math.max(0, candleData.length - prev.visibleCandles)
+                }));
+                break;
+        }
+    }, [candleData.length]);
+
+    React.useEffect(() => {
+        const handleGlobalMouseMove = (e) => handleMouseMove(e);
+        const handleGlobalMouseUp = (e) => handleMouseUp(e);
+
+        if (dragRef.current.isDragging) {
+            document.addEventListener('mousemove', handleGlobalMouseMove);
+            document.addEventListener('mouseup',  handleGlobalMouseUp);
+
+        const handleGlobalKeyDown = (e) => handleKeyDown(e);
+        document.addEventListener('keydown', handleGlobalKeyDown);
+
+        return () => {
+            document.removeEventListener('mousemove', handleGlobalMouseMove);
+            document.removeEventListener('mouseup', handleGlobalMouseMove);
+            document.removeEventListener('keydown', handleGlobalMouseMove);
+        };
+    }, [handleMouseMove, handleMouseUp, handleKeyDown]);
+
+    React.useEffect(() => {
+        if (chartRef.current) {
+            chartRef.current.tabIndex = 0;
+        }
+    }, []);
+
+    const getPriceRange = (data) => {
+        if (!data.length) return { min: 0, max: 100000};
+
+        let min = Infinity;
+        let max = -Infinity;
+
+        data.forEach(candle => {
+            min = Math.min(min, candle.low, candle.ma5, candle.ma20, candle.ma60, candle.ma120);
+            max = Math.max(max, candle.high, candle.ma5, candle.ma20, candle.ma60, candle.ma120);
+        });
+
+        const padding = (max - min) * 0.2;
+        return { min: min - padding, max: max + padding};
+    };
+
+    const priceRange = getPriceRange(visibleData);
+
+    // 드디어 캔들차트
+    const CandlestickChart = ({ data }) => {
+        const chartContainerWidth = 600;
+        const candleWidth = Math.max(4, Math.min(16, chartContainerWidth / Math.max(data.length, chartState.visibleCandles)));
+        const spacing = candleWidth + 2;
+
+        const totalDataWidth = data.length * spacing;
+        const maxPossibleWidth = chartState.visibleCandles * spacing;
+        const leftOffset = Math.max(0, maxPossibleWidth - totalDataWidth);
+
+        const scaleY = (price) => {
+            return 280 - ((price - priceRange.min) / (priceRange.max - priceRange.min)) * 260;
+        };
+
+        return (
+            <div
+                ref={chartRef}
+                className={`relative w-full h-80 outline-none ${chartState.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                onWheel={handleWheel}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMoveChart}
+                onMouseLeave={handleMouseLeaveChart}
+                style={{ userSelect: 'none' }}
+                tabIndex={0}
+            >
+                <svg width="100%" height="100%" className="overflow-visible">
+                    <defs>
+                        <pattern id="grid" width="40" height="20" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 20" fill="none" stroke="#f0f0f0" strokeWidth="1" />
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+
+                    <g>
+                        {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                            const price = priceRange.min + (priceRange.max - priceRange.min) * ratio;
+                            return (
+                                <g key={i}>
+                                    <line x1="35" y1={y} x2="40" y2={y} stroke="#ccc" strokeWidth="1" />
+                                    <text x="32" y={y + 4} fontSize="10" fill="#666" textAnchor="end">
+                                        {Math.round(price).toLocaleString()}
+                                    </text> 
+                                </g>
+                            );
+                        })}
+                    </g>
+
+                    <g transform="translate(40, 20)">
+                        {data.length > 1 && (
+                            <>
+                                <polyline 
+                                    fill="none"
+                                    stroke="#3b82f6"
+                                    strokeWidth="1.5"
+                                    points={data.map((d, i) => `${leftOffset + i * spacing + candleWidth/2},${scaleY(d.ma5) - 20}`).join(' ')}
+                                />
+                                <polyline
+                                    fill="none"
+                                    stroke="#f59e0b"
+                                    strokeWidth="1.5"
+                                    points={data.map((d, i) => `${leftOffset + i * spacing + candleWidth/2}, ${scaleY(d.ma20) - 20}`).join(' ')}
+                                />
+                                <polyline
+                                    fill="none"
+                                    stroke="#8b5cf6"
+                                    strokeWidth="1.5"
+                                    points={data.map((d, i) => `${leftOffset + i * spacing + candleWidth/2}, ${scaleY(d.ma60) - 20}`).join(' ')}
+                                />
+                                <polyline
+                                    fill="none"
+                                    stroke="#6b7280"
+                                    strokeWidth="1.5"
+                                    strokeDasharray="3,3"
+                                    points={data.map((d, i) => `${leftOffset + i * spacing + candleWidth/2}, ${scaleY(d.ma20) - 20}`).join(' ')}
+                                />
+                            </>
+                        )}
+
+                        <line
+                            x1="0"
+                            y1={scaleY(currentPrice) - 20}
+                            x2={chartContainerWidth}
+                            y2={scaleY(currentPrice) - 20}
+                            stroke="#ef4444"
+                            strokeWidth="1"
+                            strokeDasharray="4,4"
+                            opacity="0.7"
+                        />
+
+                        {/* <g>
+                            <rect
+                                x={chartContainerWidth - 85}
+                                y={scaleY(currentPrice) - 28}
+                                width="75"
+                                height="14"
+                                fill="#ef4444"
+                                rx="7"
+                                opacity="0.95"
+                            />
+                            <text
+                                x={chartContainerWidth - 47.5}
+                                y={scaleY(currentPrice) - 19}
+                                fontSize="9"
+                                fill="white"
+                                textAnchor="middle"
+                                fontWeight="600"
+                            >
+                                {Math.round(currentPrice).toLocaleString()}
+                            </text>
+                        </g> */}
+
+                        {chartState.crosshair.visible && (
+                            <g opacity="0.7">
+                                <line
+                                    x1={chartState.crosshair.x}
+                                    y1="0"
+                                    x2={chartState.crosshair.x}
+                                    y2="260"
+                                    stroke="#666"
+                                    strokeWidth="1"
+                                    strokeDasharray="2,2"
+                                />
+                                <line
+                                    x1="0"
+                                    y1={chartState.crosshair.y}
+                                    x2={chartContainerWidth}
+                                    y2={chartState.crosshair.y}
+                                    stroke="#66"
+                                    strokeWidth="1"
+                                    strokeDasharray="2,2"
+                                />
+                            </g>
+                        )}
+
+                        {data.map((candle, index) => {
+                            const x = leftOffset + index * spacing;
+                            const isGreen = candle.close > candle.open;
+                            const bodyTop = Math.min(candle.open, candle.close);
+                            const bodyBottom = Math.max(candle.open, candle.close);
+                            const bodyHeight = Math.abs(candle.close - candle.open);
+
+                            return (
+                                <g key={index}>
+                                    <line
+                                        x1={x + candleWidth/2}
+                                        y1={scaleY(candle.high) - 20}
+                                        x2={x + candleWidth/2}
+                                        y2={pscaleY(candle.low) - 20}
+                                        stroke={isGreen ? "#22c55e" : "#ef4444"}
+                                        strokeWidth="1"
+                                    />
+                                    <rect
+                                        x={x}
+                                        y={scaleY(bodyTop) - 20}
+                                        width={candleWidth}
+                                        height={Math.max(( bodyHeight / (priceRange.max - priceRange.min)) * 260, 1)}
+                                        fill={isGreen ? "#22c55e" : "#ef4444"}
+                                        stroke={isGreen ? "#22c55e" : "#ef4444"}
+                                    />
+                                </g>
+                            );
+                        })}
+                    </g>
+                </svg>
+
+                <div className="absolute top-2 right-2 bg-black bg=opacity-70 text-white px-3 py-2 rounded-lg text-xs space-y-1">
+                    <div className="flex items-center space-x-2">
+                        <span className="text-blue-400">🔍</span>
+                        <span>{chartState.visibleCandles}개 캔들</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <span className="text-green-400">📊</span>
+                        <span>{chartState.startIndex + 1}-{chartState.startIndex + visibleData.length}</span>
+                    </div>
+                    <div className="text-center text-xs text-gray-300">
+                        {chartState.selectedPeriod === '1일' ? '📈' :
+                        chartState.selectedPeriod === '1주' ? '📊' :
+                        chartState.selectedPeriod === '1개월' ? '📅' : '🗓️'}
+                        {' '}
+                        {chartState.selectedPeriod}
+                    </div>
+                </div>
+
+                <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-xs">
+                    <div className="hidden lg:block">
+                        🖱️ 휠:줌 | 드래그:이동 | ⌨️ ←→:스크롤 | Home/End:처음/끝
+                    </div>
+                    <div className="lg:hidden">
+                        🖱️ 휠:줌 | 드래그:이동
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const VolumeChart = ({ data }) => {
+        const maxVolume = Math.max(...data.map(d => d.volume));
+        const chartContainerWidth = 600;
+        const candleWidth = Math.max(4, Math.min(16, chartContainerWidth / Math.max(data.length, chartState.visibleCandles)));
+        const spacing = candleWidth + 2;
+
+        const totalDataWidth = data.length * spacing;
+        const maxPossibleWidth = chartState.visibleCandles * spacing;
+        const leftOffset = Math.max(0, maxPossibleWidth - totalDataWidth);
+
+        return (
+            <div className="w-full h-20">
+                <svg width="100%" height="100%">
+                    <g transform="translate(40, 0)">
+                        {data.map((candle, index) => {
+                            const x = leftOffset + index * spacing;
+                            const height = (candle.volume / maxVolume) * 50;
+                            const isGreen = candle.close > candle.open;
+                            
+                            return (
+                                <rect
+                                    key={index}
+                                    x={x}
+                                    y={60 - height}
+                                    width={candleWidth}
+                                    height={height}
+                                    fill={isGreen ? "#22c55e" : "#ef4444"}
+                                    opacity="0.6"
+                                />
+                            );
+                        })}
+                    </g>
+
+                    <g transform="translate(40,0)">
+                        {data.map((candle, index) => {
+                            const shouldShowDate = data.length <= 15 ? index % 2 === 0 : 
+                                data.length <= 30 ? index % 3 === 0 : 
+                                data.length <= 50 ? index % 5 === 0 : 
+                                index % 8 === 0;
+
+                            if (!shouldShowDate) return null;
+
+                            const x = leftOffset + index * spacing;
+
+                            return (
+                                <text 
+                                    key={`date-${index}`}
+                                    x={x + candleWidth/2}
+                                    y="75"
+                                    fontSize="9"
+                                    fill="#888"
+                                    textAnchor="middle"
+                                >
+                                    {formData(candle.date, chartState.selectedPeriod)}
+                                </text>
+                            );
+                        })}
+                    </g>
+
+                    <g>
+                        <text x="32" y="15" fontSize="9" fill="#888" textAnchor="end">
+                            {(maxVolume / 1000000).toFixed(1)}M
+                        </text>
+                        <text x="32" y="35" fontSize="9" fill="#888" textAnchor="end">
+                            {(maxVolume / 2000000).toFixed(1)}M
+                        </text>
+                    </g>
+                </svg>
+            </div>
+        );
+    };
+
+    const stockInfo = [
+        { label: '시가총액', value: '52,254' },
+        { label: '주식수', value: '52,254' },
+        { label: '상장일자', value: 'n/254' },
+        { label: '상장자본금', value: '52,254' },
+        { label: '52주 최저', value: '52,254' },
+        { label: '52주 최고', value: '52,254' },
+        { label: 'PER', value: '52,254' },
+        { label: 'PBR', value: '52,254' }
+    ];
+
+    return (
+        <div className="min-h-screen p-6">
+            <div className="max-w-7xl mx-auto space-y-6"
+        </div>
+    )
+    })
 }
 
 export default StockDetail;

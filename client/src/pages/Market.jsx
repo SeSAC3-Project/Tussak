@@ -84,4 +84,16 @@ function Market() {
     )
 };
 
-export default Market;
+export default Market() {
+    const [selectedStock, setSelectedStock] = useState(null);
+
+    return (
+        <div>
+            {selectedStock ? (
+                <StockDetail stock={selectedStock} onBack={() => setSelectedStock(null) :  (
+                    <StockList onSelectStock={(stock) => setSelectedStock(stock)} />
+                )}
+            )}
+        </div>
+    );
+};
