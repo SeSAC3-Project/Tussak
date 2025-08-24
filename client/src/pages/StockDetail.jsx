@@ -1,5 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 
+export default function StockDetail({ stock }) {
+    
 const StockDashboard = () => {
     const [chartState, setChartState] = useState({
         startIndex: 0,
@@ -256,6 +258,7 @@ const StockDashboard = () => {
         if (dragRef.current.isDragging) {
             document.addEventListener('mousemove', handleGlobalMouseMove);
             document.addEventListener('mouseup',  handleGlobalMouseUp);
+        }
 
         const handleGlobalKeyDown = (e) => handleKeyDown(e);
         document.addEventListener('keydown', handleGlobalKeyDown);
@@ -265,6 +268,7 @@ const StockDashboard = () => {
             document.removeEventListener('mouseup', handleGlobalMouseMove);
             document.removeEventListener('keydown', handleGlobalMouseMove);
         };
+
     }, [handleMouseMove, handleMouseUp, handleKeyDown]);
 
     React.useEffect(() => {
@@ -326,6 +330,7 @@ const StockDashboard = () => {
                     <g>
                         {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
                             const price = priceRange.min + (priceRange.max - priceRange.min) * ratio;
+                            const y = scaleY(price)
                             return (
                                 <g key={i}>
                                     <line x1="35" y1={y} x2="40" y2={y} stroke="#ccc" strokeWidth="1" />
@@ -437,7 +442,7 @@ const StockDashboard = () => {
                                         x1={x + candleWidth/2}
                                         y1={scaleY(candle.high) - 20}
                                         x2={x + candleWidth/2}
-                                        y2={pscaleY(candle.low) - 20}
+                                        y2={scaleY(candle.low) - 20}
                                         stroke={isGreen ? "#22c55e" : "#ef4444"}
                                         strokeWidth="1"
                                     />
@@ -538,7 +543,7 @@ const StockDashboard = () => {
                                     fill="#888"
                                     textAnchor="middle"
                                 >
-                                    {formData(candle.date, chartState.selectedPeriod)}
+                                    {formatDate(candle.date, chartState.selectedPeriod)}
                                 </text>
                             );
                         })}
@@ -569,11 +574,134 @@ const StockDashboard = () => {
     ];
 
     return (
-        <div className="min-h-screen p-6">
-            <div className="max-w-7xl mx-auto space-y-6"
-        </div>
-    )
-    })
-}
+        <div>
+            <div className="max-2-7xl mx-auto space-y-6">
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                            <h1 className="text-2xl font-bold text-gray-800">{stock.name}</h1>
+                            <span className="text-sm text-gray-500">{stock.id} {stock.market}</span>
+                            <span className="text-2xl font-bold text-gray-800">{stock.price.toLocaleString()}</span>
+                            <div className="flex items-center space-x-2">
+                                <span className={`font-semibold ${stock.direction === 'up' ? 'text-red-500' : 'text-blue-500'}`} >
+                                    {stock.direction === 'up' ? '▲' : '▼'} {stock.change.toLocaleString()} ({stock.changePercent}%)
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex space-x-2">
+                            <button className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors font-medium">
+                                매도
+                            </button>
+                            <button className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                                매수
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-export default StockDetail;
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                    <div className="mb-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <span className="text-lg font-semibold text-gray-700">차트</span>
+                            <div className="flex items-center space-x-1 sm:space-x-2 text-xs">
+                                {['1일', '1주', '1개월', '3개월'].map(period => (
+                                    <button
+                                        key={period}
+                                        onClick={() => handlePeriodChange(period)}
+                                        className={`px-2 sm:px-3 py-1 rounded transition-colors ${
+                                            chartState.selectedPeriod === period ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        {period}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="hidden lg:flex items-center justify-between">
+                            <div className="flex items-center space-x-1">
+                                <div className="w-4 h-0.5 bg-blue-500"></div>
+                                <span>MA5</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                                <div className="w-4 h-0.5 bg-amber-500"></div>
+                                <span>MA20</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                                <div className="w-4 h-0.5 bg-violet-500"></div>
+                                <span>MA60</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                                <div className="w-4 h-0.5 bg-gray-500 opacity-60 border-dashed"></div>
+                                <span>MA120</span>
+                            </div>
+                            <div className="flex items-center space-x-3 text-xs">
+                                <div classNAme="text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                    💡 마우스 휠: 줌 | 드래그: 이동
+                                </div>
+                                <div className="text-green-600 bg-green-50 px-2 py-1 rounded">
+                                    📊 {chartState.selectedPeriod} - {
+                                        chartState.selectedPeriod === '1일' ? '5분봉' : 
+                                        chartState.selectedPeriod === '1주' ? '1시간봉' : '일봉'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="lg:hidden">
+                            <div className="flex items-center justify-between text-xs">
+                                <div className="flex items-center space-x-2 text-gray-500">
+                                    <span className="text-blue-500">MA5</span>
+                                    <span className="text-amber-500">MA20</span>
+                                    <span className="text-violet-500">MA60</span>
+                                    <span className="text-gray-500">MA120</span>
+                                </div>
+                                <div className="text-green-600 bg-green-50 px-2 py-1 rounded">
+                                    {chartState.selectedPeriod} - {
+                                        chartState.selectedPeriod === '1일' ? '5분봉' :
+                                        chartState.selectedPeriod === '1주' ? '1시간봉' : '일봉'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <CandlestickChart data={visibleData} />
+
+                    <div className="mt-4 border-to border-gray-100 pt-2">
+                        <div className="flex items-center mb-2">
+                            <span className="text-xs text-gray-500 ml-10">거래량</span>
+                        </div>
+                        <VolumeChart data={visibleData} />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white rounded-2xl shadow-lg p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-6">종목요약</h2>
+                        <div className="space-y-4">
+                            {stockInfo.map((item, index) => (
+                                <div key={index} className="flex justify-between items-center py-1 border-b border-gray-50 las:border-b-0">
+                                    <span className="text-gray-600 text-sm">{item.label}</span>
+                                    <span className="font-semibold text-gray-800 text-sm">{item.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-lg p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-4">기업개요</h2>
+                        <p className="text-gray-600 leading-relaxed text-sm mb-6">
+                            대한전선 베트남 생산법인 대한비나, 초고압 케이블 공장 짓는다. 대한전선 베트남 생산법인 대한비나, 초고압 케이블 공장 짓는다. 대한전선 베트남 생산법인 대한비나, 초고압 케이블 공장 짓는다. 대한전선 베트남 생산법인 대한비나, 초고압 케이블 공장 짓는다. 대한전선 베트남 생산법인 대한비나, 초고압 케이블 공장 짓는다. 
+                        </p>
+                        <div className="flex justify-end">
+                            <div className="w-12 h-12 bg-green-400 rounded-full flex items-center justify-center hover:bg-green-500 transition-colors cursor-pointer shadow-md">
+                                챗봇이
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}}
