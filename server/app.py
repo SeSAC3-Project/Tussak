@@ -29,6 +29,7 @@ def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
+    app.debug = True # 개발 모드 설정 -> 배포 시 수정 필요
     setup_logging(app)
     # 로그 사용 방법
     # from flask import current_app
