@@ -1,5 +1,7 @@
 from flask import Flask
+from flask_cors import CORS
 import os
+from dotenv import load_dotenv
 
 from models import db
 from models.user import User
@@ -14,11 +16,13 @@ from routes.news_routes import news_bp
 from routes.user_routes import user_bp
 from routes.ranking_routes import ranking_bp
 from routes.stock_routes import stock_bp
-from server.routes.user_routes import user_bp
+
+load_dotenv()
 
 def create_app(): 
     app = Flask(__name__)
 
+    CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000'])
     init_db(app)
     register_blueprints(app)
 

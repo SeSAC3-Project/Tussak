@@ -12,6 +12,6 @@ class Portfolio(db.Model):
     created_at = db.Column(db.TIMESTAMP, default=datetime.now())
     updated_at = db.Column(db.TIMESTAMP, default=datetime.now(), onupdate=datetime.now())
     
-    transactions = db.relationship('Transaction', backref='portfolio', lazy=True)
+    # transactions = db.relationship('Transaction', backref='portfolio', lazy=True) # transaction에서 portfolio 접근 사유 확인 필요, 주석 처리
 
     # 종목명, 평균단가, 현재가, 평가금액, 평가수익률

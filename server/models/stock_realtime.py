@@ -26,7 +26,5 @@ class StockRealtime(db.Model):
     
     updated_at = db.Column(db.TIMESTAMP, default=datetime.now())
     
-    portfolios = db.relationship('Portfolio', backref='stock', lazy=True)
-    transactions = db.relationship('Transaction', backref='stock', lazy=True)
-    bookmarks = db.relationship('Bookmark', backref='stock', lazy=True)
+    stock = db.relationship('Stock', backref='realtime_data', lazy=True)
     
