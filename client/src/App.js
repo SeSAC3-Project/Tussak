@@ -1,4 +1,5 @@
 // npm install lucide-react
+// npm install tailwind-scrollbar
 
 import React, { useState, useEffect } from 'react';
 import { FaHome, FaChartLine, FaLightbulb, FaWallet, FaHistory, FaBars, FaTimes, FaSearch } from "react-icons/fa";

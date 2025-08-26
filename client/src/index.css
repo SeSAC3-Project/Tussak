@@ -18,3 +18,19 @@ body {
   width: 0;
   background: transparent;
 }
+
+
+/* scrollbar 플러그인이 tailwind 버전마다 상이하여 install 비추천 -> 글로벌 CSS로 설정 */
+.scrollbar-thin {
+  scrollbar-width: thin; 
+}
+
+.scrollbar-thumb-lime-300::-webkit-scrollbar-thumb {
+  background-color: #84cc16; 
+  border-radius: 9999px;
+}
+
+.scrollbar-thumb-lime-300::-webkit-scrollbar {
+  width: 6px;
+}
+
