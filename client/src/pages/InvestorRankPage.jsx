@@ -55,43 +55,12 @@ const InvestmentRanking = () => {
             <div className="max-w-7xl mx-auto">
                 {/* 사이드바와 메인 컨텐츠를 감싸는 컨테이너 */}
                 <div className="lg:flex lg:gap-8">
-                    {/* 사이드바 (큰 화면에서만) */}
-                    <div className="hidden lg:block lg:w-64 lg:flex-shrink-0">
-                        <div className="bg-white rounded-2xl shadow-lg p-6">
-                            <h2 className="text-xl font-bold text-gray-800 mb-6">투자중원</h2>
-                            <nav className="space-y-3">
-                                <div className="bg-emerald-100 text-emerald-800 px-4 py-3 rounded-lg font-medium">
-                                    🏠 Home
-                                </div>
-                                <div className="text-gray-600 px-4 py-3 hover:bg-gray-50 rounded-lg cursor-pointer">
-                                    📊 Market
-                                </div>
-                                <div className="text-gray-600 px-4 py-3 hover:bg-gray-50 rounded-lg cursor-pointer">
-                                    💡 Insight
-                                </div>
-                                <div className="text-gray-600 px-4 py-3 hover:bg-gray-50 rounded-lg cursor-pointer">
-                                    📈 Portfolio
-                                </div>
-                                <div className="text-gray-600 px-4 py-3 hover:bg-gray-50 rounded-lg cursor-pointer">
-                                    📜 History
-                                </div>
-                            </nav>
-                            <div className="mt-auto pt-8">
-                                <button className="text-gray-500 hover:text-gray-700 px-4 py-2">
-                                    ⬅ Log Out
-                                </button>
-                            </div>
-                        </div>
-                    </div>
 
                     {/* 메인 컨텐츠 */}
                     <div className="flex-1">
                         {/* 헤더 */}
                         <div className="flex items-center justify-between mb-8">
                             <h1 className="text-3xl lg:text-4xl font-bold text-gray-800">투자 랭킹</h1>
-                            <div className="bg-orange-400 text-white px-4 py-2 rounded-full font-medium shadow-lg">
-                                Calia
-                            </div>
                         </div>
 
                         {/* 랭킹 카드 */}
