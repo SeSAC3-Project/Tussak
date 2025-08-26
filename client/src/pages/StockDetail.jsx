@@ -2,10 +2,9 @@ import React, { useState, useRef, useCallback } from 'react';
 
 export default function StockDetail({ stock }) {
     
-const StockDashboard = () => {
     const [chartState, setChartState] = useState({
         startIndex: 0,
-        visibleCandles: 40,
+        visibleCandles: 80,
         isDragging: false,
         dragStart: null,
         selectedPeriod: '1개월',
@@ -102,7 +101,7 @@ const StockDashboard = () => {
     const handlePeriodChange = (period) => {
         const newData = generatePeriodData(period);
         // const visibleCandles = period === '1일' ? 60 : period === '1주' ? 25 : period === '1개월' ? 22 : 40;
-        const visibleCandles = 60;
+        const visibleCandles = 80;
         const startIndex = Math.max(0, newData.length - visibleCandles);
 
         setChartState(prev => ({
@@ -118,6 +117,8 @@ const StockDashboard = () => {
 
         const rect = chartRef.current.getBoundingClientRect();
         const mouseX = event.clientX - rect.left - 40;
+
+        // if (mouseX < 0 || mouseX > 600) return;
 
         setChartState(prev => {
             const delta = event.deltaY;
@@ -297,7 +298,7 @@ const StockDashboard = () => {
     // 드디어 캔들차트
     const CandlestickChart = ({ data }) => {
         const chartContainerWidth = 600;
-        const candleWidth = Math.max(4, Math.min(16, chartContainerWidth / Math.max(data.length, chartState.visibleCandles)));
+        const candleWidth = Math.max(2, Math.min(8, chartContainerWidth / Math.max(data.length, chartState.visibleCandles)));
         const spacing = candleWidth + 2;
 
         const totalDataWidth = data.length * spacing;
@@ -325,7 +326,7 @@ const StockDashboard = () => {
                             <path d="M 40 0 L 0 0 0 20" fill="none" stroke="#f0f0f0" strokeWidth="1" />
                         </pattern>
                     </defs>
-                    <rect width="100%" height="100%" fill="url(#grid)" />
+                    <rect width="70%" height="100%" fill="url(#grid)" />
 
                     <g>
                         {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
@@ -493,7 +494,7 @@ const StockDashboard = () => {
     const VolumeChart = ({ data }) => {
         const maxVolume = Math.max(...data.map(d => d.volume));
         const chartContainerWidth = 600;
-        const candleWidth = Math.max(4, Math.min(16, chartContainerWidth / Math.max(data.length, chartState.visibleCandles)));
+        const candleWidth = Math.max(2, Math.min(8, chartContainerWidth / Math.max(data.length, chartState.visibleCandles)));
         const spacing = candleWidth + 2;
 
         const totalDataWidth = data.length * spacing;
@@ -619,21 +620,23 @@ const StockDashboard = () => {
                         </div>
 
                         <div className="hidden lg:flex items-center justify-between">
-                            <div className="flex items-center space-x-1">
-                                <div className="w-4 h-0.5 bg-blue-500"></div>
-                                <span>MA5</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                                <div className="w-4 h-0.5 bg-amber-500"></div>
-                                <span>MA20</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                                <div className="w-4 h-0.5 bg-violet-500"></div>
-                                <span>MA60</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                                <div className="w-4 h-0.5 bg-gray-500 opacity-60 border-dashed"></div>
-                                <span>MA120</span>
+                            <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                <div className="flex items-center space-x-1">
+                                    <div className="w-4 h-0.5 bg-blue-500"></div>
+                                    <span>MA5</span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                    <div className="w-4 h-0.5 bg-amber-500"></div>
+                                    <span>MA20</span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                    <div className="w-4 h-0.5 bg-violet-500"></div>
+                                    <span>MA60</span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                    <div className="w-4 h-0.5 bg-gray-500 opacity-60 border-dashed"></div>
+                                    <span>MA120</span>
+                                </div>
                             </div>
                             <div className="flex items-center space-x-3 text-xs">
                                 <div classNAme="text-blue-600 bg-blue-50 px-2 py-1 rounded">
@@ -704,4 +707,4 @@ const StockDashboard = () => {
             </div>
         </div>
     );
-}}
+}

@@ -1,11 +1,11 @@
 import React from 'react';
 import { FaSearch, FaChevronRight } from 'react-icons/fa';
+import InvestorRank from './InvestorRank.jsx'
 
 
-function Home() {
+export default function Home({ setActiveSection }) {
     return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
-
         <div className="flex justify-end items-center">
             <div className="w-full lg:w-1/2">
                 <SearchBar />
@@ -17,13 +17,13 @@ function Home() {
         <div className="flex flex-col lg:flex-row lg:space-x-8 space-y-8 lg:space-y-0">
             
             <div className="flex-1 flex flex-col space-y-8">
-            <StockRank />
-            <InvestorRank />
+                <StockRank />
+                <InvestorRank setActiveSection={setActiveSection} />
             </div>
 
             <div className="w-full lg:w-96 flex flex-col space-y-8">
-            <LoginCard />
-            <ChatWindow />
+                <LoginCard />
+                <ChatWindow />
             </div>
         </div>
     </div>
@@ -164,38 +164,6 @@ function StockRank() {
     )
 };
 
-function InvestorRank() {
-    const investorData = [
-        { name: '김주식', gain: 130.00 },
-        { name: '박투자', gain: 95.50 },
-        { name: '최새싹', gain: 30.25 },
-        { name: '이초보', gain: 15.07 },
-    ];
-
-    return (
-        <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-black">투자 랭킹</h2>
-                <a href="#" className="flex items-center text-sm text-lime-600 font-semibold">
-                    더보기
-                    <FaChevronRight className="ml-1 w-3 h-3" />
-                </a>
-            </div>
-            <ul>
-                {investorData.map((investor, index) => (
-                    <li key={index} className="flex items-center py-2 border-b last:border-b-0">
-                        <span className="w-6 text-center font-bold text-gray-500">{index+1}</span>
-                        <div className="w-8 h-8 rounded-full bg-gray-300 ml-4 flex items-center justify-center text-xs"></div>
-                        <span className="ml-4 font-medium flex-1 text-black">{investor.name}</span>
-                        <span className="text-red-500 font-bold">
-                            +{investor.gain.toFixed(2)} %
-                        </span>
-                    </li>
-                ))};
-            </ul>
-        </div>
-    )
-};
 
 function LoginCard() {
     return (
@@ -235,5 +203,3 @@ function ChatWindow() {
         </div>
     );
 };
-
-export default Home;

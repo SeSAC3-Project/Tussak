@@ -1,7 +1,10 @@
+// npm install lucide-react
+
 import React, { useState, useEffect } from 'react';
 import { FaHome, FaChartLine, FaLightbulb, FaWallet, FaHistory, FaBars, FaTimes, FaSearch } from "react-icons/fa";
 import Market from './pages/Market.jsx'
 import Home from './pages/Home.jsx'
+import InvestorRankPage from './pages/InvestorRankPage.jsx'
 
 // --- Main App Component ---
 export default function App() {
@@ -12,11 +15,12 @@ export default function App() {
       <NavSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
       
       <div className="flex-1 p-8 overflow-y-auto">
-        {activeSection === 'Home' && <Home />}
+        {activeSection === 'Home' && <Home setActiveSection={setActiveSection} />}
         {activeSection === 'Market' && <Market />}
         {activeSection === 'Insight' && <Insight />}
         {activeSection === 'Portfolio' && <Portfolio />}
         {activeSection === 'History' && <History />}
+        {activeSection === 'InvestorRankPage' && <InvestorRankPage />}
       </div>
     </div>
   );
