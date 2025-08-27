@@ -70,9 +70,11 @@ def parse_mst_file(file_path, market):
                 if market.lower() == 'kospi':
                     # 코스피: 228바이트 구조
                     basic_info = line[0:len(line) - 228]
+                    extended_info = line[-228:]
                 else:
                     # 코스닥: 222바이트 구조  
                     basic_info = line[0:len(line) - 222]
+                    extended_info = line[-222:]
                 
                 # 기본 정보 추출
                 stock_code = basic_info[0:9].rstrip() # 단축코드
@@ -82,15 +84,38 @@ def parse_mst_file(file_path, market):
                 if not stock_code or not stock_name:
                     continue
                 
-                # 데이터 정리
-                if stock_code and stock_name:
-                    stock_info = {
-                        'stock_code': stock_code,
-                        'standard_code': standard_code,
-                        'stock_name': stock_name,
-                        'market': market.upper()
-                    }
-                    stocks_data.append(stock_info)
+                # 업종 코드 추출 (확장 정보에서)
+                if market.lower() == 'kosdaq':
+                    # 코스닥: 헤더 파일 기준 위치
+                    bstp_larg_code = extended_info[5:9].strip()   # 지수업종 대분류 (4자리)
+                    bstp_medm_code = extended_info[9:13].strip()  # 지수업종 중분류 (4자리)  
+                    bstp_smal_code = extended_info[13:17].strip() # 지수업종 소분류 (4자리)
+                else:  # 코스피
+                    # 코스피: 헤더 파일 기준 위치
+                    bstp_larg_code = extended_info[5:9].strip()
+                    bstp_medm_code = extended_info[9:13].strip()
+                    bstp_smal_code = extended_info[13:17].strip()
+                
+                # sector 코드 조합 생성
+                sector_parts = []
+                if bstp_larg_code:
+                    sector_parts.append(bstp_larg_code)
+                if bstp_medm_code:
+                    sector_parts.append(bstp_medm_code)
+                if bstp_smal_code:
+                    sector_parts.append(bstp_smal_code)
+                
+                sector_code = '>'.join(sector_parts) if sector_parts else None
+                
+                # 유효한 종목만 추가
+                stock_info = {
+                    'stock_code': stock_code,
+                    'standard_code': standard_code,
+                    'stock_name': stock_name,
+                    'market': market.upper(),
+                    'sector': sector_code
+                }
+                stocks_data.append(stock_info)
         
         return stocks_data
         
