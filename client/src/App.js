@@ -13,7 +13,7 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('Home');
 
   return (
-    <div className="flex min-h-screen text-white font-sans">
+    <div className="flex h-screen text-white font-sans">
       <NavSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
       
       <div className="flex-1 p-8 overflow-y-auto">

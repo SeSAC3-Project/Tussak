@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
+import { sendMessageToBot } from '../utils/chatApi';
 
 const Chatbot = ({ isExpanded = false, onToggle = null }) => {
   const [messages, setMessages] = useState([
@@ -13,70 +14,74 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(isExpanded);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      const chatContainer = messagesEndRef.current.closest('.overflow-y-auto');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      } else {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     setIsOpen(isExpanded);
   }, [isExpanded]);
 
   const handleSendMessage = async () => {
-    if (!inputText.trim()) return;
+  if (!inputText.trim() || isLoading) return;
 
-    const userMessage = {
-      // id 현재 시간으로 부여
-      id: Date.now(), 
-      text: inputText,
-      sender: 'user',
+  const userMessage = {
+    id: Date.now(),
+    text: inputText.trim(),
+    sender: 'user',
+    timestamp: new Date()
+  };
+
+  setMessages(prev => [...prev, userMessage]);
+  const currentInput = inputText.trim();
+  setInputText('');
+  setIsLoading(true);
+
+  try {
+    const conversationHistory = messages.map(msg => ({
+      role: msg.sender === 'user' ? 'user' : 'assistant',
+      content: msg.text
+    }));
+
+    const response = await sendMessageToBot(currentInput, conversationHistory);
+    
+    const botMessage = {
+      id: Date.now() + 1,
+      text: response.message,
+      sender: 'bot',
       timestamp: new Date()
     };
+    
+    setMessages(prev => [...prev, botMessage]);
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputText('');
-    setIsLoading(true);
-
-    try {
-      // OpenAI API 호출 부분
-      const response = await fetch('#', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: inputText,
-          conversationHistory: messages.map(msg => ({
-            role: msg.sender === 'user' ? 'user' : 'assistant', 
-            content: msg.text
-          }))
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`삐용삐용, HTTP 에러! ${response.status}`)
-      }
-
-      const data = await response.json();
-      
-      if (data.success && data.message) {
-        const botMessage = {
-          id: Date.now() + 1,
-          text: data.message,
-          sender: 'bot',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, botMessage]);
-      }
-    } catch (error) {
-      console.error('백엔드 API 호출 오류:', error);
-      const errorMessage = {
-        id: Date.now() + 1,
-        text: "당황하지 마세요. 당신의 잘못이 아닙니다.",
-        sender: 'bot',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    }
-
+  } catch (error) {
+    console.error('채팅 API 오류:', error);
+    
+    const errorMessage = {
+      id: Date.now() + 1,
+      text: error.message || "죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해주세요.",
+      sender: 'bot',
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, errorMessage]);
+  } finally {
     setIsLoading(false);
-  };
+  }
+};
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -97,7 +102,7 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
   if (isExpanded) {
     return (
       <div className="bg-lime-50 rounded-xl shadow-lg p-4 flex flex-col flex-1 h-96">
-        <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-2">
+        <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-2" style={{ maxHeight: 'calc(100% - 80px)' }}>
           {messages.map((message) => (
             <div
               key={message.id}
@@ -125,6 +130,7 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
               </div>
             </div>
           )}
+          <div ref={messagesEndRef} className="h-0"/>
         </div>
         <div className="flex items-center border-t border-gray-200 pt-3 w-full">
           <input
@@ -166,7 +172,7 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
           </div>
           
           {/* 메시지 영역 */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-lime-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-lime-50" style={{ maxHeight: '300px' }}>
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -194,6 +200,7 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} className="h-0" />
           </div>
           
           {/* 입력 영역 */}

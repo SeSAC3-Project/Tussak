@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FaHome, FaChartLine, FaLightbulb, FaWallet, FaHistory, FaBars, FaTimes } from "react-icons/fa";
+import { ReactComponent as LogInIcon } from '../icon/LogIn.svg'
 
 export default function NavSidebar({ activeSection, setActiveSection }) {
   // New state to manage the mobile sidebar's open/close status
@@ -18,7 +19,7 @@ export default function NavSidebar({ activeSection, setActiveSection }) {
       {/* Mobile-only hamburger menu button */}
       <button 
         onClick={() => setIsSidebarOpen(true)}
-        className="fixed top-4 left-4 z-40 h-screen overflow-y-auto  p-2 text-[#8A8A8A] bg-white rounded-lg sm:hidden"
+        className="fixed top-4 left-4 z-40 max-h-screen overflow-y-auto  p-2 text-[#8A8A8A] bg-white rounded-lg sm:hidden"
       >
         <FaBars className="w-6 h-6" />
       </button>
@@ -78,11 +79,12 @@ export default function NavSidebar({ activeSection, setActiveSection }) {
               })}
             </ul>
           </div>
-          <div className="text-center text-sm text-gray-500 flex items-center justify-center p-4 cursor-pointer hover:bg-lime-100 rounded-md transition-colors duration-200">
-             <FaHistory className="w-4 h-4 mr-2" />
-            <p>로그인</p>
-          </div>
+
           <div className="text-center text-sm text-gray-500">
+            <div className="text-center text-sm text-gray-500 flex items-center justify-center p-4 mb-8 cursor-pointer hover:bg-lime-100 rounded-md transition-colors duration-200">
+             <LogInIcon className="w-4 h-4 mr-2" />
+            <p>로그인</p>
+            </div>
             <p>&copy; 2025 Tussac</p>
           </div>
         </div>

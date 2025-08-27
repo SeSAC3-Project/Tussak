@@ -4,6 +4,16 @@
 @tailwind utilities;
 
 
+/* nav바 길이 조정을 위한 강제 설정 */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+
 /* Apply the background image to the body element */
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
