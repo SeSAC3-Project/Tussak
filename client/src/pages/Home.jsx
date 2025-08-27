@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaSearch, FaChevronRight } from 'react-icons/fa';
-import InvestorRank from './InvestorRank.jsx'
+import InvestorRank from './InvestorRank.jsx';
+import Chatbot from '../components/Chatbot.jsx'
 
 
 export default function Home({ setActiveSection }) {
@@ -182,8 +183,11 @@ const SendIcon = () => (
 
 function ChatWindow() {
     return (
-        <div className="bg-lime-50 rounded-xl shadow-lg p-4 flex flex-col flex-1">
-            <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-2">
+        <div>
+            <div className="h-96">
+                <Chatbot isExpanded={true} />
+            </div>
+            {/* <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-2">
                 <div className="bg-white p-3 rounded-xl rounded-br-none text-gray-800 max-w-xs sm:max-w-sm ml-auto">
                     <p>엄청난 부자가 될거야 !!</p>
                 </div>
@@ -199,7 +203,7 @@ function ChatWindow() {
                 >
                     <SendIcon />
                 </button>
-            </div>
+            </div> */}
         </div>
     );
 };
