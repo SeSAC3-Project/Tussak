@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 # scheduler
 from utils.kis_api import kis_access_token
+from services.stock_service import StockService
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import atexit
@@ -68,6 +69,14 @@ def create_app():
         except Exception as e:
             app.logger.error(f"❌ 앱 시작 시 KIS Token 생성 실패: {e}")
 
+        # Stock Data Sync
+        try:
+            StockService.all_stocks()  # 앱 시작 시 종목 데이터 동기화
+            app.logger.info("✅ 앱 시작 시 주식 종목 데이터 동기화 완료")
+
+        except Exception as e:
+            app.logger.error(f"❌ 앱 시작 시 주식 종목 데이터 동기화 실패: {e}")
+
     return app
 
 def init_db(app):
@@ -93,6 +102,14 @@ def refresh_kis_token(app):
         except Exception as e:
             app.logger.error(f"❌ KIS Token 갱신 실패: {e}")
 
+def sync_stock_data(app):
+    with app.app_context():
+        try:
+            StockService.all_stocks()
+            app.logger.info("✅ 주식 종목 데이터 동기화 완료")
+        except Exception as e:
+            app.logger.error(f"❌ 주식 종목 데이터 동기화 실패: {e}")
+
 def setup_scheduler(app):
     # 스케줄러 초기화
     scheduler = BackgroundScheduler()
@@ -104,6 +121,15 @@ def setup_scheduler(app):
         trigger=CronTrigger(hour=8, minute=0, timezone='Asia/Seoul'),
         id='refresh_kis_token',
         name='Refresh KIS Access Token',
+        replace_existing=True
+    )
+    
+    # 매일 오전 6시에 주식 종목 데이터 동기화 (한국 시간)
+    scheduler.add_job(
+        func=lambda: sync_stock_data(app),
+        trigger=CronTrigger(hour=6, minute=0, timezone='Asia/Seoul'),
+        id='sync_stock_data',
+        name='Sync Stock Master Data',
         replace_existing=True
     )
     

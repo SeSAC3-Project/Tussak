@@ -19,5 +19,5 @@ class Stock(db.Model):
     portfolios = db.relationship('Portfolio', backref='stock', lazy=True)
     transactions = db.relationship('Transaction', backref='stock', lazy=True)
     bookmarks = db.relationship('Bookmark', backref='stock', lazy=True)
-    realtime_data = db.relationship('StockRealtime', backref='stock', lazy=True)
+    # realtime_data = db.relationship('StockRealtime', backref='stock', lazy=True)  # 나중에 추가
     
