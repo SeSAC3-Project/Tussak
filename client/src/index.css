@@ -3,6 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 /* Apply the background image to the body element */
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -20,7 +21,7 @@ body {
 }
 
 
-/* scrollbar 플러그인이 tailwind 버전마다 상이하여 install 비추천 -> 글로벌 CSS로 설정 */
+/* InvestorRankPage 스크롤 */
 .scrollbar-thin {
   scrollbar-width: thin; 
 }

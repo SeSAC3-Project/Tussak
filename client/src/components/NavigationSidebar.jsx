@@ -18,7 +18,7 @@ export default function NavSidebar({ activeSection, setActiveSection }) {
       {/* Mobile-only hamburger menu button */}
       <button 
         onClick={() => setIsSidebarOpen(true)}
-        className="fixed top-4 left-4 z-40 h-screen p-2 text-[#8A8A8A] bg-white rounded-lg sm:hidden"
+        className="fixed top-4 left-4 z-40 h-screen overflow-y-auto  p-2 text-[#8A8A8A] bg-white rounded-lg sm:hidden"
       >
         <FaBars className="w-6 h-6" />
       </button>
@@ -26,7 +26,7 @@ export default function NavSidebar({ activeSection, setActiveSection }) {
       {/* Mobile-only overlay when the sidebar is open */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-gray-400 h-screen opacity-50 z-30 sm:hidden" 
+          className="fixed inset-0 bg-gray-400 overflow-y-auto opacity-50 z-30 sm:hidden" 
           onClick={() => setIsSidebarOpen(false)}
         ></div>
       )}
@@ -34,7 +34,7 @@ export default function NavSidebar({ activeSection, setActiveSection }) {
       {/* The navigation sidebar itself */}
       {/* I've added the 'h-screen' class to ensure the sidebar takes up the full viewport height. */}
       <nav 
-        className={`fixed top-0 left-0 w-64 h-screen bg-white p-6 shadow-xl flex-col z-50 transition-transform duration-300 ease-in-out
+        className={`fixed inset-y-0 top-0 left-0 w-64 h-screen overflow-y-auto bg-white p-6 shadow-xl flex-col z-50 transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           sm:relative sm:translate-x-0 sm:flex`}
       >

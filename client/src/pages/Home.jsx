@@ -175,35 +175,12 @@ function LoginCard() {
     );
 }
 
-const SendIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-    </svg>
-);
-
 function ChatWindow() {
     return (
         <div>
             <div className="h-96">
                 <Chatbot isExpanded={true} />
             </div>
-            {/* <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-2">
-                <div className="bg-white p-3 rounded-xl rounded-br-none text-gray-800 max-w-xs sm:max-w-sm ml-auto">
-                    <p>엄청난 부자가 될거야 !!</p>
-                </div>
-                <div className="flex justify-start">
-                    <div className="bg-lime-200 p-3 rounded-xl rounded-bl-none text-gray-800 max-w-xs sm:max-w-sm">
-                        <p>힘내 \^o^/</p>
-                    </div>
-                </div>
-            </div>
-            <div className="flex items-center border-t border-gray-200 pt-3 w-full">
-                <input type="text" placeholder="메시지를 입력하세요" className="flex-1 p-2 px-4 bg-white rounded-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-500" />
-                <button className="bg-lime-600 text-white rounded-full p-3 ml-2 hover:bg-lime-700transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2"
-                >
-                    <SendIcon />
-                </button>
-            </div> */}
         </div>
     );
 };

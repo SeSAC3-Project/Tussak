@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
 
 const Chatbot = ({ isExpanded = false, onToggle = null }) => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "안녕하세요! 무엇을 도와드릴까요?",
+      text: "안녕하세요! 부자될 준비 되셨나요?",
       sender: 'bot',
       timestamp: new Date()
     }
@@ -13,15 +13,6 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(isExpanded);
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   useEffect(() => {
     setIsOpen(isExpanded);
@@ -31,7 +22,8 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
     if (!inputText.trim()) return;
 
     const userMessage = {
-      id: Date.now(),
+      // id 현재 시간으로 부여
+      id: Date.now(), 
       text: inputText,
       sender: 'user',
       timestamp: new Date()
@@ -43,49 +35,40 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
 
     try {
       // OpenAI API 호출 부분
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch('#', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [
-            {
-              role: "system",
-              content: "당신은 친근하고 도움이 되는 AI 어시스턴트입니다. 한국어로 답변해주세요."
-            },
-            ...messages.map(msg => ({
-              role: msg.sender === 'user' ? 'user' : 'assistant',
-              content: msg.text
-            })),
-            {
-              role: "user",
-              content: inputText
-            }
-          ],
-          max_tokens: 500,
-          temperature: 0.7
+          message: inputText,
+          conversationHistory: messages.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant', 
+            content: msg.text
+          }))
         })
       });
 
+      if (!response.ok) {
+        throw new Error(`삐용삐용, HTTP 에러! ${response.status}`)
+      }
+
       const data = await response.json();
       
-      if (data.choices && data.choices[0]) {
+      if (data.success && data.message) {
         const botMessage = {
           id: Date.now() + 1,
-          text: data.choices[0].message.content,
+          text: data.message,
           sender: 'bot',
           timestamp: new Date()
         };
         setMessages(prev => [...prev, botMessage]);
       }
     } catch (error) {
-      console.error('OpenAI API 호출 오류:', error);
+      console.error('백엔드 API 호출 오류:', error);
       const errorMessage = {
         id: Date.now() + 1,
-        text: "죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해주세요.",
+        text: "당황하지 마세요. 당신의 잘못이 아닙니다.",
         sender: 'bot',
         timestamp: new Date()
       };
@@ -142,7 +125,6 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
               </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
         <div className="flex items-center border-t border-gray-200 pt-3 w-full">
           <input
@@ -166,7 +148,7 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
     );
   }
 
-  // 플로팅 챗봇 (다른 페이지용)
+  // 플로팅 챗봇
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {/* 채팅 창 */}
@@ -212,7 +194,6 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
                 </div>
               </div>
             )}
-            <div ref={messagesEndRef} />
           </div>
           
           {/* 입력 영역 */}

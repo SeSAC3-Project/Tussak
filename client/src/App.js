@@ -2,7 +2,6 @@
 // npm install tailwind-scrollbar
 
 import React, { useState, useEffect } from 'react';
-import { FaHome, FaChartLine, FaLightbulb, FaWallet, FaHistory, FaBars, FaTimes, FaSearch } from "react-icons/fa";
 import Market from './pages/Market.jsx'
 import Home from './pages/Home.jsx'
 import InvestorRankPage from './pages/InvestorRankPage.jsx'
@@ -25,6 +24,8 @@ export default function App() {
         {activeSection === 'History' && <History />}
         {activeSection === 'InvestorRankPage' && <InvestorRankPage />}
       </div>
+
+      {activeSection !== 'Home' && <Chatbot />}
     </div>
   );
 }
