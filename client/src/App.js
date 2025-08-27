@@ -2,9 +2,11 @@
 // npm install tailwind-scrollbar
 
 import React, { useState, useEffect } from 'react';
-import Market from './pages/Market.jsx'
 import Home from './pages/Home.jsx'
 import InvestorRankPage from './pages/InvestorRankPage.jsx'
+import Market from './pages/Market.jsx'
+// import Portfolio from './pages/Portfolio.jsx';
+import History from './pages/History.jsx'
 import Chatbot from './components/Chatbot.jsx';
 import NavSidebar from './components/NavigationSidebar.jsx'
 
@@ -43,17 +45,8 @@ function Insight() {
 function Portfolio() {
   return (
     <div className="p-8 text-center text-gray-400">
-      <h1 className="text-3xl font-bold mb-4">Your Portfolio</h1>
-      <p>This is where you can view and manage your stock holdings.</p>
-    </div>
-  );
-}
-
-function History() {
-  return (
-    <div className="p-8 text-center text-gray-400">
-      <h1 className="text-3xl font-bold mb-4">Trade History</h1>
-      <p>This section will display a history of all your trades and transactions.</p>
+      <h1 className="text-3xl font-bold mb-4">Market Insights</h1>
+      <p>This section will provide keywords and news!!</p>
     </div>
   );
 }
