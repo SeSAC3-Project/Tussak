@@ -95,9 +95,9 @@ const InvestmentRanking = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                                     {allInvestorData.slice(0, 3).map((investor, index) => (
                                         <div key={index} className={`p-6 rounded-2xl ${
-                                            index === 0 ? 'bg-gradient-to-br from-[#DFFFD6] to-lime-100 border-2 border-lime-300' :
-                                            index === 1 ? 'bg-gradient-to-br from-[#DFFFD6] to-lime-100 border-2 border-lime-300' :
-                                            'bg-gradient-to-br from-[#DFFFD6] to-lime-100 border-2 border-lime-300'
+                                            // index === 0 ? 'bg-gradient-to-br from-[#DFFFD6] to-lime-100 border-2 border-lime-300' :
+                                            // index === 1 ? 'bg-gradient-to-br from-[#DFFFD6] to-lime-100 border-2 border-lime-300' :
+                                            'bg-gradient-to-br from-[#DFFFD6] to-lime-100 hover:to-[#B0EE8E] transition-colors border-2 border-[#DFFFD6]'
                                         }`}>
                                             <div className="text-center">
                                                 <div className="flex justify-center mb-3">
