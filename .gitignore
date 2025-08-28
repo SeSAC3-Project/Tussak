@@ -7,6 +7,14 @@
 # node.js 라이브러리 환경
 node_modules/
 
+# 파이썬 가상환경
+venv/
+
 # 파이썬 컴파일 결과 파일
 __pycache__/
 *.pyc
+
+.DS_Store
+
+# 로그 파일
+logs/
