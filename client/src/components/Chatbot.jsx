@@ -35,6 +35,26 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
     setIsOpen(isExpanded);
   }, [isExpanded]);
 
+  // 백엔드 API 호출
+  const sendMessageToBot = async (question) => {
+    const response = await fetch('/api/chatbot/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question: question
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || '네트워크 오류임미다')
+    }
+
+    return await response.json();
+  }
+
   const handleSendMessage = async () => {
   if (!inputText.trim() || isLoading) return;
 
@@ -45,22 +65,20 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
     timestamp: new Date()
   };
 
+  // 사용자 메시지 먼저 추가
   setMessages(prev => [...prev, userMessage]);
+
   const currentInput = inputText.trim();
   setInputText('');
   setIsLoading(true);
 
   try {
-    const conversationHistory = messages.map(msg => ({
-      role: msg.sender === 'user' ? 'user' : 'assistant',
-      content: msg.text
-    }));
-
-    const response = await sendMessageToBot(currentInput, conversationHistory);
+    // API 호출
+    const response = await sendMessageToBot(currentInput);
     
     const botMessage = {
       id: Date.now() + 1,
-      text: response.message,
+      text: response.response,
       sender: 'bot',
       timestamp: new Date()
     };
