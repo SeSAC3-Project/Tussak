@@ -1,4 +1,4 @@
-// stock 은 direction, id, market(코스피/코스닥), name, price, change, changePercent 을 키로 가져야 한다
+// API에서 받아온 데이터 구조에 맞게 stock 필드명 설정하기
 
 import React from 'react';
 import { useState } from 'react';

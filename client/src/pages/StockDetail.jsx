@@ -1,5 +1,3 @@
-// 리팩토링
-
 import React, { useMemo } from 'react';
 import { useChartState } from '../hooks/useChartState';
 import { useChartInteraction } from '../hooks/useChartInteraction';

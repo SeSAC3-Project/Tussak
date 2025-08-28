@@ -1,3 +1,6 @@
+// dummy
+
+
 import React, { useState, useEffect } from 'react';
 import StockCard from '../components/StockCard'; 
 import { FaSearch } from 'react-icons/fa';
