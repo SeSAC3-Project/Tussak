@@ -1,10 +1,15 @@
 import utils.stock_download as stock_dl
 from utils.sector_crawler import SectorCodeConverter
+from utils.kis_api import KisAPI
 from models.stock import Stock
+from models.stock_history import StockHistory
 from models import db
 from flask import current_app
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy import text
+
+from datetime import datetime, date
+import time
 
 class StockService:
 
@@ -22,7 +27,7 @@ class StockService:
                 return False
             
             # 2. DB에 저장
-            success_count = StockService._save_stocks_to_db(all_stocks)
+            success_count = StockService._save_stocks_basic_info_to_db(all_stocks)
             
             # 3. 업종명 자동 동기화
             current_app.logger.info("업종 정보 자동 동기화 시작...")
@@ -37,7 +42,7 @@ class StockService:
             raise e
 
     @staticmethod
-    def _save_stocks_to_db(stocks_data):
+    def _save_stocks_basic_info_to_db(stocks_data):
         """종목 데이터를 DB에 저장 (개별 UPSERT)"""
         try:
             success_count = 0
@@ -95,6 +100,108 @@ class StockService:
             current_app.logger.error(f"DB 저장 중 오류: {e}")
             db.session.rollback()
             raise e
+    
+    # 주식 기본정보(발행주식수)와 히스토리를 한 번에 업데이트
+    @staticmethod
+    def update_stock_info_and_history():
+        try:
+            current_app.logger.info("주식 정보 및 히스토리 통합 업데이트 시작")
+
+            kis_api = KisAPI()
+            
+            stocks = Stock.query.all()
+            updated_count = 0
+            failed_count = 0
+            today = datetime.now().date()
+            
+            for stock in stocks:
+                try:
+                    # 한 번의 API 호출로 모든 데이터 가져오기
+                    stock_data = kis_api.fetch_stock_basic_info_and_history_from_kis(stock.stock_code)
+                    
+                    if stock_data:
+                        # 1. Stock 기본정보 업데이트
+                        if stock_data.get('shares_outstanding'):
+                            stock.shares_outstanding = stock_data.get('shares_outstanding')
+                            stock.updated_at = db.func.now()
+                        
+                        # 2. StockHistory 저장/업데이트
+                        existing_history = StockHistory.query.filter(
+                            StockHistory.stock_id == stock.id,
+                            db.func.date(StockHistory.updated_at) == today
+                        ).first()
+                        
+                        if existing_history:
+                            StockService._update_stock_history(existing_history, stock_data)
+                        else:
+                            new_history = StockService._create_stock_history(stock.id, stock_data)
+                            db.session.add(new_history)
+                        
+                        updated_count += 1
+                        # current_app.logger.debug(f"통합 업데이트 완료: {stock.stock_code}")
+                        
+                    else:
+                        failed_count += 1
+                    
+                    # 100개마다 중간 커밋
+                    if updated_count % 100 == 0:
+                        db.session.commit()
+                        current_app.logger.info(f"통합 업데이트 중간 커밋: {updated_count}개")
+                    
+                    time.sleep(0.1)  # API 제한
+                    
+                except Exception as e:
+                    failed_count += 1
+                    current_app.logger.warning(f"종목 {stock.stock_code} 통합 업데이트 실패: {e}")
+                    continue
+            
+            db.session.commit()
+            current_app.logger.info(f"통합 업데이트 완료: {updated_count}개 성공, {failed_count}개 실패")
+            return updated_count
+            
+        except Exception as e:
+            current_app.logger.error(f"통합 업데이트 실패: {e}")
+            db.session.rollback()
+            raise e
+    
+    @staticmethod
+    def _create_stock_history(stock_id, stock_data):
+        """StockHistory 객체 생성"""
+        return StockHistory(
+            stock_id=stock_id,
+            current_price=stock_data.get('current_price'),
+            previous_close=stock_data.get('previous_close'),
+            change_rate=stock_data.get('change_rate'),
+            change_amount=stock_data.get('change_amount'),
+            day_open=stock_data.get('day_open'),
+            day_high=stock_data.get('day_high'),
+            day_low=stock_data.get('day_low'),
+            daily_volume=stock_data.get('daily_volume'),
+            market_cap=stock_data.get('market_cap'),
+            week52_high=stock_data.get('week52_high'),
+            week52_low=stock_data.get('week52_low'),
+            per=stock_data.get('per'),
+            pbr=stock_data.get('pbr'),
+            updated_at=datetime.now()
+        )
+
+    @staticmethod
+    def _update_stock_history(history, stock_data):
+        """기존 StockHistory 업데이트"""
+        history.current_price = stock_data.get('current_price')
+        history.previous_close = stock_data.get('previous_close')
+        history.change_rate = stock_data.get('change_rate')
+        history.change_amount = stock_data.get('change_amount')
+        history.day_open = stock_data.get('day_open')
+        history.day_high = stock_data.get('day_high')
+        history.day_low = stock_data.get('day_low')
+        history.daily_volume = stock_data.get('daily_volume')
+        history.market_cap = stock_data.get('market_cap')
+        history.week52_high = stock_data.get('week52_high')
+        history.week52_low = stock_data.get('week52_low')
+        history.per = stock_data.get('per')
+        history.pbr = stock_data.get('pbr')
+        history.updated_at = datetime.now()
 
     @staticmethod
     def get_all_stocks():

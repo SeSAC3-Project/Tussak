@@ -93,3 +93,49 @@ def get_kis_token():
     except Exception as e:
         current_app.logger.error(f"토큰 발급 실패: {e}")
         raise e
+
+class KisAPI:
+
+    def __init__(self):
+        self.kis_token = get_kis_token()
+
+    def fetch_stock_basic_info_and_history_from_kis(self, stock_code):
+        try:
+            # KIS API 호출
+            url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/search-stock-info"
+            headers = {
+                "Content-Type": "application/json",
+                "authorization": f"Bearer {self.kis_token}",
+                "appkey": KIS_CLIENT_ID,
+                "appsecret": KIS_CLIENT_SECRET,
+                "tr_id": "CTPF1002R"
+            }
+            params = {
+                "PDNO": stock_code,  # 종목코드
+                "PRDT_TYPE_CD": "300"  # 주식
+            }
+            
+            response = requests.get(url, headers=headers, params=params)
+            data = response.json()
+            
+            if data.get('rt_cd') == '0':  # 성공
+                output = data.get('output', {})
+                # current_app.logger.debug(f"전체 KIS API 응답: {data}")
+                # current_app.logger.debug(f"output 내용: {output}")
+
+                # 실제 존재하는 필드들 확인
+                # current_app.logger.debug(f"output의 모든 키: {list(output.keys())}")
+
+                return {
+                    # 기존 Stock 모델용
+                    'shares_outstanding': int(output.get('lstg_stqt', 0)),  # 상장주식수
+                    
+                    'previous_close': float(output.get('bfdy_clpr', 0)) if output.get('bfdy_clpr') else None,  # 전일종가
+                    'current_price': float(output.get('thdt_clpr', 0)) if output.get('thdt_clpr') else None,   # 당일종가 (현재가 대신)
+                }
+            
+            return None
+            
+        except Exception as e:
+            current_app.logger.warning(f"KIS API 호출 실패 {stock_code}: {e}")
+            return None
