@@ -18,6 +18,7 @@ from config.redis import redis_config # redis
 from models import db
 from models.user import User
 from models.stock import Stock
+from models.stock_history import StockHistory
 from models.portfolio import Portfolio
 from models.transaction import Transaction
 from models.bookmark import Bookmark
@@ -69,10 +70,13 @@ def create_app():
         except Exception as e:
             app.logger.error(f"❌ 앱 시작 시 KIS Token 생성 실패: {e}")
 
-        # Stock Data Sync
+        # Stock and StockHistory Data Sync
         try:
             StockService.all_stocks()  # 앱 시작 시 종목 데이터 동기화
             app.logger.info("✅ 앱 시작 시 주식 종목 데이터 동기화 완료")
+
+            StockService.update_stock_info_and_history()  # 앱 시작 시 종목 데이터 동기화
+            app.logger.info("✅ 종목 상세정보 및 히스토리 업데이트 완료")
 
         except Exception as e:
             app.logger.error(f"❌ 앱 시작 시 주식 종목 데이터 동기화 실패: {e}")
@@ -102,13 +106,21 @@ def refresh_kis_token(app):
         except Exception as e:
             app.logger.error(f"❌ KIS Token 갱신 실패: {e}")
 
-def sync_stock_data(app):
+def update_stock_basic_info(app):
     with app.app_context():
         try:
             StockService.all_stocks()
             app.logger.info("✅ 주식 종목 데이터 동기화 완료")
         except Exception as e:
             app.logger.error(f"❌ 주식 종목 데이터 동기화 실패: {e}")
+
+def save_daily_stock_history(app):
+    with app.app_context():
+        try:
+            StockService.update_stock_info_and_history()
+            app.logger.info("✅ 일별 OHLCV 히스토리 저장 완료")
+        except Exception as e:
+            app.logger.error(f"❌ 일별 OHLCV 히스토리 저장 실패: {e}")
 
 def setup_scheduler(app):
     # 스케줄러 초기화
@@ -124,14 +136,22 @@ def setup_scheduler(app):
         replace_existing=True
     )
     
-    # 매일 오전 6시에 주식 종목 데이터 동기화 (한국 시간)
+    # 주 1회 일요일 - 기본정보 업데이트 (한국 시간)
     scheduler.add_job(
-        func=lambda: sync_stock_data(app),
-        trigger=CronTrigger(hour=6, minute=0, timezone='Asia/Seoul'),
-        id='sync_stock_data',
-        name='Sync Stock Master Data',
+        func=lambda: update_stock_basic_info(app),
+        trigger=CronTrigger(day_of_week='sun', hour=20, minute=0, timezone='Asia/Seoul'),
+        id='update_basic_info',
+        name='Update Stock Basic Info Weekly',
         replace_existing=True
     )
+
+    # 매일 오후 10시 - 일별 OHLCV 히스토리 저장 (한국 시간)
+    scheduler.add_job(
+    func=lambda: save_daily_stock_history(app),
+    trigger=CronTrigger(hour=22, minute=0, timezone='Asia/Seoul'),
+    id='save_daily_history',
+    name='Save Daily OHLCV History'
+)
     
     # 앱 종료 시 스케줄러도 종료
     atexit.register(lambda: scheduler.shutdown())
