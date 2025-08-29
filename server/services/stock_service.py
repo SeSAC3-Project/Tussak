@@ -30,11 +30,11 @@ class StockService:
             success_count = StockService._save_stocks_basic_info_to_db(all_stocks)
             
             # 3. 업종명 자동 동기화
-            current_app.logger.info("업종 정보 자동 동기화 시작...")
-            sector_count = StockService._auto_sync_sectors()
+            # current_app.logger.info("업종 정보 자동 동기화 시작...")
+            # sector_count = StockService._auto_sync_sectors()
             
-            current_app.logger.info(f"주식 종목 동기화 완료: {success_count}개 처리, {sector_count}개 업종 업데이트")
-            return True
+            # current_app.logger.info(f"주식 종목 동기화 완료: {success_count}개 처리, {sector_count}개 업종 업데이트")
+            # return True
             
         except Exception as e:
             current_app.logger.error(f"주식 종목 동기화 실패: {e}")
@@ -51,7 +51,7 @@ class StockService:
                 stock_code = stock_info.get('stock_code', '').strip()
                 stock_name = stock_info.get('stock_name', '').strip()
                 market = stock_info.get('market', '').strip()
-                sector = stock_info.get('sector', '').strip() or None
+                # sector = stock_info.get('sector', '').strip() or None
                 
                 # 유효한 데이터만 처리
                 if not stock_code or not stock_name:
@@ -65,7 +65,7 @@ class StockService:
                         # 업데이트
                         existing_stock.stock_name = stock_name
                         existing_stock.market = market
-                        existing_stock.sector = sector
+                        # existing_stock.sector = sector
                         existing_stock.updated_at = db.func.now()
                         # current_app.logger.debug(f"종목 업데이트: {stock_code} - {stock_name}")
                     else:
@@ -74,7 +74,7 @@ class StockService:
                             stock_code=stock_code,
                             stock_name=stock_name,
                             market=market,
-                            sector=sector,
+                            # sector=sector,
                             updated_at=db.func.now()
                         )
                         db.session.add(new_stock)
@@ -123,6 +123,8 @@ class StockService:
                         # 1. Stock 기본정보 업데이트
                         if stock_data.get('shares_outstanding'):
                             stock.shares_outstanding = stock_data.get('shares_outstanding')
+                            stock.sector = stock_data.get('sector')
+                            stock.sector_detail = stock_data.get('sector_detail')
                             stock.updated_at = db.func.now()
                         
                         # 2. StockHistory 저장/업데이트
@@ -270,60 +272,60 @@ class StockService:
             current_app.logger.error(f"단일 종목 조회 중 오류: {e}")
             raise e
 
-    @staticmethod
-    def _auto_sync_sectors():
-        """주식 데이터 저장 시 자동으로 업종 정보 동기화"""
-        try:
+    # @staticmethod
+    # def _auto_sync_sectors():
+    #     """주식 데이터 저장 시 자동으로 업종 정보 동기화"""
+    #     try:
             
-            converter = SectorCodeConverter()
-            result = converter.convert_all_sectors()
+    #         converter = SectorCodeConverter()
+    #         result = converter.convert_all_sectors()
             
-            if result['total_stocks'] == 0:
-                current_app.logger.warning("업종 변환 결과가 없습니다")
-                return 0
+    #         if result['total_stocks'] == 0:
+    #             current_app.logger.warning("업종 변환 결과가 없습니다")
+    #             return 0
             
-            # DB 업데이트
-            updated_count = StockService._update_sectors_in_db(result['stocks_data'])
+    #         # DB 업데이트
+    #         updated_count = StockService._update_sectors_in_db(result['stocks_data'])
             
-            current_app.logger.info(f"업종 자동 동기화 완료: {updated_count}개 종목 업데이트")
-            return updated_count
+    #         current_app.logger.info(f"업종 자동 동기화 완료: {updated_count}개 종목 업데이트")
+    #         return updated_count
             
-        except Exception as e:
-            current_app.logger.error(f"업종 자동 동기화 실패: {e}")
-            return 0
+    #     except Exception as e:
+    #         current_app.logger.error(f"업종 자동 동기화 실패: {e}")
+    #         return 0
 
-    @staticmethod
-    def _update_sectors_in_db(stocks_data):
-        """크롤링한 업종 데이터로 DB 업데이트"""
-        try:
-            updated_count = 0
+    # @staticmethod
+    # def _update_sectors_in_db(stocks_data):
+    #     """크롤링한 업종 데이터로 DB 업데이트"""
+    #     try:
+    #         updated_count = 0
             
-            for stock_info in stocks_data:
-                stock_code = stock_info.get('stock_code', '').strip()
-                sector_name = stock_info.get('sector_name', '').strip()
+    #         for stock_info in stocks_data:
+    #             stock_code = stock_info.get('stock_code', '').strip()
+    #             sector_name = stock_info.get('sector_name', '').strip()
                 
-                if not stock_code or not sector_name:
-                    continue
+    #             if not stock_code or not sector_name:
+    #                 continue
                 
-                # DB에서 해당 종목 찾기
-                existing_stock = Stock.query.filter_by(stock_code=stock_code).first()
+    #             # DB에서 해당 종목 찾기
+    #             existing_stock = Stock.query.filter_by(stock_code=stock_code).first()
                 
-                if existing_stock:
-                    # 업종명 업데이트 (기존 sector 필드 활용)
-                    existing_stock.sector = sector_name
-                    existing_stock.updated_at = db.func.now()
-                    updated_count += 1
+    #             if existing_stock:
+    #                 # 업종명 업데이트 (기존 sector 필드 활용)
+    #                 existing_stock.sector = sector_name
+    #                 existing_stock.updated_at = db.func.now()
+    #                 updated_count += 1
                     
-                    # current_app.logger.debug(f"업종 업데이트: {stock_code} → {sector_name}")
+    #                 # current_app.logger.debug(f"업종 업데이트: {stock_code} → {sector_name}")
             
-            db.session.commit()
-            current_app.logger.info(f"DB 업종 업데이트 완료: {updated_count}개 종목")
+    #         db.session.commit()
+    #         current_app.logger.info(f"DB 업종 업데이트 완료: {updated_count}개 종목")
             
-            return updated_count
+    #         return updated_count
             
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"DB 업종 업데이트 실패: {e}")
-            raise e
+    #     except Exception as e:
+    #         db.session.rollback()
+    #         current_app.logger.error(f"DB 업종 업데이트 실패: {e}")
+    #         raise e
 
 
