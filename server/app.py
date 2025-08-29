@@ -25,7 +25,7 @@ from models.bookmark import Bookmark
 # routes
 from routes.auth_routes import auth_bp
 from routes.chatbot_routes import chatbot_bp
-from routes.news_routes import news_bp
+from routes.insight_routes import insight_bp
 from routes.user_routes import user_bp
 from routes.ranking_routes import ranking_bp
 from routes.stock_routes import stock_bp
@@ -139,7 +139,7 @@ def setup_scheduler(app):
 def register_blueprints(app):
     app.register_blueprint(auth_bp)
     app.register_blueprint(chatbot_bp)
-    app.register_blueprint(news_bp)
+    app.register_blueprint(insight_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(ranking_bp)
     app.register_blueprint(stock_bp)
