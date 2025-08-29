@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import Home from './pages/Home.jsx'
 import InvestorRankPage from './pages/InvestorRankPage.jsx'
 import Market from './pages/Market.jsx'
+import Insight from './pages/Insight.jsx'
 // import Portfolio from './pages/Portfolio.jsx';
 import History from './pages/History.jsx'
 import Chatbot from './components/Chatbot.jsx';
@@ -28,16 +29,6 @@ export default function App() {
       </div>
 
       {activeSection !== 'Home' && <Chatbot />}
-    </div>
-  );
-}
-
-
-function Insight() {
-  return (
-    <div className="p-8 text-center text-gray-400">
-      <h1 className="text-3xl font-bold mb-4">Market Insights</h1>
-      <p>This section will provide keywords and news!!</p>
     </div>
   );
 }

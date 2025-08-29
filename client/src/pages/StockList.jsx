@@ -126,22 +126,24 @@ export default function StockList({ onSelectStock }) {
     return (
         <div className="space-y-4">
             {/* 검색 입력 */}
-            <div className="relative">
-                <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    placeholder="종목명 검색..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {searchTerm && (
-                    <button
-                        onClick={clearSearch}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                        ✕
-                    </button>
-                )}
+            <div className="flex justify-end items-center">
+                <div className="w-full lg:w-1/2">
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        placeholder="종목 검색"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {searchTerm && (
+                        <button
+                            onClick={clearSearch}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                            ✕
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* 상태 표시 */}
