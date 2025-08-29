@@ -16,8 +16,8 @@ class User(db.Model):
     current_balance = db.Column(db.DECIMAL(15, 2), default=USER_INITIAL_BALANCE)
     total_asset = db.Column(db.DECIMAL(15, 2), default=USER_INITIAL_BALANCE)
     
-    created_at = db.Column(db.TIMESTAMP, default=datetime.now())
-    updated_at = db.Column(db.TIMESTAMP, default=datetime.now())
+    created_at = db.Column(db.TIMESTAMP, default=datetime.now(datetime.timezone.utc))
+    updated_at = db.Column(db.TIMESTAMP, default=datetime.now(datetime.timezone.utc))
     
     portfolios = db.relationship('Portfolio', backref='user', lazy=True, cascade='all, delete-orphan')
     transactions = db.relationship('Transaction', backref='user', lazy=True, cascade='all, delete-orphan')
