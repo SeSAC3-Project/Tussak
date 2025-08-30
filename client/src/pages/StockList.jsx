@@ -124,7 +124,7 @@ export default function StockList({ onSelectStock }) {
     }
 
     return (
-        <div className="space-y-4">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-full mx-auto">
             {/* 검색 입력 */}
             <div className="flex justify-end items-center">
                 <div className="w-full lg:w-1/2">
@@ -183,7 +183,7 @@ export default function StockList({ onSelectStock }) {
             {/* 종목 그리드 */}
             {!isLoading && displayStocks.length > 0 && (
                 <>
-                    <div className="grid grid-cols-4 gap-4 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
+                    <div className="grid grid-cols-4 gap-4 overflow-y-autoscrollbar-thin scrollbar-thumb-gray-400 mt-8">
                         {displayStocks.map((stock, index) => (
                             <StockCard
                                 key={stock.stock_code || stock.id || `stock-${index}`}

@@ -7,25 +7,27 @@ import StockCard from '../components/StockCard.jsx'
 
 export default function Home({ setActiveSection }) {
     return (
-    <div className="space-y-4">
-        <div className="flex justify-end items-center">
-            <div className="w-full lg:w-1/2">
-                <SearchBar />
-            </div>
-        </div>
-
-        <WatchList />
-
-        <div className="flex flex-col lg:flex-row lg:space-x-8 space-y-8 lg:space-y-0">
-            
-            <div className="flex-1 flex flex-col space-y-8">
-                <StockRank />
-                <InvestorRank setActiveSection={setActiveSection} />
+    <div className="p-4 sm:p-6 lg:p-8 max-w-full mx-auto">
+        <div className="flex flex-col gap-8">
+            <div className="flex justify-end items-center">
+                <div className="w-full lg:w-1/2">
+                    <SearchBar />
+                </div>
             </div>
 
-            <div className="w-full lg:w-96 flex flex-col space-y-8">
-                <LoginCard />
-                <ChatWindow />
+            <WatchList />
+
+            <div className="flex flex-col lg:flex-row gap-8">
+                
+                <div className="flex-1 flex flex-col gap-8">
+                    <StockRank />
+                    <InvestorRank setActiveSection={setActiveSection} />
+                </div>
+
+                <div className="w-full lg:w-96 flex flex-col gap-8">
+                    <LoginCard />
+                    <ChatWindow />
+                </div>
             </div>
         </div>
     </div>
