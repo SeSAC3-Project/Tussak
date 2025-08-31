@@ -2,14 +2,15 @@
 // fetchTopStocks() : 백엔드에서 모든 종목 가져와 거래대금 순으로 정렬 후 상위 28개 표시
 // searchStocks() : 검색 API 호출해서 KTS 전체 데이터에서 검색
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import StockCard from '../components/StockCard'; 
+import SearchBar from '../components/SearchBar';
 
 
-export default function StockList({ onSelectStock }) {
+export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
     const [stocks, setStocks] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState(null);
@@ -18,6 +19,12 @@ export default function StockList({ onSelectStock }) {
     useEffect(() => {
         fetchTopStocks();
     }, []);
+
+    useEffect(() => {
+        if (initialSearchTerm) {
+            setSearchTerm(initialSearchTerm)
+        }
+    }, [initialSearchTerm]);
 
     // 거래대금 상위 28개 종목 조회
     const fetchTopStocks = async () => {
@@ -92,16 +99,9 @@ export default function StockList({ onSelectStock }) {
         return () => clearTimeout(timeoutId);
     }, [searchTerm, searchStocks]);
 
-    // 검색어 입력 핸들러
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-    };
-
-    // 검색 초기화
-    const clearSearch = () => {
-        setSearchTerm('');
-        setSearchResults([]);
-        setError(null);
+    // SearchBar에서 호출할 검색어 핸들러
+    const handleSearchChange = (value) => {
+        setSearchTerm(value);
     };
 
     // 표시할 종목 목록 결정
@@ -128,24 +128,15 @@ export default function StockList({ onSelectStock }) {
             {/* 검색 입력 */}
             <div className="flex justify-end items-center">
                 <div className="w-full lg:w-1/2">
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={handleSearchChange}
+                    <SearchBar 
+                        onSearchChange={handleSearchChange}
                         placeholder="종목 검색"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        variant = "market"
+                        showClearButton={true}
                     />
-                    {searchTerm && (
-                        <button
-                            onClick={clearSearch}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                            ✕
-                        </button>
-                    )}
                 </div>
             </div>
-
+            
             {/* 상태 표시 */}
             {isLoading && (
                 <div className="flex justify-center p-8">
@@ -173,7 +164,7 @@ export default function StockList({ onSelectStock }) {
                 </div>
             )}
 
-            {/* 에러 메시지 (검색 중 발생한 에러) */}
+            {/* 검색 중 발생한 에러에 대한 메시지 */}
             {error && searchTerm && (
                 <div className="text-red-500 text-center p-4 bg-red-50 rounded">
                     {error}
@@ -193,7 +184,7 @@ export default function StockList({ onSelectStock }) {
                         ))}
                     </div>
                     
-                    {/* 기본 28개 종목 표시 중일 때의 안내 */}
+                    {/* 기본 28개 종목 표시 안내 */}
                     {!searchTerm && stocks.length === 28 && (
                         <div className="text-center text-sm text-gray-500 mt-4">
                             28개 종목만을 표시하고 있습니다. 

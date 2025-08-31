@@ -1,17 +1,23 @@
-import React, { useState } from 'react';
+import { useApp } from '../AppContext.js'
 import StockList from './StockList';
-import StockDetail from './StockDetail' 
+import StockDetail from './StockDetail';
 
 
 export default function Market() {
-    const [selectedStock, setSelectedStock] = useState(null);
+    const { searchQuery, selectedStock, navigateToStockDetail, goBack } = useApp();
 
     return (
         <div>
             {selectedStock ? (
-                <StockDetail stock={selectedStock} onBack={() => setSelectedStock(null)} />
+                    <StockDetail 
+                        stock={selectedStock} 
+                        onBack={goBack} 
+                    />
                 ) : (
-                    <StockList onSelectStock={(stock) => setSelectedStock(stock)} />
+                    <StockList 
+                        onSelectStock={navigateToStockDetail}
+                        initialSearchTerm={searchQuery} 
+                    />
                 )}
         </div>
     );

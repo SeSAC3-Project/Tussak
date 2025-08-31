@@ -1,17 +1,31 @@
 import React from 'react';
+import { useState } from 'react';
+import { useApp } from '../AppContext.js';
 import { FaSearch, FaChevronRight } from 'react-icons/fa';
 import InvestorRank from './InvestorRank.jsx';
 import Chatbot from '../components/Chatbot.jsx'
 import StockCard from '../components/StockCard.jsx'
 
 
-export default function Home({ setActiveSection }) {
+export default function Home() {
+    const { navigateToMarket } = useApp();
+    const [activeSection, setActiveSection] = useState(null)
+
+    // Home 에서 검색 시 Market 페이지로 이동
+    const handleSearch = (searchTerm) => {
+        navigateToMarket(searchTerm);
+    };
+
     return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-full mx-auto">
         <div className="flex flex-col gap-8">
             <div className="flex justify-end items-center">
                 <div className="w-full lg:w-1/2">
-                    <SearchBar />
+                    <SearchBar 
+                        onSearch={handleSearch}
+                        placeholder="종목 검색"
+                        variant="home"
+                    />
                 </div>
             </div>
 

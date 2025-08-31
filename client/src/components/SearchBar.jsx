@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
 
-export defualt function SearchBar({
+export default function SearchBar({
     onSearch,
     onSearchChange,
     placeholder = "종목 검색",
@@ -90,6 +90,4 @@ export defualt function SearchBar({
             </div>
         </div>
     );
-
-
 }

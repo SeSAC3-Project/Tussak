@@ -1,17 +1,27 @@
+import { useApp } from '../AppContext';
 import { useState } from 'react';
 import { FaHome, FaChartLine, FaLightbulb, FaWallet, FaHistory, FaBars, FaTimes } from "react-icons/fa";
 import { ReactComponent as LogInIcon } from '../icon/LogIn.svg'
 
-export default function NavSidebar({ activeSection, setActiveSection }) {
-  // New state to manage the mobile sidebar's open/close status
+export default function NavSidebar({ activeSection }) {
+  
+  const {
+    navigateToHome,
+    navigateToMarket,
+    navigateToInsight,
+    navigateToPortfolio,
+    navigateToHistory,
+    setActiveSection
+  } = useApp();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems = [
-    { name: 'Home', icon: FaHome },
-    { name: 'Market', icon: FaChartLine },
-    { name: 'Insight', icon: FaLightbulb },
-    { name: 'Portfolio', icon: FaWallet },
-    { name: 'History', icon: FaHistory },
+    { name: 'Home', icon: FaHome, onclick: navigateToHome},
+    { name: 'Market', icon: FaChartLine, onclick: navigateToMarket},
+    { name: 'Insight', icon: FaLightbulb, onclick: navigateToInsight},
+    { name: 'Portfolio', icon: FaWallet, onclick: navigateToPortfolio},
+    { name: 'History', icon: FaHistory, onclick: navigateToHistory}
   ];
 
   return (
