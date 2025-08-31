@@ -17,11 +17,11 @@ export default function NavSidebar({ activeSection }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems = [
-    { name: 'Home', icon: FaHome, onclick: navigateToHome},
-    { name: 'Market', icon: FaChartLine, onclick: navigateToMarket},
-    { name: 'Insight', icon: FaLightbulb, onclick: navigateToInsight},
-    { name: 'Portfolio', icon: FaWallet, onclick: navigateToPortfolio},
-    { name: 'History', icon: FaHistory, onclick: navigateToHistory}
+    { name: 'Home', icon: FaHome, onClick: navigateToHome},
+    { name: 'Market', icon: FaChartLine, onClick: navigateToMarket},
+    { name: 'Insight', icon: FaLightbulb, onClick: navigateToInsight},
+    { name: 'Portfolio', icon: FaWallet, onClick: navigateToPortfolio},
+    { name: 'History', icon: FaHistory, onClick: navigateToHistory}
   ];
 
   return (

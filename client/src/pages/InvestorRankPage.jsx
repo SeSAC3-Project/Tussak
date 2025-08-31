@@ -1,8 +1,10 @@
-import React from 'react';
+import { useApp } from '../AppContext'
 import { Trophy, Medal, Award } from 'lucide-react';
 
 
 const InvestmentRanking = () => {
+    const { navigateToHome, goBack } = useApp();
+
     const allInvestorData = [
         { name: '김수식', gain: 199.99 },
         { name: '박투자', gain: 199.99 },
@@ -69,6 +71,8 @@ const InvestmentRanking = () => {
     return (
         <div className="min-h-screen p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto">
+                {/* 뒤로 가기 */}
+                <button onClick={goBack}>뒤로 가기</button>
                 {/* 사이드바와 메인 컨텐츠를 감싸는 컨테이너 */}
                 <div className="lg:flex lg:gap-8">
 

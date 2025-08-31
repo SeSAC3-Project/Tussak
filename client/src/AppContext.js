@@ -3,33 +3,40 @@ import { createContext, useContext, useState } from 'react';
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-    const [activeSection, setActiveSection] = useState('home');
+    const [activeSection, setActiveSection] = useState('Home');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStock, setSelectedStock] = useState(null);
 
     const navigateToHome = () => {
-        setActiveSection('home');
+        setActiveSection('Home');
         setSearchQuery('');
         setSelectedStock(null);
     };
 
     const navigateToMarket = (searchTerm = '') =>{
-        setActiveSection('market');
+        setActiveSection('Market');
         setSelectedStock(null);
     };
 
     const navigateToStockDetail = (stock) => {
-        setActiveSection('detail');
+        setActiveSection('StockDetail');
         setSelectedStock(stock);
+    };
+
+    const navigateToInvestorRankPage = () => {
+        setActiveSection('InvestorRankPage');
+        setSelectedStock(null);
     }
 
     const goBack = () => {
-        if (activeSection === 'detail') {
-            setActiveSection('market');
+        if (activeSection === 'StockDetail') {
+            setActiveSection('Market');
             setSelectedStock(null);
-        } else if (activeSection === 'market') {
-            setActiveSection('home');
+        } else if (activeSection === 'Market') {
+            setActiveSection('Home');
             setSearchQuery('');
+        } else if (activeSection === 'InvestorRankPage') {
+            setActiveSection('Home');
         }
     };
 
@@ -42,9 +49,11 @@ export function AppProvider({ children }) {
         navigateToHome,
         navigateToMarket,
         navigateToStockDetail,
+        navigateToInvestorRankPage,
         goBack,
         setSearchQuery,
-        setSelectedStock
+        setSelectedStock,
+        setActiveSection
     };
 
     return (

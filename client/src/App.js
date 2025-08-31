@@ -19,7 +19,7 @@ function AppContent() {
       <NavSidebar activeSection={activeSection} />
       
       <div className="flex-1 p-8 overflow-y-auto">
-        {activeSection === 'Home' && <Home />}
+        {(activeSection === 'Home' || !activeSection) && <Home />}
         {activeSection === 'Market' && <Market />}
         {activeSection === 'Insight' && <Insight />}
         {activeSection === 'Portfolio' && <Portfolio />}
