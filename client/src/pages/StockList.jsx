@@ -32,7 +32,7 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
             setIsLoading(true);
             setError(null);
             
-            const response = await fetch('/api/stock/all');
+            const response = await fetch('/api/stock/ranking/top28');
             const data = await response.json();
 
             if (!response.ok) {
