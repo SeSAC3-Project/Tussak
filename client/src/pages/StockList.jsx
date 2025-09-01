@@ -179,7 +179,7 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
                             <StockCard
                                 key={stock.stock_code || stock.id || `stock-${index}`}
                                 stock={stock}
-                                onSelect={() => onSelectStock(stock)}
+                                navigateToStockDetail={() => onSelectStock(stock)}
                             />
                         ))}
                     </div>

@@ -1,24 +1,15 @@
-import { useApp } from '../AppContext.js'
+import { useApp } from '../AppContext'
 import StockList from './StockList';
-import StockDetail from './StockDetail';
 
 
 export default function Market() {
-    const { searchQuery, selectedStock, navigateToStockDetail, goBack } = useApp();
+    const {  navigateToStockDetail } = useApp();
 
     return (
         <div>
-            {selectedStock ? (
-                    <StockDetail 
-                        stock={selectedStock} 
-                        onBack={goBack} 
-                    />
-                ) : (
-                    <StockList 
-                        onSelectStock={navigateToStockDetail}
-                        initialSearchTerm={searchQuery} 
-                    />
-                )}
+            <StockList 
+                onSelectStock={navigateToStockDetail} 
+            />
         </div>
     );
 };

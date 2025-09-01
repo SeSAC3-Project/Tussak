@@ -1,6 +1,6 @@
 // API에서 받아온 데이터 구조에 맞게 stock 필드명 설정하기
 import { useState } from 'react';
-
+import { useApp } from '../AppContext'
 
 const HeartIcon = ({ active }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 cursor-pointer ${active ? 'text-red-500 fill-current' : 'text-gray-300'}`} viewBox="0 0 20 20" fill="currentColor">
@@ -8,7 +8,7 @@ const HeartIcon = ({ active }) => (
     </svg>
 );
 
-const StockCard = ({ stock, realtimeData }) => {
+const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
     const [active, setActive] = useState(false);
 
     const stockCode = stock.stock_code || '';
@@ -32,7 +32,10 @@ const StockCard = ({ stock, realtimeData }) => {
 
 
     return (
-        <div className="bg-white p-3 rounded-lg border border-gray-200 flex flex-col justify-between h-full shadow-lg">
+        <div 
+            className="bg-white p-3 rounded-lg border border-gray-200 flex flex-col justify-between h-full shadow-lg hover:bg-gray-100 cursor-pointer"
+            onClick={navigateToStockDetail}
+        >
             {/* 상단 요소들: 종목코드, 시장, 좋아요*/}
             <div className="flex justify-between items-center text-gray-500 text-xs mb-1">
                 <span>{stockCode} · {market}</span>

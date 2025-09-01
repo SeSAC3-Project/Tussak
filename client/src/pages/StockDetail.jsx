@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import { useApp } from '../AppContext'
+import { useMemo } from 'react';
 import { useChartState } from '../hooks/useChartState';
 import { useChartInteraction } from '../hooks/useChartInteraction';
 import { generatePeriodData, getPriceRange } from '../utils/stockDataGenerator';
@@ -10,6 +11,8 @@ import StockInfo from '../components/stock/StockInfo';
 import CompanyOverview from '../components/stock/CompanyOverview';
 
 export default function StockDetail({ stock }) {
+
+
     // 커스텀 훅으로 상태 관리
     const {
         chartState,
@@ -19,7 +22,7 @@ export default function StockDetail({ stock }) {
         handlePeriodChange
     } = useChartState();
 
-    // 데이터 생성 (메모이제이션)
+    // 데이터 생성
     const candleData = useMemo(() => {
         return generatePeriodData(chartState.selectedPeriod);
     }, [chartState.selectedPeriod]);
