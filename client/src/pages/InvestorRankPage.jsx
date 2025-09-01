@@ -3,7 +3,7 @@ import { Trophy, Medal, Award } from 'lucide-react';
 
 
 const InvestmentRanking = () => {
-    const { navigateToHome, goBack } = useApp();
+    const { goBack } = useApp();
 
     const allInvestorData = [
         { name: '김수식', gain: 199.99 },
@@ -144,30 +144,6 @@ const InvestmentRanking = () => {
                                                 </div>
                                             </div>
                                         ))}
-                                    </div>
-                                </div>
-                                
-                                {/* 통계 정보 */}
-                                <div className="mt-8 pt-6 border-t border-gray-200">
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                        <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
-                                            <div className="text-3xl font-bold text-blue-600 mb-2">{allInvestorData.length}</div>
-                                            <div className="text-sm text-gray-600">총 투자자</div>
-                                        </div>
-                                        <div className="text-center p-4 bg-gradient-to-br from-red-50 to-pink-100 rounded-xl">
-                                            <div className="text-3xl font-bold text-red-500 mb-2">
-                                                {(allInvestorData.reduce((sum, investor) => sum + investor.gain, 0) / allInvestorData.length).toFixed(1)}%
-                                            </div>
-                                            <div className="text-sm text-gray-600">평균 수익률</div>
-                                        </div>
-                                        <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl">
-                                            <div className="text-3xl font-bold text-green-600 mb-2">{Math.max(...allInvestorData.map(i => i.gain)).toFixed(1)}%</div>
-                                            <div className="text-sm text-gray-600">최고 수익률</div>
-                                        </div>
-                                        <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl">
-                                            <div className="text-3xl font-bold text-purple-600 mb-2">{Math.min(...allInvestorData.map(i => i.gain)).toFixed(1)}%</div>
-                                            <div className="text-sm text-gray-600">최저 수익률</div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
