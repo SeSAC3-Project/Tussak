@@ -2,12 +2,13 @@
 // npm install tailwind-scrollbar
 
 import { AppProvider, useApp } from './AppContext.js';
-import Home from './pages/Home.jsx'
-import InvestorRankPage from './pages/InvestorRankPage.jsx'
-import Market from './pages/Market.jsx'
-import Insight from './pages/Insight.jsx'
+import Home from './pages/Home.jsx';
+import InvestorRankPage from './pages/InvestorRankPage.jsx';
+import Market from './pages/Market.jsx';
+import StockDetail from './pages/StockDetail.jsx';
+import Insight from './pages/Insight.jsx';
 // import Portfolio from './pages/Portfolio.jsx';
-import History from './pages/History.jsx'
+import History from './pages/History.jsx';
 import Chatbot from './components/Chatbot.jsx';
 import NavSidebar from './components/NavigationSidebar.jsx'
 
@@ -25,6 +26,7 @@ function AppContent() {
         {activeSection === 'Portfolio' && <Portfolio />}
         {activeSection === 'History' && <History />}
         {activeSection === 'InvestorRankPage' && <InvestorRankPage />}
+        {activeSection === 'StockDetail' && <StockDetail />}
       </div>
   
       {activeSection !== 'Home' && <Chatbot />}
