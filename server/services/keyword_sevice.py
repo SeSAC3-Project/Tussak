@@ -1,5 +1,5 @@
 from collections import Counter
-from models.stock_realtime import StockRealtime
+from models.stock_history import StockHistory
 from services.cache_service import CacheService
 
 class KeywordService:
@@ -12,7 +12,7 @@ class KeywordService:
                 return cached_keywords
             
             # 거래대금순 종목 호출 작업 완료 후 수정
-            top_stocks = StockRealtime.all()
+            top_stocks = StockHistory.all()
             
             if not top_stocks:
                 return []

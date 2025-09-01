@@ -217,6 +217,9 @@ class StockService:
                     'stock_name': stock.stock_name,
                     'market': stock.market,
                     'sector': stock.sector,
+                    'sector_detail': stock.sector_detail,
+                    'company_info': stock.company_info,
+                    'shares_outstanding': stock.shares_outstanding,
                     'updated_at': stock.updated_at.isoformat() if stock.updated_at else None
                 }
                 for stock in stocks
@@ -239,7 +242,11 @@ class StockService:
                     'stock_code': stock.stock_code,
                     'stock_name': stock.stock_name,
                     'market': stock.market,
-                    'sector': stock.sector
+                    'sector': stock.sector,
+                    'sector_detail': stock.sector_detail,
+                    'company_info': stock.company_info,
+                    'shares_outstanding': stock.shares_outstanding,
+                    'updated_at': stock.updated_at.isoformat() if stock.updated_at else None
                 }
                 for stock in stocks
             ]
@@ -262,9 +269,9 @@ class StockService:
                 'stock_name': stock.stock_name,
                 'market': stock.market,
                 'sector': stock.sector,
-                'per': float(stock.per) if stock.per else None,
-                'pbr': float(stock.pbr) if stock.pbr else None,
+                'sector_detail': stock.sector_detail,
                 'company_info': stock.company_info,
+                'shares_outstanding': stock.shares_outstanding,
                 'updated_at': stock.updated_at.isoformat() if stock.updated_at else None
             }
 
@@ -328,4 +335,90 @@ class StockService:
     #         current_app.logger.error(f"DB 업종 업데이트 실패: {e}")
     #         raise e
 
+    @staticmethod
+    def get_volume_ranking(limit=28):
+        """거래대금 순위 조회 (캐시 우선, 없으면 DB에서 계산)"""
+        try:
+            # 2. 캐시가 없으면 DB에서 계산
+            from models.stock_history import StockHistory
+            from models.stock import Stock
+            from sqlalchemy import func
+            
+            # 거래대금 = 현재가 × 거래량
+            ranking_query = db.session.query(
+                Stock.stock_code,
+                Stock.stock_name,
+                Stock.market,
+                StockHistory.current_price,
+                StockHistory.change_rate,
+                StockHistory.change_amount,
+                StockHistory.daily_volume,
+                func.cast(StockHistory.current_price * StockHistory.daily_volume, db.BigInteger).label('trade_amount')
+            ).join(
+                StockHistory, Stock.stock_code == StockHistory.stock_id
+            ).filter(
+                StockHistory.current_price.isnot(None),
+                StockHistory.daily_volume.isnot(None)
+            ).order_by(
+                func.cast(StockHistory.current_price * StockHistory.daily_volume, db.BigInteger).desc()
+            ).limit(limit)
+            
+            results = []
+            for row in ranking_query:
+                results.append({
+                    'stock_code': row.stock_code,
+                    'stock_name': row.stock_name,
+                    'market': row.market,
+                    'current_price': float(row.current_price) if row.current_price else None,
+                    'change_rate': float(row.change_rate) if row.change_rate else None,
+                    'change_amount': float(row.change_amount) if row.change_amount else None,
+                    'daily_volume': int(row.daily_volume) if row.daily_volume else None,
+                    'trade_amount': int(row.trade_amount) if row.trade_amount else None
+                })
+            
+            return results
+            
+        except Exception as e:
+            current_app.logger.error(f"거래대금 순위 조회 실패: {e}")
+            return []
 
+    # @staticmethod
+    # def get_volume_ranking(limit=28):
+    #     """거래대금 순위 조회 (캐시 우선, 없으면 KIS API 호출)"""
+    #     try:
+    #         # 1. 캐시에서 먼저 확인
+    #         # from services.cache_service import CacheService
+    #         cached_data = None # CacheService.get_volume_ranking()
+            
+    #         if cached_data:
+    #             return cached_data[:limit]
+            
+    #         # 2. 캐시가 없으면 KIS API에서 조회
+    #         return StockService.update_volume_ranking()[:limit]
+            
+    #     except Exception as e:
+    #         current_app.logger.error(f"거래대금 순위 조회 실패: {e}")
+    #         return []
+    
+    # @staticmethod
+    # def update_volume_ranking():
+    #     """거래대금 순위 데이터 수집 및 캐싱"""
+    #     try:
+    #         from utils.kis_api import KisAPI
+    #         from services.cache_service import CacheService
+            
+    #         kis_api = KisAPI()
+            
+    #         # �� 1단계: 거래대금 순위 상위 종목들 조회
+    #         ranking_data = kis_api.fetch_volume_ranking(limit=30)
+            
+    #         if ranking_data:
+    #             # CacheService.set_volume_ranking(ranking_data, expire_hours=0.1)
+    #             current_app.logger.info(f"거래대금 순위 업데이트 완료: {len(ranking_data)}개")
+    #             return ranking_data  # 🆕 데이터 반환
+            
+    #         return []
+            
+    #     except Exception as e:
+    #         current_app.logger.error(f"거래대금 순위 업데이트 실패: {e}")
+    #         return []
