@@ -13,7 +13,7 @@ class AuthService:
         try:
             jwt_secret = os.getenv('JWT_SECRET_KEY')
             if not jwt_secret:
-                current_app.logger.error("JWT_SECRET_KEY 환경 변수가 설정 필요")
+                current_app.logger.error("JWT_SECRET_KEY 환경 변수 설정 필요")
                 return None
                 
             payload = {
@@ -37,7 +37,7 @@ class AuthService:
         try:
             jwt_secret = os.getenv('JWT_SECRET_KEY')
             if not jwt_secret:
-                current_app.logger.error("JWT_SECRET_KEY 환경 변수가 설정 필요")
+                current_app.logger.error("JWT_SECRET_KEY 환경 변수 설정 필요")
                 return None
                 
             payload = jwt.decode(
