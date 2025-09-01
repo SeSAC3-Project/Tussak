@@ -42,6 +42,8 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
             if (data.success) {
                 // 거래대금 순으로 정렬하고 상위 28개만 선택
                 const topStocks = data.data
+                    // 주식만 필터링 (ETF/펀드 미포함) : 종목코드가 6자리 인것만
+                    .filter(item => /^[0-9]{6}$/.test(item.stock_code))
                     .sort((a, b) => (b.trading_value || 0) - (a.trading_value || 0))
                     .slice(0, 28);
                 
