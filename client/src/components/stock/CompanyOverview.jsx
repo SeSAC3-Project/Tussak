@@ -1,4 +1,5 @@
 const CompanyOverview = () => {
+
     return (
         <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-lg font-bold text-gray-800 mb-4">기업개요</h2>

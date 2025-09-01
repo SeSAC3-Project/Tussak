@@ -10,9 +10,9 @@ import StockHeader from '../components/stock/StockHeader';
 import StockInfo from '../components/stock/StockInfo';
 import CompanyOverview from '../components/stock/CompanyOverview';
 
-export default function StockDetail({ stock }) {
-    const { selectedStock } = useApp()
+export default function StockDetail() {
 
+    const { selectedStock } = useApp()
     // 커스텀 훅으로 상태 관리
     const {
         chartState,
@@ -53,15 +53,11 @@ export default function StockDetail({ stock }) {
         handleMouseLeaveChart
     } = useChartInteraction(chartState, setChartState, chartRef, dragRef, candleData);
 
-    console.log(stock)
-
     return (
         <div>
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* 주식 헤더 */}
-                <StockHeader 
-                    selectedStock={selectedStock}
-                />
+                <StockHeader selectedStock={selectedStock} />
 
                 {/* 차트 섹션 */}
                 <div className="bg-white rounded-2xl shadow-lg p-6">
