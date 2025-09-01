@@ -1,6 +1,9 @@
+import { useApp } from '../AppContext';
 import { FaChevronRight } from "react-icons/fa";
 
 export default function InvestorRank({ setActiveSection }) {
+    const { navigateToInvestorRankPage } = useApp();
+
     const investorData = [
         { name: '김주식', gain: 130.00 },
         { name: '박투자', gain: 95.50 },
@@ -13,7 +16,7 @@ export default function InvestorRank({ setActiveSection }) {
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-black">투자 랭킹</h2>
                 <button
-                    onClick={() => setActiveSection('InvestorRankPage')}
+                    onClick={navigateToInvestorRankPage}
                     className="flex items-center text-lime-500 hover:text-lime-700"
                 >
                     더보기

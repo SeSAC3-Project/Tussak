@@ -1,17 +1,27 @@
+import { useApp } from '../AppContext';
 import { useState } from 'react';
 import { FaHome, FaChartLine, FaLightbulb, FaWallet, FaHistory, FaBars, FaTimes } from "react-icons/fa";
 import { ReactComponent as LogInIcon } from '../icon/LogIn.svg'
 
-export default function NavSidebar({ activeSection, setActiveSection }) {
-  // New state to manage the mobile sidebar's open/close status
+export default function NavSidebar({ activeSection }) {
+  
+  const {
+    navigateToHome,
+    navigateToMarket,
+    navigateToInsight,
+    navigateToPortfolio,
+    navigateToHistory,
+    setActiveSection
+  } = useApp();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems = [
-    { name: 'Home', icon: FaHome },
-    { name: 'Market', icon: FaChartLine },
-    { name: 'Insight', icon: FaLightbulb },
-    { name: 'Portfolio', icon: FaWallet },
-    { name: 'History', icon: FaHistory },
+    { name: 'Home', icon: FaHome, onClick: navigateToHome},
+    { name: 'Market', icon: FaChartLine, onClick: navigateToMarket},
+    { name: 'Insight', icon: FaLightbulb, onClick: navigateToInsight},
+    { name: 'Portfolio', icon: FaWallet, onClick: navigateToPortfolio},
+    { name: 'History', icon: FaHistory, onClick: navigateToHistory}
   ];
 
   return (
@@ -35,7 +45,7 @@ export default function NavSidebar({ activeSection, setActiveSection }) {
       {/* The navigation sidebar itself */}
       {/* I've added the 'h-screen' class to ensure the sidebar takes up the full viewport height. */}
       <nav 
-        className={`fixed inset-y-0 top-0 left-0 w-64 h-screen overflow-y-auto bg-white p-6 shadow-xl flex-col z-50 transition-transform duration-300 ease-in-out
+        className={`fixed inset-y-0 top-0 left-0 w-72 h-screen overflow-y-auto bg-white p-6 shadow-xl flex-col z-50 transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           sm:relative sm:translate-x-0 sm:flex`}
       >

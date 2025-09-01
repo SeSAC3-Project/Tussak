@@ -1,6 +1,4 @@
 // API에서 받아온 데이터 구조에 맞게 stock 필드명 설정하기
-
-import React from 'react';
 import { useState } from 'react';
 
 
@@ -34,7 +32,7 @@ const StockCard = ({ stock, realtimeData }) => {
 
 
     return (
-        <div className="bg-white p-3 rounded-lg border border-gray-200 flex flex-col justify-between h-full">
+        <div className="bg-white p-3 rounded-lg border border-gray-200 flex flex-col justify-between h-full shadow-lg">
             {/* 상단 요소들: 종목코드, 시장, 좋아요*/}
             <div className="flex justify-between items-center text-gray-500 text-xs mb-1">
                 <span>{stockCode} · {market}</span>

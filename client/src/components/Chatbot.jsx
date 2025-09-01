@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
-import { sendMessageToBot } from '../utils/chatApi';
 
 const Chatbot = ({ isExpanded = false, onToggle = null }) => {
   const [messages, setMessages] = useState([
