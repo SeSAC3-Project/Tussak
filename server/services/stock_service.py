@@ -342,26 +342,51 @@ class StockService:
             # 2. 캐시가 없으면 DB에서 계산
             from models.stock_history import StockHistory
             from models.stock import Stock
-            from sqlalchemy import func
+            from sqlalchemy import func, and_
             
-            # 거래대금 = 현재가 × 거래량
-            ranking_query = db.session.query(
-                Stock.stock_code,
-                Stock.stock_name,
-                Stock.market,
-                StockHistory.current_price,
-                StockHistory.change_rate,
-                StockHistory.change_amount,
-                StockHistory.daily_volume,
-                func.cast(StockHistory.current_price * StockHistory.daily_volume, db.BigInteger).label('trade_amount')
-            ).join(
-                StockHistory, Stock.stock_code == StockHistory.stock_id
-            ).filter(
-                StockHistory.current_price.isnot(None),
-                StockHistory.daily_volume.isnot(None)
-            ).order_by(
-                func.cast(StockHistory.current_price * StockHistory.daily_volume, db.BigInteger).desc()
-            ).limit(limit)
+            # 각 종목의 최신 StockHistory를 선택하기 위한 서브쿼리
+            latest_history_subq = db.session.query(
+                StockHistory.stock_id.label('stock_id'),
+                func.max(StockHistory.updated_at).label('max_updated_at')
+            ).group_by(StockHistory.stock_id).subquery()
+
+            # 거래대금 = 현재가 × 거래량 (최신 이력 기준)
+            ranking_query = (
+                db.session.query(
+                    Stock.stock_code,
+                    Stock.stock_name,
+                    Stock.market,
+                    StockHistory.current_price,
+                    StockHistory.change_rate,
+                    StockHistory.change_amount,
+                    StockHistory.daily_volume,
+                    func.cast(
+                        StockHistory.current_price * StockHistory.daily_volume,
+                        db.BigInteger
+                    ).label('trading_value')
+                )
+                # Stock.id와 StockHistory.stock_id 조인
+                .join(StockHistory, Stock.id == StockHistory.stock_id)
+                # 최신 이력만 선택
+                .join(
+                    latest_history_subq,
+                    and_(
+                        StockHistory.stock_id == latest_history_subq.c.stock_id,
+                        StockHistory.updated_at == latest_history_subq.c.max_updated_at
+                    )
+                )
+                .filter(
+                    StockHistory.current_price.isnot(None),
+                    StockHistory.daily_volume.isnot(None)
+                )
+                .order_by(
+                    func.cast(
+                        StockHistory.current_price * StockHistory.daily_volume,
+                        db.BigInteger
+                    ).desc()
+                )
+                .limit(limit)
+            )
             
             results = []
             for row in ranking_query:
@@ -373,7 +398,7 @@ class StockService:
                     'change_rate': float(row.change_rate) if row.change_rate else None,
                     'change_amount': float(row.change_amount) if row.change_amount else None,
                     'daily_volume': int(row.daily_volume) if row.daily_volume else None,
-                    'trade_amount': int(row.trade_amount) if row.trade_amount else None
+                    'trading_value': int(row.trading_value) if getattr(row, 'trading_value', None) is not None else None
                 })
             
             return results
