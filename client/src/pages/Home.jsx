@@ -1,4 +1,3 @@
-import React from 'react';
 import { useState } from 'react';
 import { useApp } from '../AppContext.js';
 import { FaSearch, FaChevronRight } from 'react-icons/fa';

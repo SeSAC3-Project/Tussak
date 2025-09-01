@@ -174,7 +174,7 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
             {/* 종목 그리드 */}
             {!isLoading && displayStocks.length > 0 && (
                 <>
-                    <div className="grid grid-cols-4 gap-4 overflow-y-autoscrollbar-thin scrollbar-thumb-gray-400 mt-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 overflow-y-autoscrollbar-thin scrollbar-thumb-gray-400 mt-8">
                         {displayStocks.map((stock, index) => (
                             <StockCard
                                 key={stock.stock_code || stock.id || `stock-${index}`}

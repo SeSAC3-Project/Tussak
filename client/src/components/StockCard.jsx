@@ -1,6 +1,4 @@
 // API에서 받아온 데이터 구조에 맞게 stock 필드명 설정하기
-
-import React from 'react';
 import { useState } from 'react';
 
 
