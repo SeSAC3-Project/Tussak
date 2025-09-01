@@ -71,3 +71,23 @@ def get_stock_by_id(id):
             'success': False,
             'message': f'오류가 발생했습니다: {str(e)}'
         }), 500
+
+@stock_bp.route('/ranking/top28')
+def get_stocks_ranking_top28():
+    """거래대금 순위 28개 조회"""
+    try:
+        limit = request.args.get('limit', 28, type=int)
+        stocks = StockService.get_volume_ranking(limit)  # 🆕 조회 전용 함수 사용
+        
+        return jsonify({
+            'success': True,
+            'data': stocks,
+            'count': len(stocks)
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"거래대금 순위 조회 API 오류: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'오류가 발생했습니다: {str(e)}'
+        }), 500
