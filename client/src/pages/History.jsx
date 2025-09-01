@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Pagination from '../components/Pagination.jsx'
 
 export default function History() {
@@ -45,8 +45,6 @@ export default function History() {
   const totalPages = Math.ceil(tradingData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = tradingData.slice(startIndex, startIndex + itemsPerPage);
-
-
 
   return (
     <div className="min-h-screen p-6">
