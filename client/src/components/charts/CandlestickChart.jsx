@@ -44,8 +44,24 @@ const CandlestickChart = ({
     const topMargin = 20;
     const chartAreaWidth = chartContainerWidth - leftMargin - rightMargin;
     const chartAreaHeight = chartContainerHeight - topMargin - 40;
+    
+    const getCandleWidth = () => {
+    const baseWidth = chartAreaWidth / data.length * 0.7;
+    
+    if (chartAreaWidth >= 1200) {
+        // 데스크톱
+        return Math.max(6, Math.min(24, baseWidth));
+    } else if (chartAreaWidth >= 768) {
+        // 태블릿
+        return Math.max(4, Math.min(16, baseWidth));
+    } else {
+        // 모바일
+        return Math.max(3, Math.min(12, baseWidth));
+    }
+    };
 
-    const candleWidth = Math.max(2, Math.min(8, chartAreaWidth / Math.max(data.length, 50)));
+    const candleWidth = getCandleWidth();
+
     const candleSpacing = chartAreaWidth / data.length;
 
     const scaleY = (price) => {
@@ -170,6 +186,17 @@ const CandlestickChart = ({
                         opacity="0.7"
                     />
 
+                    {/* 현재가 텍스트 */}
+                    <rect
+                        x={leftMargin + chartAreaWidth}
+                        y={scaleY(currentPrice) - 10}
+                        width="75"
+                        height="20"
+                        fill="#ef4444"
+                        rx="3"
+                        opacity="0.9"
+                    />
+
                     {/* 크로스헤어 */}
                     {chartState.crosshair.visible && (
                         <g opacity="0.7">
@@ -208,7 +235,7 @@ const CandlestickChart = ({
                                     x1={x + candleWidth/2}
                                     y1={scaleY(candle.high) - 20}
                                     x2={x + candleWidth/2}
-                                    y2={scaleY(candle.low) - 20}
+                                    y2={scaleY(candle.low)}
                                     stroke={isGreen ? "#22c55e" : "#ef4444"}
                                     strokeWidth="1"
                                 />
