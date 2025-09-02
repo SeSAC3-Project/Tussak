@@ -1,6 +1,7 @@
 import { useApp } from '../AppContext'
 import { useMemo } from 'react';
 import { useChartState } from '../hooks/useChartState';
+// import { useStockData } from '../hooks/useStockData';
 import { useChartInteraction } from '../hooks/useChartInteraction';
 import { generatePeriodData, getPriceRange } from '../utils/stockDataGenerator';
 import CandlestickChart from '../components/charts/CandlestickChart';
@@ -13,6 +14,7 @@ import CompanyOverview from '../components/stock/CompanyOverview';
 export default function StockDetail() {
 
     const { selectedStock } = useApp()
+    
     // 커스텀 훅으로 상태 관리
     const {
         chartState,
@@ -20,12 +22,35 @@ export default function StockDetail() {
         chartRef,
         dragRef,
         handlePeriodChange
+        // : originalHandlePeriodChange
     } = useChartState();
 
-    // 데이터 생성
+    // 더미 데이터
     const candleData = useMemo(() => {
         return generatePeriodData(chartState.selectedPeriod);
     }, [chartState.selectedPeriod]);
+    
+    // 현재가
+    const currentPrice = useMemo(() => {
+        return candleData.length > 0 ? candleData[candleData.length - 1].close : 235000;
+    }, [candleData]);
+
+
+    // API 데이터 훅
+    // const {
+        //     chartData: candleData,
+        //     currentPrice,
+        //     loading,
+        //     error,
+        //     fetchChartData
+        // } = useStockData(selectedStock?.code);
+
+    // 기간 변경 시 API 재호출
+    // const handlePeriodChange = (period) => {
+    //     originalHandlePeriodChange(period);
+    //     fetchChartData(period);
+    // }
+        
 
     // 보여줄 데이터 슬라이싱
     const visibleData = useMemo(() => {
@@ -35,10 +60,6 @@ export default function StockDetail() {
         );
     }, [candleData, chartState.startIndex, chartState.visibleCandles]);
 
-    // 현재가
-    const currentPrice = useMemo(() => {
-        return candleData.length > 0 ? candleData[candleData.length - 1].close : 235000;
-    }, [candleData]);
 
     // 가격 범위
     const priceRange = useMemo(() => {
@@ -53,6 +74,32 @@ export default function StockDetail() {
         handleMouseLeaveChart
     } = useChartInteraction(chartState, setChartState, chartRef, dragRef, candleData);
 
+    // API 호출 시 로딩 & 에러 처리
+
+    //  if (loading) {
+    //     return (
+    //         <div className="flex items-center justify-center h-64">
+    //             <div className="text-gray-500">차트 데이터를 불러오는 중...</div>
+    //         </div>
+    //     );
+    // }
+
+    // // 에러 상태
+    // if (error) {
+    //     return (
+    //         <div className="flex items-center justify-center h-64">
+    //             <div className="text-red-500">데이터 로딩 실패: {error}</div>
+    //             <button 
+    //                 onClick={() => fetchChartData(chartState.selectedPeriod)}
+    //                 className="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+    //             >
+    //                 다시 시도
+    //             </button>
+    //         </div>
+    //     );
+    // }
+
+
     return (
         <div>
             <div className="max-w-7xl mx-auto space-y-6">
@@ -62,10 +109,10 @@ export default function StockDetail() {
                 {/* 차트 섹션 */}
                 <div className="bg-white rounded-2xl shadow-lg p-6">
                     {/* 차트 컨트롤 */}
-                    <ChartControls 
+                    {/* <ChartControls 
                         chartState={chartState}
                         onPeriodChange={handlePeriodChange}
-                    />
+                    /> */}
 
                     {/* 캔들스틱 차트 */}
                     <CandlestickChart
