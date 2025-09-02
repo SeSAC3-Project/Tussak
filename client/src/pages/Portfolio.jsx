@@ -116,8 +116,8 @@ export default function Portfolio() {
     const [aggregatedStocks, setAggregatedStocks] = useState([]);
 
     useEffect(() => {
-        // API 호출 파트
-
+        // API 호출 파트 
+        // 현 더미데이터
         const fetchUserData = async () => {
             try {
                 const data = { ...dummyData };
@@ -160,9 +160,9 @@ export default function Portfolio() {
         <div className="min-h-screen p-6">
             <div className="max-w-6xl mx-auto space-y-6">
                 {/* 내 자산 현황 */}
-                <div className="bg-white-100 p-6 rounded-lg">
-                    <h2 className="text-xl text-gray-800 mb-4">내 자산 현황</h2>
-                    <div className="bg-white p-4 rounded-lg">
+                <div className="bg-white p-6 rounded-lg mb-7">
+                    <h1 className="text-2xl font-bold text-gray-800 mb-4">내 자산 현황</h1>
+                    <div className="bg-white-300 p-4 rounded-lg shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]">
                         <div className="text-gray-600">
                             총 자산: {formatKRW(userData.assets.totalValue)}
                         </div>
@@ -176,41 +176,44 @@ export default function Portfolio() {
                 </div>
  
                 {/* 보유 주식 */}
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                    <h2 className="text-xl text-gray-800 mb-4">보유 주식</h2>
+                <div className="bg-white p-6 rounded-lg shadow-sm overflow-hidden">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">보유 주식</h2>
 
                     <div className="overflow-x-auto">
-                        <table classNAme="w-full">
-                            <thead>
+                        <table className="w-full">
+                            <thead className="bg-gray-50">
                                 <tr className="border-b border-gray-200">
-                                    <th className="text-left py-3 px-2 text-gray-700">종목명</th>
-                                    <th className="text-right py-3 px-2 text-gray-700">보유수량</th>
-                                    <th className="text-right py-3 px-2 text-gray-700">평가금액</th>
-                                    <th className="text-right py-3 px-2 text-gray-700">평가손익</th>
-                                    <th className="text-right py-3 px-2 text-gray-700">수익률</th>
-                                    <th className="text-right py-3 px-2 text-gray-700">현재가</th>
-                                    <th className="text-right py-3 px-2 text-gray-700">평균단가</th>
+                                    <th className="text-left py-3 px-8 font-medium text-gray-500">종목명</th>
+                                    <th className="text-left py-3 px-2 font-medium text-gray-500">보유수량</th>
+                                    <th className="text-left py-3 px-2 font-medium text-gray-500">평가금액</th>
+                                    <th className="text-left py-3 px-2 font-medium text-gray-500">평가손익</th>
+                                    <th className="text-left py-3 px-2 font-medium text-gray-500">수익률</th>
+                                    <th className="text-left py-3 px-2 font-medium text-gray-500">현재가</th>
+                                    <th className="text-left py-3 px-8 font-medium text-gray-500">평균단가</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {aggregatedStocks.map((stock, index) => {
-                                    <tr key={`${stock.name}-${index}`} className="border-b border-gray-100 hover:bg-gray-50">
-                                        <td className="py-3 px-2 text-gray-800">{stock.name}</td>
-                                        <td className="py-3 px-2 text-right text-gray-700">{stock.quantity}주</td>
-                                        <td className="py-3 px-2 text-right text-gray-800">{formatKRW(stock.evaluationAmount)}</td>
-                                        <td className={`py-3 px-2 text-right ${stock.unrealizedPL >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
+                                    return (
+                                        <tr key={`${stock.name}-${index}`} className="border-b border-gray-100 hover:bg-gray-50">
+                                        <td className="py-3 text-left px-8 text-gray-800">{stock.name}</td>
+                                        <td className="py-3 px-2 text-left text-gray-700">{stock.quantity}주</td>
+                                        <td className="py-3 px-2 text-left text-gray-800">{formatKRW(stock.evaluationAmount)}</td>
+                                        <td className={`py-3 px-2 text-left ${stock.unrealizedPL >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
                                             {formatKRW(stock.unrealizedPL)}
                                         </td>
-                                        <td className={`py-3 px-2 text-right ${stock.returnRate >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
+                                        <td className={`py-3 px-2 text-left ${stock.returnRate >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
                                             {formatPercentage(stock.returnRate)}
                                         </td>
-                                        <td className="py-3 px-2 text-right text-gray-800">
+                                        <td className="py-3 px-2 text-left text-gray-800">
                                             {formatKRW(stock.currentPrice)}
                                         </td>
-                                        <td className="py-3 px-2 text-right text-gray-800">
+                                        <td className="py-3 px-8 text-left text-gray-800">
                                             {formatKRW(stock.averageCost)}
                                         </td>
                                     </tr>
+                                    )
+                                    
                                 })}
                             </tbody>
                         </table>

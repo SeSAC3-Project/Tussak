@@ -2,12 +2,12 @@
 // npm install tailwind-scrollbar
 
 import { AppProvider, useApp } from './AppContext.js';
-import Home from './pages/Home.jsx'
-import InvestorRankPage from './pages/InvestorRankPage.jsx'
-import Market from './pages/Market.jsx'
-import Insight from './pages/Insight.jsx'
-// import Portfolio from './pages/Portfolio.jsx';
-import History from './pages/History.jsx'
+import Home from './pages/Home.jsx';
+import InvestorRankPage from './pages/InvestorRankPage.jsx';
+import Market from './pages/Market.jsx';
+import Insight from './pages/Insight.jsx';
+import Portfolio from './pages/Portfolio.jsx';
+import History from './pages/History.jsx';
 import Chatbot from './components/Chatbot.jsx';
 import NavSidebar from './components/NavigationSidebar.jsx';
 import StockDetail from './pages/StockDetail.jsx'
@@ -40,13 +40,4 @@ export default function App() {
       <AppContent />
     </AppProvider>
   )
-}
-
-function Portfolio() {
-  return (
-    <div className="p-8 text-center text-gray-400">
-      <h1 className="text-3xl font-bold mb-4">Market Portfolio</h1>
-      <p>세션 구현 후 다시 만나용 !</p>
-    </div>
-  );
 }
