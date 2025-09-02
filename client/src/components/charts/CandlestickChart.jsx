@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 const CandlestickChart = ({ 
     data, 
@@ -11,36 +11,79 @@ const CandlestickChart = ({
     handleMouseMoveChart,
     handleMouseLeaveChart
 }) => {
-    const chartContainerWidth = 600;
-    const candleWidth = Math.max(2, Math.min(8, chartContainerWidth / Math.max(data.length, chartState.visibleCandles)));
-    const spacing = candleWidth + 2;
+    const containerRef = useRef(null);
+    const [chartContainerWidth, setChartContainerWidth] = useState(600);
+    const [chartContainerHeight] = useState(400);
 
-    const totalDataWidth = data.length * spacing;
-    const maxPossibleWidth = chartState.visibleCandles * spacing;
-    const leftOffset = Math.max(0, maxPossibleWidth - totalDataWidth);
+    useEffect(() => {
+        const updateWidth = () => {
+            if (containerRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
+                const finalWidth = rect.width - 48;
+                setChartContainerWidth(Math.max(300, finalWidth));
+            }
+        };
+
+        updateWidth();
+
+        const resizeObserver = new ResizeObserver(updateWidth);
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current);
+        }
+
+        window.addEventListener('resize', updateWidth);
+
+        return () => {
+            resizeObserver.disconnect();
+            window.removeEventListener('resize', updateWidth)
+        };
+    }, []);
+
+    const leftMargin = 60;
+    const rightMargin = 20;
+    const topMargin = 20;
+    const chartAreaWidth = chartContainerWidth - leftMargin - rightMargin;
+    const chartAreaHeight = chartContainerHeight - topMargin - 40;
+
+    const candleWidth = Math.max(2, Math.min(8, chartAreaWidth / Math.max(data.length, 50)));
+    const candleSpacing = chartAreaWidth / data.length;
 
     const scaleY = (price) => {
-        return 280 - ((price - priceRange.min) / (priceRange.max - priceRange.min)) * 260;
+        return topMargin + chartAreaHeight - ((price - priceRange.min) / (priceRange.max - priceRange.min)) * chartAreaHeight;
     };
 
     return (
+<div ref={containerRef} className="w-full">
+    <div className="overflow-x-auto">
         <div
             ref={chartRef}
-            className={`relative w-full h-80 outline-none ${chartState.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            className={`relative outline-none cursor-grab`
+                // ${chartState.isDragging ? 'cursor-grabbing' : 'cursor-grab'}
+            }
+            style={{
+                userSelect: 'none',
+                width: `${chartContainerWidth}px`,
+                height: `${chartContainerHeight}px`,
+            }}
+            tabIndex={0}
             onWheel={handleWheel}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMoveChart}
             onMouseLeave={handleMouseLeaveChart}
-            style={{ userSelect: 'none' }}
-            tabIndex={0}
         >
             <svg width="100%" height="100%" className="overflow-visible">
                 <defs>
-                    <pattern id="grid" width="40" height="20" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 20" fill="none" stroke="#f0f0f0" strokeWidth="1" />
+                    <pattern id="grid" width={chartAreaWidth / 10} height="20" patternUnits="userSpaceOnUse">
+                        <path d={`M ${chartAreaWidth / 10} 0 L 0 0 0 20`} fill="none" stroke="#f0f0f0" strokeWidth="1" />
                     </pattern>
                 </defs>
-                <rect width="70%" height="100%" fill="url(#grid)" />
+                <rect 
+                    x={leftMargin}
+                    y={topMargin}
+                    width={chartAreaWidth}
+                    height={chartAreaHeight}
+                    fill="url(#grid)"
+                />
 
                 {/* 가격 눈금 */}
                 <g>
@@ -49,8 +92,25 @@ const CandlestickChart = ({
                         const y = scaleY(price);
                         return (
                             <g key={i}>
-                                <line x1="35" y1={y} x2="40" y2={y} stroke="#ccc" strokeWidth="1" />
-                                <text x="32" y={y + 4} fontSize="10" fill="#666" textAnchor="end">
+                                {/* 가격선 */}
+                                <line 
+                                    x1={leftMargin} 
+                                    y1={y} 
+                                    x2={leftMargin + chartAreaWidth} 
+                                    y2={y} 
+                                    stroke="#ccc" 
+                                    strokeWidth="1" 
+                                    strokeDasharray="2,2"
+                                    opacity="0.5"
+                                />
+                                {/* 가격 텍스트 */}
+                                <text 
+                                    x={leftMargin - 5} 
+                                    y={y + 4} 
+                                    fontSize="10" 
+                                    fill="#666" 
+                                    textAnchor="end"
+                                >
                                     {Math.round(price).toLocaleString()}
                                 </text> 
                             </g>
@@ -58,7 +118,10 @@ const CandlestickChart = ({
                     })}
                 </g>
 
-                <g transform="translate(40, 20)">
+                {/* 차트 영역에서 */}
+                <g 
+                    // transform="translate(40, 20)"
+                >
                     {/* 이동평균선 */}
                     {data.length > 1 && (
                         <>
@@ -66,31 +129,43 @@ const CandlestickChart = ({
                                 fill="none"
                                 stroke="#3b82f6"
                                 strokeWidth="1.5"
-                                points={data.map((d, i) => `${leftOffset + i * spacing + candleWidth/2},${scaleY(d.ma5) - 20}`).join(' ')}
+                                points={data.map((d, i) => {
+                                    const xPosition = leftMargin + (i / Math.max(data.length - 1, 1)) * chartAreaWidth;
+                                    const yPosition = scaleY(d.ma5 || d.close);
+                                    return `${xPosition}, ${yPosition}`;
+                                }).join(' ')}
                             />
                             <polyline
                                 fill="none"
                                 stroke="#f59e0b"
                                 strokeWidth="1.5"
-                                points={data.map((d, i) => `${leftOffset + i * spacing + candleWidth/2}, ${scaleY(d.ma20) - 20}`).join(' ')}
+                                points={data.map((d, i) => {
+                                            const xPosition = leftMargin + (i / Math.max(data.length - 1, 1)) * chartAreaWidth;
+                                            const yPosition = scaleY(d.ma20 || d.close);
+                                            return `${xPosition},${yPosition}`;
+                                        }).join(' ')}
                             />
                             <polyline
                                 fill="none"
                                 stroke="#8b5cf6"
                                 strokeWidth="1.5"
-                                points={data.map((d, i) => `${leftOffset + i * spacing + candleWidth/2}, ${scaleY(d.ma60) - 20}`).join(' ')}
+                                points={data.map((d, i) => {
+                                            const xPosition = leftMargin + (i / Math.max(data.length - 1, 1)) * chartAreaWidth;
+                                            const yPosition = scaleY(d.ma60 || d.close);
+                                            return `${xPosition},${yPosition}`;
+                                        }).join(' ')}
                             />
                         </>
                     )}
 
                     {/* 현재가 라인 */}
                     <line
-                        x1="0"
-                        y1={scaleY(currentPrice) - 20}
-                        x2={chartContainerWidth}
-                        y2={scaleY(currentPrice) - 20}
+                        x1={leftMargin}
+                        y1={scaleY(currentPrice)}
+                        x2={leftMargin + chartAreaWidth}
+                        y2={scaleY(currentPrice)}
                         stroke="#ef4444"
-                        strokeWidth="1"
+                        strokeWidth="2"
                         strokeDasharray="4,4"
                         opacity="0.7"
                     />
@@ -121,11 +196,11 @@ const CandlestickChart = ({
 
                     {/* 캔들 */}
                     {data.map((candle, index) => {
-                        const x = leftOffset + index * spacing;
+                        const x = leftMargin + (index / Math.max(data.length - 1, 1)) * chartAreaWidth - candleWidth / 2;
                         const isGreen = candle.close > candle.open;
                         const bodyTop = Math.min(candle.open, candle.close);
                         const bodyBottom = Math.max(candle.open, candle.close);
-                        const bodyHeight = Math.abs(candle.close - candle.open);
+                        const bodyHeight = Math.abs(scaleY(bodyBottom) - scaleY(bodyTop));
 
                         return (
                             <g key={index}>
@@ -138,10 +213,11 @@ const CandlestickChart = ({
                                     strokeWidth="1"
                                 />
                                 <rect
+                                    className="hover:opacity-80 cursor-pointer transition-opacity"
                                     x={x}
-                                    y={scaleY(bodyTop) - 20}
+                                    y={scaleY(bodyTop)}
                                     width={candleWidth}
-                                    height={Math.max((bodyHeight / (priceRange.max - priceRange.min)) * 260, 1)}
+                                    height={Math.max(bodyHeight, 1)}
                                     fill={isGreen ? "#22c55e" : "#ef4444"}
                                     stroke={isGreen ? "#22c55e" : "#ef4444"}
                                 />
@@ -180,6 +256,8 @@ const CandlestickChart = ({
                 </div>
             </div>
         </div>
+    </div>
+</div>
     );
 };
 

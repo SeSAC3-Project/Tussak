@@ -121,10 +121,10 @@ export default function StockDetail() {
                         currentPrice={currentPrice}
                         priceRange={priceRange}
                         chartRef={chartRef}
-                        handleWheel={handleWheel}
-                        handleMouseDown={handleMouseDown}
-                        handleMouseMoveChart={handleMouseMoveChart}
-                        handleMouseLeaveChart={handleMouseLeaveChart}
+                        // handleWheel={handleWheel}
+                        // handleMouseDown={handleMouseDown}
+                        // handleMouseMoveChart={handleMouseMoveChart}
+                        // handleMouseLeaveChart={handleMouseLeaveChart}
                     />
 
                     {/* 거래량 차트 */}
