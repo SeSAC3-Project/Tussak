@@ -58,7 +58,7 @@ export default function NavSidebar({ activeSection }) {
 
         <div className="flex flex-col justify-between h-full">
           <div>
-            <div className="h-[115px] flex items-center pl-[38px]">
+            <div className="h-[108px] flex items-center pl-[38px]">
               <div className="text-[26px] font-regular text-[#0F250B] flex items-center" style={{fontFamily: 'DM Sans'}}>
                 <img 
                   src="/icon/sprout.png" 

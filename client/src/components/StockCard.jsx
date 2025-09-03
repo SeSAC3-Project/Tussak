@@ -34,7 +34,7 @@ const StockCard = ({ stock, realtimeData }) => {
 
 
     return (
-        <div className="bg-white py-[15px] px-[19px] rounded-[20px] flex flex-col justify-between h-[100px]" style={{fontFamily: 'DM Sans'}}>
+        <div className="bg-white py-[15px] px-[19px] rounded-[20px] flex flex-col justify-between h-[105px]" style={{fontFamily: 'DM Sans'}}>
             {/* 상단 요소들: 종목코드, 시장, 좋아요*/}
             <div className="flex justify-between items-center text-[#8A8A8A] text-[15px] font-regular">
                 <span>{stockCode} {market}</span>
@@ -57,10 +57,7 @@ const StockCard = ({ stock, realtimeData }) => {
                             {currentPrice.toLocaleString()}
                         </div>
                         <div className={`flex items-center justify-between text-sm ${textColor}`}>
-                            <div>
-                                <span>{changeIcon}</span>
-                                {/* <span className="ml-1">{Math.abs(priceChange).toLocaleString()}</span> */}
-                            </div>
+                            <span>{changeIcon}</span>
                             <span>({changePercent > 0 ? '+' : ''}{changePercent.toFixed(2)}%)</span>
                         </div>
                     </div>
@@ -72,7 +69,7 @@ const StockCard = ({ stock, realtimeData }) => {
                         </div>
                         <div className="flex items-center">
                             <span>{changeAmount >= 0 ? '▲' : '▼'}</span>
-                            <span className="ml-1">{Math.abs(changeRate)}%</span>
+                            <span className="ml-1">{Math.abs(parseFloat(changeRate)).toFixed(2)}%</span>
                         </div>
                     </div>
                 )}
