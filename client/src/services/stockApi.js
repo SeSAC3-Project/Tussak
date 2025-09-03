@@ -1,9 +1,45 @@
-import { useState, useEffect, useREf } from 'react';
+import { generatePeriodData, getPriceRange, formatDate } from '../utils/stockDataGenerator';
+
+// stockApi 객체 내부에 추가하는 더미 데이터 생성 합본 함수
+const generateMockStockData = (symbol, period) => {
+    console.log('🎲 generateMockStockData 호출:', symbol, period);
+    
+    // 더미 캔들스틱 데이터 생성
+    const candleData = generatePeriodData(period);
+    console.log('📊 생성된 candleData:', candleData.length, '개');
+    console.log('📊 첫 번째 캔들:', candleData[0]);
+
+    // 현재가 or 마지막 종가
+    const currentPrice = candleData.length > 0 ? candleData[candleData.length - 1].close : 235000;
+
+    const priceRange = getPriceRange(candleData);
+
+    const timeData = {
+        labels: candleData.map(item => formatDate(item.date, period)),
+        timestamps: candleData.map(item => item.date.getTime())
+    };
+    const result = {
+        success: true,
+        data: {
+            candleData: candleData,
+            timeData: timeData,
+            currentPrice: currentPrice,
+            priceRange: priceRange
+        }
+    };
+
+    console.log('🎯 generateMockStockData 반환값:', result);
+    return result;
+};
+
+
 
 const stockApi = {
     
     // 주식 상세 데이터 (캔들, 거래량, 시간 통합)
     fetchStockDetail: async (symbol, period = '10') => {
+        console.log('🎯 fetchStockDetail 시작:', symbol, period);
+
         try {
             // API 호출
             const response = await fetch('#')
@@ -25,8 +61,9 @@ const stockApi = {
                 }
             };
         } catch (error) {
-            console.error('종목 데이터 가져오는 데 실패했습니다:', error)
+            console.log('⚠️ API 실패, generateMockStockData 호출');
             // 더미 데이터 반환
+            return generateMockStockData(symbol, period);
         }
     },
 
@@ -36,9 +73,15 @@ const stockApi = {
             const response = await fetch('#');
             const data = await response.json();
             return data.currentPrice;
+
         } catch (error) {
-            console.error('현재가 업데이트 실패하였습니다: ', error);
-            return null;
+            console.error('실시간 가격 조회에 실패하였습니다: ', error);
+            // 더미용 랜덤 변동
+            const basePrice = 235000;
+            const variation = (Math.random() - 0.5) * 5000;
+            return Math.round(basePrice + variation);
         }
     }
 };
+
+export { stockApi };

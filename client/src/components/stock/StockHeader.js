@@ -5,8 +5,8 @@ const StockHeader = ({ selectedStock }) => {
     const stockCode = selectedStock.stock_code || '';
     const market = selectedStock.market || '';
     const price = selectedStock.current_price || 0;
-    const change = selectedStock.price_change || 0;
-    const changePercent = selectedStock.change_percent || 0;
+    const change = selectedStock.change_amount || 0;
+    const changePercent = selectedStock.change_rate || 0;
 
     const direction = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
     const textColor = direction === 'up' ? 'text-red-500' : direction === 'down' ? 'text-blue-500' : 'text-gray-600';

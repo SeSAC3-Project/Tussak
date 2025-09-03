@@ -1,59 +1,73 @@
 import { useState, useEffect, useCallback } from 'react';
-import { stockDetailApi } from '../services/stockDetailApi';
 import { stockApi } from '../services/stockApi';
 
-export const useStockData = (symbol, period) => {
-  const [stockData, setStockData] = useState(null);
-  const [realTimePrice, setRealTimePrice] = useState(null);
+export const useStockData = (symbol) => {
+  console.log('🚀 useStockData 훅 호출됨:', symbol);
+    
+  const [chartData, setChartData] = useState(null);
+  const [currentPrice, setCurrentPrice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const loadStockData = async () => {
-    if (!symbol) return;
+  // fetchChartData 함수 - StockDetail.jsx에서 기대하는 함수명
+  const fetchChartData = useCallback(async (stockCode, period = '1d') => {
+    if (!stockCode) {
+      console.log('❌ stockCode가 없어서 API 호출 중단');
+      return;
+    }
 
+    console.log('📡 fetchChartData 시작:', stockCode, period);
     setLoading(true);
     setError(null);
-  }
+  
+    try {
+      console.log('🔄 stockApi.fetchStockDetail 호출 시작');
+      const result = await stockApi.fetchStockDetail(stockCode, period);
+      console.log('✅ stockApi.fetchStockDetail 결과:', result);
 
-  try {
-    const result = await stockApi.fetchStockData(symbol, period);
-
-    if (result.success) {
-      setStockData(result.data);
-      setRealTimePrice(result.data.currentPrice);
-    } else {
-      setError('데이터를 불러오는 데 실패했습니다.');
+      if (result.success && result.data) {
+        // chartData는 candleData 배열을 직접 저장
+        setChartData(result.data.candleData);
+        setCurrentPrice(result.data.currentPrice);
+        console.log('✅ 데이터 설정 완료');
+        console.log('📊 candleData 길이:', result.data.candleData?.length);
+        console.log('💰 currentPrice:', result.data.currentPrice);
+      } else {
+        setError('데이터를 불러오는 데 실패했습니다.');
+        console.log('❌ API 결과 success: false');
+      }
+    } catch (error) {
+      setError('네트워크 오류가 발생했습니다.');
+      console.error('❌ fetchChartData 에러:', error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    setError('네트워크 오류가 발생했습니다.');
-    console.error('주식 데이터 불러오기 실패:', error);
-  } finally {
-    setLoading(false);
-  };
+  }, []);
 
-  // 실시간 현재가 업데이트 (폴링으루)
+  // symbol 변경 시 자동 호출
   useEffect(() => {
-    if (!symbol || period ==! '10') return;
+    console.log('🔄 useEffect 실행 - symbol 변경:', symbol);
+    if (symbol) {
+      fetchChartData(symbol, '1d'); // 기본 period
+    } else {
+      console.log('⚠️ symbol이 없어서 초기화');
+      setChartData(null);
+      setCurrentPrice(null);
+      setError(null);
+    }
+  }, [symbol, fetchChartData]);
 
-    // 5초마다 실시간 업데이트
-    const interval = setInterval(async () => {
-      const price = await stockApi.fetchRealTimePrice(symbol);
-      if (price) setRealTimePrice(price);
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [symbol, period]);
-
-  // symbol or period 변경 시 데이터 재로드
-  useEffect(() => {
-    loadStockData();
-  }, [symbol, period]);
+  console.log('📊 useStockData 현재 상태:');
+  console.log('- chartData:', chartData);
+  console.log('- currentPrice:', currentPrice);
+  console.log('- loading:', loading);
+  console.log('- error:', error);
 
   return {
-    stockData,
-    realTimePrice,
+    chartData, // candleData 배열을 직접 반환
+    currentPrice,
     loading,
     error,
-    refetch: loadStockData
+    fetchChartData
   };
 };
