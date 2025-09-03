@@ -2,7 +2,6 @@ import urllib.request
 import os
 import ssl
 import zipfile
-# import pandas as pd
 import tempfile
 import shutil
 
@@ -90,8 +89,8 @@ def parse_mst_file(file_path, market):
 
                 # 1단계: 6자리 숫자 체크
                 if not (stock_code.isdigit() and len(stock_code) == 6):
-                    if total_count <= 10:  # 처음 10개만 로깅
-                        current_app.logger.debug(f"종목코드 필터링 제외: '{stock_code}' (길이: {len(stock_code)}, 숫자여부: {stock_code.isdigit()})")
+                    # if total_count <= 10:  # 처음 10개만 로깅
+                    #     current_app.logger.debug(f"종목코드 필터링 제외: '{stock_code}' (길이: {len(stock_code)}, 숫자여부: {stock_code.isdigit()})")
                     continue
 
                 if market.lower() == 'kosdaq':
@@ -101,19 +100,16 @@ def parse_mst_file(file_path, market):
                     # 코스피
                     issue_code = extended_info[0:2].strip() # 증권종류
                 
-                # 디버깅: 증권종류 정보 로깅
-                # if total_count <= 10:
-                #     current_app.logger.debug(f"증권종류: '{issue_code}'")
                 
                 # 2단계: ST(주권)만 허용
                 if issue_code and issue_code != 'ST':
-                    current_app.logger.debug(f"증권그룹 필터링 제외: {stock_code} - {stock_name} (그룹: {issue_code})")
+                    # current_app.logger.debug(f"증권그룹 필터링 제외: {stock_code} - {stock_name} (그룹: {issue_code})")
                     continue
 
                 # 3단계: ETF/ETN 종목명 패턴 제외
                 if is_etf_or_special_product(stock_name):
-                    if total_count <= 10:  # 처음 10개만 로깅
-                        current_app.logger.debug(f"ETF/특수상품 필터링 제외: '{stock_name}'")
+                    # if total_count <= 10:  # 처음 10개만 로깅
+                    #     current_app.logger.debug(f"ETF/특수상품 필터링 제외: '{stock_name}'")
                     continue
                 
                 filtered_count += 1

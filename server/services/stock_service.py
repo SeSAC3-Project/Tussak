@@ -1,12 +1,13 @@
 import utils.stock_download as stock_dl
 from utils.sector_crawler import SectorCodeConverter
 from utils.kis_api import KisAPI
+from utils.stock_company_info import ask_gpt_company_info
 from models.stock import Stock
 from models.stock_history import StockHistory
 from models import db
 from flask import current_app
 from sqlalchemy.dialects.mysql import insert
-from sqlalchemy import text
+from sqlalchemy import text, func, and_
 
 from datetime import datetime, date
 import time
@@ -29,18 +30,11 @@ class StockService:
             # 2. DB에 저장
             success_count = StockService._save_stocks_basic_info_to_db(all_stocks)
             
-            # 3. 업종명 자동 동기화
-            # current_app.logger.info("업종 정보 자동 동기화 시작...")
-            # sector_count = StockService._auto_sync_sectors()
-            
-            # current_app.logger.info(f"주식 종목 동기화 완료: {success_count}개 처리, {sector_count}개 업종 업데이트")
-            # return True
-            
         except Exception as e:
             current_app.logger.error(f"주식 종목 동기화 실패: {e}")
             db.session.rollback()
             raise e
-
+    
     @staticmethod
     def _save_stocks_basic_info_to_db(stocks_data):
         """종목 데이터를 DB에 저장 (개별 UPSERT)"""
@@ -66,6 +60,7 @@ class StockService:
                         existing_stock.stock_name = stock_name
                         existing_stock.market = market
                         # existing_stock.sector = sector
+                        existing_stock.company_info = StockService.__create_basic_company_info(stock_info)
                         existing_stock.updated_at = db.func.now()
                         # current_app.logger.debug(f"종목 업데이트: {stock_code} - {stock_name}")
                     else:
@@ -75,6 +70,7 @@ class StockService:
                             stock_name=stock_name,
                             market=market,
                             # sector=sector,
+                            company_info=StockService.__create_basic_company_info(stock_info),
                             updated_at=db.func.now()
                         )
                         db.session.add(new_stock)
@@ -100,6 +96,22 @@ class StockService:
             current_app.logger.error(f"DB 저장 중 오류: {e}")
             db.session.rollback()
             raise e
+    
+    # 기본 정보로 기본 기업 개요 생성
+    @staticmethod
+    def __create_basic_company_info(stock_info):
+        stock_name = stock_info.get('stock_name', '')
+        stock_code = stock_info.get('stock_code', '')
+        market = stock_info.get('market', '')
+        
+        # 시장별 설명
+        market_desc = "코스피" if market == "KOSPI" else "코스닥" if market == "KOSDAQ" else market
+        
+        basic_info = f"""
+    {stock_name}({stock_code})은(는) {market_desc}에 상장된 기업입니다.
+    상세한 기업 개요는 추후 업데이트될 예정입니다.
+    """
+        return basic_info.strip()
     
     # 주식 기본정보(발행주식수)와 히스토리를 한 번에 업데이트
     @staticmethod
@@ -146,11 +158,11 @@ class StockService:
                         failed_count += 1
                     
                     # 100개마다 중간 커밋
-                    if updated_count % 100 == 0:
+                    if updated_count % 50 == 0:
                         db.session.commit()
                         current_app.logger.info(f"통합 업데이트 중간 커밋: {updated_count}개")
                     
-                    time.sleep(0.1)  # API 제한
+                    time.sleep(0.06)  # API 제한 -> 60ms = 1초당 16건 정도
                     
                 except Exception as e:
                     failed_count += 1
@@ -232,23 +244,80 @@ class StockService:
     def search_stocks(keyword):
         """종목명으로 검색"""
         try:
-            stocks = Stock.query.filter(
-                Stock.stock_name.contains(keyword)
-            ).limit(50).all()
+            # 각 종목의 최신 StockHistory를 선택하기 위한 서브쿼리
+            latest_history_subq = db.session.query(
+                StockHistory.stock_id.label('stock_id'),
+                func.max(StockHistory.updated_at).label('max_updated_at')
+            ).group_by(StockHistory.stock_id).subquery()
+
+            # Stock과 최신 StockHistory 조인하여 검색
+            results = (
+                db.session.query(
+                    Stock.id,
+                    Stock.stock_code,
+                    Stock.stock_name,
+                    Stock.market,
+                    Stock.sector,
+                    Stock.sector_detail,
+                    Stock.company_info,
+                    Stock.shares_outstanding,
+                    Stock.updated_at,
+                    StockHistory.current_price,
+                    StockHistory.previous_close,
+                    StockHistory.change_rate,
+                    StockHistory.change_amount,
+                    StockHistory.day_open,
+                    StockHistory.day_high,
+                    StockHistory.day_low,
+                    StockHistory.daily_volume,
+                    StockHistory.market_cap,
+                    StockHistory.week52_high,
+                    StockHistory.week52_low,
+                    StockHistory.per,
+                    StockHistory.pbr,
+                    StockHistory.updated_at.label('history_updated_at')
+                )
+                .outerjoin(StockHistory, Stock.id == StockHistory.stock_id)
+                .outerjoin(
+                    latest_history_subq,
+                    and_(
+                        StockHistory.stock_id == latest_history_subq.c.stock_id,
+                        StockHistory.updated_at == latest_history_subq.c.max_updated_at
+                    )
+                )
+                .filter(Stock.stock_name.contains(keyword))
+                .limit(100)
+                .all()
+            )
             
+            # 결과를 딕셔너리 리스트로 변환
             return [
                 {
-                    'id': stock.id,
-                    'stock_code': stock.stock_code,
-                    'stock_name': stock.stock_name,
-                    'market': stock.market,
-                    'sector': stock.sector,
-                    'sector_detail': stock.sector_detail,
-                    'company_info': stock.company_info,
-                    'shares_outstanding': stock.shares_outstanding,
-                    'updated_at': stock.updated_at.isoformat() if stock.updated_at else None
+                    'id': result.id,
+                    'stock_code': result.stock_code,
+                    'stock_name': result.stock_name,
+                    'market': result.market,
+                    'sector': result.sector,
+                    'sector_detail': result.sector_detail,
+                    'company_info': result.company_info,
+                    'shares_outstanding': int(result.shares_outstanding) if result.shares_outstanding else None,
+                    'updated_at': result.updated_at.isoformat() if result.updated_at else None,
+                    'current_price': float(result.current_price) if result.current_price else None,
+                    'previous_close': float(result.previous_close) if result.previous_close else None,
+                    'change_rate': float(result.change_rate) if result.change_rate else None,
+                    'change_amount': float(result.change_amount) if result.change_amount else None,
+                    'day_open': float(result.day_open) if result.day_open else None,
+                    'day_high': float(result.day_high) if result.day_high else None,
+                    'day_low': float(result.day_low) if result.day_low else None,
+                    'daily_volume': int(result.daily_volume) if result.daily_volume else None,
+                    'market_cap': int(result.market_cap) if result.market_cap else None,
+                    'week52_high': float(result.week52_high) if result.week52_high else None,
+                    'week52_low': float(result.week52_low) if result.week52_low else None,
+                    'per': float(result.per) if result.per else None,
+                    'pbr': float(result.pbr) if result.pbr else None,
+                    'history_updated_at': result.history_updated_at.isoformat() if result.history_updated_at else None
                 }
-                for stock in stocks
+                for result in results
             ]
         except Exception as e:
             current_app.logger.error(f"종목 검색 중 오류: {e}")
@@ -258,91 +327,96 @@ class StockService:
     def get_stock_by_id(id):
         """ID로 단일 종목 조회"""
         try:
-            stock = Stock.query.filter_by(id=id).first()
+            # 각 종목의 최신 StockHistory를 선택하기 위한 서브쿼리
+            latest_history_subq = db.session.query(
+                StockHistory.stock_id.label('stock_id'),
+                func.max(StockHistory.updated_at).label('max_updated_at')
+            ).group_by(StockHistory.stock_id).subquery()
+
+            # Stock과 최신 StockHistory 조회
+            result = (
+                db.session.query(
+                    Stock.id,
+                    Stock.stock_code,
+                    Stock.stock_name,
+                    Stock.market,
+                    Stock.sector,
+                    Stock.sector_detail,
+                    Stock.company_info,
+                    Stock.shares_outstanding,
+                    Stock.updated_at,
+                    StockHistory.current_price,
+                    StockHistory.previous_close,
+                    StockHistory.change_rate,
+                    StockHistory.change_amount,
+                    StockHistory.day_open,
+                    StockHistory.day_high,
+                    StockHistory.day_low,
+                    StockHistory.daily_volume,
+                    StockHistory.market_cap,
+                    StockHistory.week52_high,
+                    StockHistory.week52_low,
+                    StockHistory.per,
+                    StockHistory.pbr,
+                    StockHistory.updated_at.label('history_updated_at')
+                )
+                .outerjoin(StockHistory, Stock.id == StockHistory.stock_id)
+                .outerjoin(
+                    latest_history_subq,
+                    and_(
+                        StockHistory.stock_id == latest_history_subq.c.stock_id,
+                        StockHistory.updated_at == latest_history_subq.c.max_updated_at
+                    )
+                )
+                .filter(Stock.id == id)
+                .first()
+            )
             
-            if not stock:
+            if not result:
                 return None
+
+            company_info = ask_gpt_company_info(result.stock_code)
+
+            if 'error' in company_info:
+                company_info = result.company_info
+            else:
+                company_info = company_info.get('summary')
             
             return {
-                'id': stock.id,
-                'stock_code': stock.stock_code,
-                'stock_name': stock.stock_name,
-                'market': stock.market,
-                'sector': stock.sector,
-                'sector_detail': stock.sector_detail,
-                'company_info': stock.company_info,
-                'shares_outstanding': stock.shares_outstanding,
-                'updated_at': stock.updated_at.isoformat() if stock.updated_at else None
+                'id': result.id,
+                'stock_code': result.stock_code,
+                'stock_name': result.stock_name,
+                'market': result.market,
+                'sector': result.sector,
+                'sector_detail': result.sector_detail,
+                'company_info': company_info,
+                'shares_outstanding': int(result.shares_outstanding) if result.shares_outstanding else None,
+                'updated_at': result.updated_at.isoformat() if result.updated_at else None,
+                'current_price': float(result.current_price) if result.current_price else None,
+                'previous_close': float(result.previous_close) if result.previous_close else None,
+                'change_rate': float(result.change_rate) if result.change_rate else None,
+                'change_amount': float(result.change_amount) if result.change_amount else None,
+                'day_open': float(result.day_open) if result.day_open else None,
+                'day_high': float(result.day_high) if result.day_high else None,
+                'day_low': float(result.day_low) if result.day_low else None,
+                'daily_volume': int(result.daily_volume) if result.daily_volume else None,
+                'market_cap': int(result.market_cap) if result.market_cap else None,
+                'week52_high': float(result.week52_high) if result.week52_high else None,
+                'week52_low': float(result.week52_low) if result.week52_low else None,
+                'per': float(result.per) if result.per else None,
+                'pbr': float(result.pbr) if result.pbr else None,
+                'history_updated_at': result.history_updated_at.isoformat() if result.history_updated_at else None
             }
 
         except Exception as e:
             current_app.logger.error(f"단일 종목 조회 중 오류: {e}")
             raise e
 
-    # @staticmethod
-    # def _auto_sync_sectors():
-    #     """주식 데이터 저장 시 자동으로 업종 정보 동기화"""
-    #     try:
-            
-    #         converter = SectorCodeConverter()
-    #         result = converter.convert_all_sectors()
-            
-    #         if result['total_stocks'] == 0:
-    #             current_app.logger.warning("업종 변환 결과가 없습니다")
-    #             return 0
-            
-    #         # DB 업데이트
-    #         updated_count = StockService._update_sectors_in_db(result['stocks_data'])
-            
-    #         current_app.logger.info(f"업종 자동 동기화 완료: {updated_count}개 종목 업데이트")
-    #         return updated_count
-            
-    #     except Exception as e:
-    #         current_app.logger.error(f"업종 자동 동기화 실패: {e}")
-    #         return 0
-
-    # @staticmethod
-    # def _update_sectors_in_db(stocks_data):
-    #     """크롤링한 업종 데이터로 DB 업데이트"""
-    #     try:
-    #         updated_count = 0
-            
-    #         for stock_info in stocks_data:
-    #             stock_code = stock_info.get('stock_code', '').strip()
-    #             sector_name = stock_info.get('sector_name', '').strip()
-                
-    #             if not stock_code or not sector_name:
-    #                 continue
-                
-    #             # DB에서 해당 종목 찾기
-    #             existing_stock = Stock.query.filter_by(stock_code=stock_code).first()
-                
-    #             if existing_stock:
-    #                 # 업종명 업데이트 (기존 sector 필드 활용)
-    #                 existing_stock.sector = sector_name
-    #                 existing_stock.updated_at = db.func.now()
-    #                 updated_count += 1
-                    
-    #                 # current_app.logger.debug(f"업종 업데이트: {stock_code} → {sector_name}")
-            
-    #         db.session.commit()
-    #         current_app.logger.info(f"DB 업종 업데이트 완료: {updated_count}개 종목")
-            
-    #         return updated_count
-            
-    #     except Exception as e:
-    #         db.session.rollback()
-    #         current_app.logger.error(f"DB 업종 업데이트 실패: {e}")
-    #         raise e
-
     @staticmethod
     def get_volume_ranking(limit=28):
         """거래대금 순위 조회 (캐시 우선, 없으면 DB에서 계산)"""
         try:
             # 2. 캐시가 없으면 DB에서 계산
-            from models.stock_history import StockHistory
-            from models.stock import Stock
-            from sqlalchemy import func, and_
             
             # 각 종목의 최신 StockHistory를 선택하기 위한 서브쿼리
             latest_history_subq = db.session.query(
@@ -356,10 +430,23 @@ class StockService:
                     Stock.stock_code,
                     Stock.stock_name,
                     Stock.market,
+                    Stock.sector,
+                    Stock.sector_detail,
+                    Stock.company_info,
+                    Stock.shares_outstanding,
                     StockHistory.current_price,
+                    StockHistory.previous_close,
                     StockHistory.change_rate,
                     StockHistory.change_amount,
+                    StockHistory.day_open,
+                    StockHistory.day_high,
+                    StockHistory.day_low,
                     StockHistory.daily_volume,
+                    StockHistory.market_cap,
+                    StockHistory.week52_high,
+                    StockHistory.week52_low,
+                    StockHistory.per,
+                    StockHistory.pbr,
                     func.cast(
                         StockHistory.current_price * StockHistory.daily_volume,
                         db.BigInteger
@@ -391,13 +478,29 @@ class StockService:
             results = []
             for row in ranking_query:
                 results.append({
+                    # Stock 정보
                     'stock_code': row.stock_code,
                     'stock_name': row.stock_name,
                     'market': row.market,
+                    'sector': row.sector,
+                    'sector_detail': row.sector_detail,
+                    'company_info': row.company_info,
+                    'shares_outstanding': int(row.shares_outstanding) if row.shares_outstanding else None,
+                    
+                    # StockHistory 정보
                     'current_price': float(row.current_price) if row.current_price else None,
+                    'previous_close': float(row.previous_close) if row.previous_close else None,
                     'change_rate': float(row.change_rate) if row.change_rate else None,
                     'change_amount': float(row.change_amount) if row.change_amount else None,
+                    'day_open': float(row.day_open) if row.day_open else None,
+                    'day_high': float(row.day_high) if row.day_high else None,
+                    'day_low': float(row.day_low) if row.day_low else None,
                     'daily_volume': int(row.daily_volume) if row.daily_volume else None,
+                    'market_cap': int(row.market_cap) if row.market_cap else None,
+                    'week52_high': float(row.week52_high) if row.week52_high else None,
+                    'week52_low': float(row.week52_low) if row.week52_low else None,
+                    'per': float(row.per) if row.per else None,
+                    'pbr': float(row.pbr) if row.pbr else None,
                     'trading_value': int(row.trading_value) if getattr(row, 'trading_value', None) is not None else None
                 })
             
@@ -406,44 +509,3 @@ class StockService:
         except Exception as e:
             current_app.logger.error(f"거래대금 순위 조회 실패: {e}")
             return []
-
-    # @staticmethod
-    # def get_volume_ranking(limit=28):
-    #     """거래대금 순위 조회 (캐시 우선, 없으면 KIS API 호출)"""
-    #     try:
-    #         # 1. 캐시에서 먼저 확인
-    #         # from services.cache_service import CacheService
-    #         cached_data = None # CacheService.get_volume_ranking()
-            
-    #         if cached_data:
-    #             return cached_data[:limit]
-            
-    #         # 2. 캐시가 없으면 KIS API에서 조회
-    #         return StockService.update_volume_ranking()[:limit]
-            
-    #     except Exception as e:
-    #         current_app.logger.error(f"거래대금 순위 조회 실패: {e}")
-    #         return []
-    
-    # @staticmethod
-    # def update_volume_ranking():
-    #     """거래대금 순위 데이터 수집 및 캐싱"""
-    #     try:
-    #         from utils.kis_api import KisAPI
-    #         from services.cache_service import CacheService
-            
-    #         kis_api = KisAPI()
-            
-    #         # �� 1단계: 거래대금 순위 상위 종목들 조회
-    #         ranking_data = kis_api.fetch_volume_ranking(limit=30)
-            
-    #         if ranking_data:
-    #             # CacheService.set_volume_ranking(ranking_data, expire_hours=0.1)
-    #             current_app.logger.info(f"거래대금 순위 업데이트 완료: {len(ranking_data)}개")
-    #             return ranking_data  # 🆕 데이터 반환
-            
-    #         return []
-            
-    #     except Exception as e:
-    #         current_app.logger.error(f"거래대금 순위 업데이트 실패: {e}")
-    #         return []

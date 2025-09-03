@@ -246,14 +246,14 @@ class KisAPI:
                 "FID_VOL_CNT": str(limit)  # 🆕 조회 개수
             }
 
-            current_app.logger.info(f"📡 API 호출: {url}")
-            current_app.logger.info(f"🔑 Headers: {headers}")
-            current_app.logger.info(f"📋 Params: {params}")
+            # current_app.logger.info(f"📡 API 호출: {url}")
+            # current_app.logger.info(f"🔑 Headers: {headers}")
+            # current_app.logger.info(f"📋 Params: {params}")
             
             response = requests.get(url, headers=headers, params=params)
 
-            current_app.logger.info(f"📊 응답 상태: {response.status_code}")
-            current_app.logger.info(f"📄 응답 헤더: {dict(response.headers)}")
+            # current_app.logger.info(f"📊 응답 상태: {response.status_code}")
+            # current_app.logger.info(f"📄 응답 헤더: {dict(response.headers)}")
             
             # 응답 상태 확인
             if response.status_code != 200:
@@ -261,10 +261,10 @@ class KisAPI:
                 return []
             
             # 응답 내용 로깅
-            current_app.logger.debug(f"API 전체 응답: {response.text}")
+            # current_app.logger.debug(f"API 전체 응답: {response.text}")
             
             data = response.json()
-            current_app.logger.debug(f"파싱된 API 데이터: {data}")
+            # current_app.logger.debug(f"파싱된 API 데이터: {data}")
             
             if data.get('rt_cd') == '0':
                 output = data.get('output', [])
