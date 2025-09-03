@@ -1,5 +1,6 @@
 from . import db
-from datetime import datetime
+# from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from utils.constants import USER_INITIAL_BALANCE
 
@@ -16,8 +17,10 @@ class User(db.Model):
     current_balance = db.Column(db.DECIMAL(15, 2), default=USER_INITIAL_BALANCE)
     total_asset = db.Column(db.DECIMAL(15, 2), default=USER_INITIAL_BALANCE)
     
-    created_at = db.Column(db.TIMESTAMP, default=datetime.now(datetime.timezone.utc))
-    updated_at = db.Column(db.TIMESTAMP, default=datetime.now(datetime.timezone.utc))
+    # created_at = db.Column(db.TIMESTAMP, default=datetime.now(datetime.timezone.utc))
+    # updated_at = db.Column(db.TIMESTAMP, default=datetime.now(datetime.timezone.utc))
+    created_at = db.Column(db.TIMESTAMP, default=datetime.now(timezone.utc))
+    updated_at = db.Column(db.TIMESTAMP, default=datetime.now(timezone.utc))
     
     portfolios = db.relationship('Portfolio', backref='user', lazy=True, cascade='all, delete-orphan')
     transactions = db.relationship('Transaction', backref='user', lazy=True, cascade='all, delete-orphan')
