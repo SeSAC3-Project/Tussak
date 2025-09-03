@@ -85,10 +85,14 @@ export default function StockDetail() {
     // 가격 범위
     const priceRange = useMemo(() => {
         if (!visibleData || visibleData.length === 0) {
+            console.log('⚠️ priceRange: visibleData 없음');
             return { min:0, max: 0};
         }
-        return getPriceRange(visibleData);
+        const result = getPriceRange(visibleData);
+        console.log('📈 priceRange 계산:', result);
+        return result;
     }, [visibleData]);
+
 
     // 차트 인터랙션 
     const {
@@ -131,6 +135,7 @@ export default function StockDetail() {
         );
     }
 
+
     return (
         <div>
             {/* 더미 데이터로 렌더링하는 안내 */}
@@ -164,10 +169,12 @@ export default function StockDetail() {
 
                     {/* 캔들스틱 차트 */}
                     <CandlestickChart
-                        data={visibleData}
+                        stockData={{
+                            candleData: visibleData,
+                            priceRange: priceRange
+                        }}
                         chartState={chartState}
                         currentPrice={currentPrice}
-                        priceRange={priceRange}
                         chartRef={chartRef}
                         // handleWheel={handleWheel}
                         // handleMouseDown={handleMouseDown}

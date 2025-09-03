@@ -11,6 +11,17 @@ const CandlestickChart = ({
     handleMouseLeaveChart
 }) => {
     const containerRef = useRef(null);
+    const candleData = stockData?.candleData;
+    const priceRange = stockData?.priceRange;
+
+    console.log('=== CandlestickChart 렌더링 ===');
+    console.log('stockData:', stockData);
+    console.log('stockData?.candleData:', stockData?.candleData);
+    console.log('stockData?.candleData?.length:', stockData?.candleData?.length);
+    console.log('조건 결과:', !stockData?.candleData?.length);
+
+
+
     const [chartContainerWidth, setChartContainerWidth] = useState(600);
     const [chartContainerHeight] = useState(400);
 
@@ -38,27 +49,17 @@ const CandlestickChart = ({
         };
     }, []);
 
-    if (!stockData?.candleData?.length) {
-        return (
-            <div ref={containerRef} className="w-full h-96 flex items-center justify-center bg-gray-50 rounded-lg">
-                <div className="text-gray-500">차트 데이터를 불러오는 중입니다</div>
-            </div>
-        )
-    }
-
-    const { candleData, priceRange } = stockData;
+    
     const leftMargin = 60;
     const rightMargin = 20;
     const topMargin = 20;
     const chartAreaWidth = chartContainerWidth - leftMargin - rightMargin;
     const chartAreaHeight = chartContainerHeight - topMargin - 40;
-
-
-
+    
     const getCandleWidth = () => {
         const ratio = candleData.length > 100 ? 0.6 : candleData.length > 50 ? 0.7 : 0.8;
         const baseWidth = (chartAreaWidth / candleData.length) * ratio;
-
+        
         if (chartContainerWidth >= 1000) {
             // 데스크톱
             return Math.max(6, Math.min(20, baseWidth));
@@ -76,8 +77,16 @@ const CandlestickChart = ({
     const scaleY = (price) => {
         return topMargin + chartAreaHeight - ((price - priceRange.min) / (priceRange.max - priceRange.min)) * chartAreaHeight;
     };
-
+    
     const currentDisplayPrice = realTimePrice || candleData[candleData.length - 1]?.close || 0;
+    
+    if (!stockData?.candleData?.length) {
+        return (
+            <div ref={containerRef} className="w-full h-96 flex items-center justify-center bg-gray-50 rounded-lg">
+                <div className="text-gray-500">차트 데이터를 불러오는 중입니다</div>
+            </div>
+        )
+    }
 
     return (
         <div ref={containerRef} className="w-full">
