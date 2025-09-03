@@ -12,7 +12,7 @@ export default function InvestorRank({ setActiveSection }) {
     ];
 
     return (
-        <div className="bg-white rounded-[20px] h-[345px] py-[19px] px-[28px] w-[540px]" style={{fontFamily: 'DM Sans'}}>
+        <div className="bg-white rounded-[20px] h-[345px] py-[19px] px-[28px]" style={{fontFamily: 'DM Sans'}}>
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-[20px] font-bold text-[#0F250B]">투자 랭킹</h2>
                 <button

@@ -30,14 +30,14 @@ export default function Home() {
 
             <WatchList />
 
-            <div className="flex flex-col lg:flex-row gap-8">
+            <div className="flex flex-col lg:flex-row gap-3">
                 
                 <div className="flex-1 flex flex-col gap-[16px]">
                     <StockRank />
                     <InvestorRank setActiveSection={setActiveSection} />
                 </div>
 
-                <div className="w-full lg:w-96 flex flex-col gap-8">
+                <div className="w-full lg:w-96 flex flex-col gap-4">
                     <LoginCard />
                     <ChatWindow />
                 </div>
@@ -124,9 +124,12 @@ function StockRank() {
 
 function LoginCard() {
     return (
-        <div className="bg-lime-100 rounded-xl p-6 flex flex-col items-center justify-center space-y-4">
-            <img className="cursor-pointer" src="/icon/kakao_login.png" />
-            <p className="text-sm text-gray-500" alt="카카오 로그인">모의 투자를 진행하려면<br/>로그인이 필요합니다.</p>
+        <div 
+            className="rounded-[20px] h-[345px] p-6 flex flex-col items-center justify-start pt-14 space-y-1 bg-cover bg-bottom"
+            style={{backgroundImage: "url('/icon/blurred.png')"}}
+        >
+            <p className="text-sm text-gray-500 text-center" alt="카카오 로그인">모의 투자를 진행하려면<br/>로그인이 필요합니다</p>
+            <img className="cursor-pointer w-64" src="/icon/kakao_login.png" />
         </div>
     );
 }
@@ -134,9 +137,7 @@ function LoginCard() {
 function ChatWindow() {
     return (
         <div>
-            <div className="h-96">
-                <Chatbot isExpanded={true} />
-            </div>
+            <Chatbot isExpanded={true} height="h-[345px]" />
         </div>
     );
 };

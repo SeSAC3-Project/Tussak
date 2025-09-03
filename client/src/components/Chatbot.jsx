@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
 
-const Chatbot = ({ isExpanded = false, onToggle = null }) => {
+const Chatbot = ({ isExpanded = false, onToggle = null, height = "h-96" }) => {
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -118,7 +118,7 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
   // 확장된 채팅 창 (Home.jsx용)
   if (isExpanded) {
     return (
-      <div className="bg-lime-50 rounded-xl shadow-lg p-4 flex flex-col flex-1 h-96">
+      <div className={`bg-white rounded-[20px] p-4 flex flex-col flex-1 ${height}`}>
         <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-2" style={{ maxHeight: 'calc(100% - 80px)' }}>
           {messages.map((message) => (
             <div
@@ -128,9 +128,12 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
               <div
                 className={`p-3 rounded-xl max-w-xs sm:max-w-sm ${
                   message.sender === 'user'
-                    ? 'bg-white rounded-br-none text-gray-800 ml-auto'
-                    : 'bg-lime-200 rounded-bl-none text-gray-800'
+                    ? 'rounded-br-none text-gray-800 ml-auto'
+                    : 'rounded-bl-none text-gray-800'
                 }`}
+                style={{
+                  backgroundColor: message.sender === 'user' ? '#EDEDED' : '#F2F8E9'
+                }}
               >
                 <p className="text-sm">{message.text}</p>
               </div>
@@ -138,7 +141,7 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-lime-200 p-3 rounded-xl rounded-bl-none text-gray-800 max-w-xs">
+              <div className="p-3 rounded-xl rounded-bl-none text-gray-800 max-w-xs" style={{backgroundColor: '#F2F8E9'}}>
                 <div className="flex space-x-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
@@ -149,23 +152,26 @@ const Chatbot = ({ isExpanded = false, onToggle = null }) => {
           )}
           <div ref={messagesEndRef} className="h-0"/>
         </div>
-        <div className="flex items-center border-t border-gray-200 pt-3 w-full">
-          <input
-            type="text"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="메시지를 입력하세요"
-            className="flex-1 p-2 px-4 bg-white rounded-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-500"
-            disabled={isLoading}
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={isLoading || !inputText.trim()}
-            className="bg-lime-600 text-white rounded-full p-3 ml-2 hover:bg-lime-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Send size={20} />
-          </button>
+        <div className="pt-3 mb-0 w-full px-2">
+          <div className="relative">
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder=""
+              className="w-full p-2 px-4 pr-12 rounded-full focus:outline-none"
+              style={{backgroundColor: '#EDEDED', borderRadius: '40px', color: '#0F250B'}}
+              disabled={isLoading}
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={isLoading || !inputText.trim()}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 disabled:cursor-not-allowed"
+            >
+              <img src="/icon/send.png" alt="Send" className="w-5 h-5"  />
+            </button>
+          </div>
         </div>
       </div>
     );
