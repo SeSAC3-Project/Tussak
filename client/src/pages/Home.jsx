@@ -16,10 +16,10 @@ export default function Home() {
     };
 
     return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-full mx-auto">
-        <div className="flex flex-col gap-8">
+    <div className="pt-[30px] pb-[48px] px-[39px] max-w-full mx-auto">
+        <div className="flex flex-col gap-[25px]">
             <div className="flex justify-end items-center">
-                <div className="w-full lg:w-1/2">
+                <div className="w-full lg:w-[calc(50%-6px)]">
                     <SearchBar 
                         onSearch={handleSearch}
                         placeholder="종목 검색"
@@ -50,9 +50,14 @@ export default function Home() {
 
 function SearchBar() {
     return (
-        <div className="flex items-center w-full bg-white rounded-lg p-2 shadow-sm border border-gray-200 focus-within:ring-2 focus-within:ring-green-500">
-            <FaSearch className="w-4 h-4 text-gray-400 mx-2"/>
-            <input type="text" placeholder="종목 검색" className="flex-1 p-1 bg-transparent focus:outline-none placeholder-gray-400 text-gray-800" />
+        <div className="flex items-center bg-white rounded-[10px] h-[46px] px-5 focus-within:shadow-lg transition-shadow duration-200">
+            <img src="/icon/search.png" alt="Search icon" className="w-3 h-3 mr-3"/>
+            <input 
+                type="text" 
+                placeholder="종목 검색" 
+                className="flex-1 bg-transparent focus:outline-none placeholder-[#8A8A8A] text-gray-800 text-sm font-regular"
+                style={{fontFamily: 'DM Sans'}}
+            />
         </div>
     )
 }
@@ -68,7 +73,7 @@ function WatchList() {
 
     return (
         <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {mockStockData.map((stock, index) => (
                     <StockCard key={index} stock={stock} />
                 ))}
@@ -87,7 +92,7 @@ function StockRank() {
     ];
 
     return (
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-white rounded-xl p-6">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-black">거래량 순위</h2>
                 <a href="#" className="flex items-center text-sm text-lime-600 font-semibold">
@@ -119,8 +124,8 @@ function StockRank() {
 
 function LoginCard() {
     return (
-        <div className="bg-lime-100 rounded-xl shadow-lg p-6 flex flex-col items-center justify-center space-y-4">
-            <img className="shadow-md cursor-pointer" src="/icon/kakao_login.png" />
+        <div className="bg-lime-100 rounded-xl p-6 flex flex-col items-center justify-center space-y-4">
+            <img className="cursor-pointer" src="/icon/kakao_login.png" />
             <p className="text-sm text-gray-500" alt="카카오 로그인">모의 투자를 진행하려면<br/>로그인이 필요합니다.</p>
         </div>
     );
