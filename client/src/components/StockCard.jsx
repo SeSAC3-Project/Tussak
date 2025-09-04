@@ -13,12 +13,13 @@ const HeartIcon = ({ active }) => (
 const StockCard = ({ stock, realtimeData }) => {
     const [active, setActive] = useState(true);
 
-    const stockCode = stock.id || '000000';
-    const stockName = stock.name || '';
+    console.log('StockCard는 stock을 이렇게 받고 있습니다:', stock)
+    const stockCode = stock.stock_code || '000000';
+    const stockName = stock.stock_name || '';
     const market = stock.market || '';
-    const price = stock.price || '';
-    const changeAmount = stock.change || '';
-    const changeRate = stock.changePercent || '';
+    const price = stock.current_price || '';
+    const changeAmount = stock.change_amount || '';
+    const changeRate = stock.change_rate || '';
 
     // 실시간 데이터 (없으면 기본 정보만)
     const hasRealtimeData = realtimeData && realtimeData.current_price;
