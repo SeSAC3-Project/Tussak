@@ -68,11 +68,11 @@ export const generatePeriodData = (period) => {
         item.ma60 = calculateMA(60);
     });
 
-    return data;
+    return data.slice(-sliceCount);
 };
 
 export const getPriceRange = (data) => {
-    if (!data.length) return { min: 0, max: 100000 };
+    if (!data || !data.length) return { min: 0, max: 100000 };
     
     const prices = data.flatMap(d => [d.high, d.low]);
     const min = Math.min(...prices);
@@ -86,6 +86,8 @@ export const getPriceRange = (data) => {
 };
 
 export const formatDate = (date, period) => {
+    if (!date) return '';
+
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const hours = date.getHours();
@@ -102,3 +104,5 @@ export const formatDate = (date, period) => {
             return `${month}/${day}`;
     }
 };
+
+

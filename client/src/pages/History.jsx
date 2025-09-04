@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Pagination from '../components/Pagination.jsx'
 
 export default function History() {
@@ -45,8 +45,6 @@ export default function History() {
   const totalPages = Math.ceil(tradingData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = tradingData.slice(startIndex, startIndex + itemsPerPage);
-
-
 
   return (
     <div className="min-h-screen p-6">
@@ -121,17 +119,21 @@ export default function History() {
           
           {/* 페이지 정보 및 페이지네이션 */}
           <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-700">
+            <div className="flex items-center">
+              <div className="flex-1 text-sm text-gray-700">
                 전체 <span className="font-medium">{tradingData.length}</span>건 중{' '}
                 <span className="font-medium">{startIndex + 1}</span>-
                 <span className="font-medium">{Math.min(startIndex + itemsPerPage, tradingData.length)}</span>건 표시
               </div>
-              <Pagination 
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
+            </div>
+            <div>
+              <div className="flex-1 flex justify-center">
+                <Pagination 
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
             </div>
           </div>
         </div>
