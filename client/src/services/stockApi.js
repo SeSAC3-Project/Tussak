@@ -5,7 +5,17 @@ const generateMockStockData = (symbol, period) => {
     console.log('🎲 generateMockStockData 호출:', symbol, period);
     
     // 더미 캔들스틱 데이터 생성
-    const candleData = generatePeriodData(period);
+    const periodData = generatePeriodData(period);
+
+    const candleData = periodData.map(item => ({
+        open: item.open,
+        high: item.high,
+        low: item.low,
+        close: item.close,
+        volume: item.volume,
+        timestamp: item.date.getTime()
+    }));
+    
     console.log('📊 생성된 candleData:', candleData.length, '개');
     console.log('📊 첫 번째 캔들:', candleData[0]);
 
@@ -14,14 +24,20 @@ const generateMockStockData = (symbol, period) => {
 
     const priceRange = getPriceRange(candleData);
 
+    const labels = candleData.map(item => formatDate(item.date, period))
+    console.log('formatDate 설정 후 labels:', labels)
+
     const timeData = {
-        labels: candleData.map(item => formatDate(item.date, period)),
-        timestamps: candleData.map(item => item.date.getTime())
+        labels,
+        timestamps: candleData.map(item => item.timestamp)
     };
+
+    const cleanCandleData = candleData.map(({ date, ...rest }) => rest);
+
     const result = {
         success: true,
         data: {
-            candleData: candleData,
+            candleData: cleanCandleData,
             timeData: timeData,
             currentPrice: currentPrice,
             priceRange: priceRange
@@ -31,8 +47,6 @@ const generateMockStockData = (symbol, period) => {
     console.log('🎯 generateMockStockData 반환값:', result);
     return result;
 };
-
-
 
 const stockApi = {
     

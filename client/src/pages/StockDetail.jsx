@@ -29,6 +29,7 @@ export default function StockDetail() {
     // API 데이터 훅
     const {
         chartData,
+        timeData,
         currentPrice: apiCurrentPrice,
         loading,
         error,
@@ -188,7 +189,11 @@ export default function StockDetail() {
                             <span className="text-xs text-gray-500 ml-10">거래량</span>
                         </div>
                         <VolumeChart 
-                            data={visibleData} 
+                            stockData={{
+                            candleData: visibleData,
+                            priceRange: priceRange,
+                            timeData: timeData
+                        }}
                             chartState={chartState} 
                         />
                     </div>

@@ -104,3 +104,5 @@ export const formatDate = (date, period) => {
             return `${month}/${day}`;
     }
 };
+
+
