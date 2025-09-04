@@ -60,10 +60,10 @@ function SearchBar() {
 
 function WatchList() {
     const mockStockData = [
-        { id: '001201', market: '코스피', name: '상지전자', price: 81300, change: 1200, changePercent: 1.50, direction: 'up' },
-        { id: '001202', market: '코스피', name: '지니생명', price: 45750, change: -50, changePercent: -0.11, direction: 'down' },
-        { id: '001203', market: '코스피', name: 'Calia솔루션', price: 350000, change: 2000, changePercent: 0.57, direction: 'up' },
-        { id: '001204', market: '코스피', name: 'HM캐피털', price: 224000, change: -1500, changePercent: -0.67, direction: 'down' },
+        { stock_code: '001201', market: '코스피', stock_name: '상지전자', current_price: 81300, change_amount: 1200, changePercent: 1.50},
+        { stock_code: '001202', market: '코스피', stock_name: '지니생명', current_price: 45750, change_amount: -50, change_rate: -0.11},
+        { stock_code: '001203', market: '코스피', stock_name: 'Calia솔루션', current_price: 350000, change_amount: 2000, change_rate: 0.57},
+        { stock_code: '001204', market: '코스피', stock_name: 'HM캐피털', current_price: 224000, change_amount: -1500, change_rate: -0.67 }
     ];
 
     return (

@@ -3,20 +3,36 @@ import { useState } from 'react';
 import { useApp } from '../AppContext'
 
 const HeartIcon = ({ active }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 cursor-pointer ${active ? 'text-red-500 fill-current' : 'text-gray-300'}`} viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-    </svg>
+    <img 
+        src={active ? '/icon/heart-filled.png' : '/icon/heart-unfilled.png'}
+        alt="Heart icon"
+        className="w-5 h-5 cursor-pointer"
+    />
 );
 
 const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
-    const [active, setActive] = useState(false);
+    const [active, setActive] = useState(true);
+    console.log('StockCard 변수 형태는:', stock)
 
-    const stockCode = stock.stock_code || '';
+    // StockCard에서 home, market에서 필드 차이 발생 (home 더미데이터 market에 맞게 ... 수정해야겠다 )
+    const stockCode = stock.stock_code || '000000'; 
+    //  '' 에서 '000000'로 수정
     const stockName = stock.stock_name || '종목명 없음';
     const market = stock.market || '';
-    const sector = stock.sector || '';
-    const per = stock.per || null;
-    const pbr = stock.pbr || null;
+    const price = stock.current_price || '';
+    const changeAmount = stock.change_amount || '';
+    const changeRate = stock.change_rate || '';
+
+    // const sector = stock.sector || '';
+    // const per = stock.per || null;
+    // const pbr = stock.pbr || null;
+
+    // const stockCode = stock.id || '000000';
+    // const stockName = stock.name || '';
+    // const market = stock.market || '';
+    // const price = stock.price || '';
+    // const changeAmount = stock.change || '';
+    // const changeRate = stock.changePercent || '';
 
     // 실시간 데이터 (없으면 기본 정보만)
     const hasRealtimeData = realtimeData && realtimeData.current_price;
@@ -33,7 +49,7 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
 
     return (
         <div 
-            className="bg-white p-3 rounded-lg border border-gray-200 flex flex-col justify-between h-full shadow-lg hover:bg-gray-100 cursor-pointer"
+            className="bg-white py-[15px] px-[19px] rounded-[20px] flex flex-col justify-between h-full" style={{fontFamily: 'DM Sans'}}
             onClick={navigateToStockDetail}
         >
             {/* 상단 요소들: 종목코드, 시장, 좋아요*/}
