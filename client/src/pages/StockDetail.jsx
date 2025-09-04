@@ -67,8 +67,9 @@ export default function StockDetail() {
     // 기간 변경 시 ( selectedStock 여부에 따라 API 재호출 )
     const handlePeriodChange = (period) => {
         originalHandlePeriodChange(period);
-        if (selectedStock?.code) {
-            fetchChartData(selectedStock.code, period);
+        console.log('기간변경 시 selectedStock 바뀌나요?:', selectedStock)
+        if (selectedStock?.stock_code) {
+            fetchChartData(selectedStock.stock_code, period);
         }
     };
         
@@ -139,21 +140,6 @@ export default function StockDetail() {
 
     return (
         <div>
-            {/* 더미 데이터로 렌더링하는 안내 */}
-            {error && candleData && candleData.length > 0 &&(
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
-                    <p className="text-sm">
-                        Mr.dummy: API 연결에 문제 있어, 나라도 괜찮다면 ...
-                        <button 
-                            onClick={() => fetchChartData()}
-                            className="ml-2 underline hover:no-underline"
-                        >
-                            다시 시도
-                        </button>
-                    </p>
-                </div>
-            )}
-
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* 주식 헤더 */}
                 <StockHeader 

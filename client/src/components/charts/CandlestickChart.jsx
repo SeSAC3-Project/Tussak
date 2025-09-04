@@ -20,8 +20,6 @@ const CandlestickChart = ({
     console.log('stockData?.candleData?.length:', stockData?.candleData?.length);
     console.log('조건 결과:', !stockData?.candleData?.length);
 
-
-
     const [chartContainerWidth, setChartContainerWidth] = useState(600);
     const [chartContainerHeight] = useState(400);
 
@@ -200,7 +198,7 @@ const CandlestickChart = ({
                                 y1={scaleY(currentDisplayPrice)}
                                 x2={leftMargin + chartAreaWidth}
                                 y2={scaleY(currentDisplayPrice)}
-                                stroke="#ef4444"
+                                stroke="#676767ff"
                                 strokeWidth="2"
                                 strokeDasharray="4,4"
                                 opacity="0.8"
@@ -212,7 +210,7 @@ const CandlestickChart = ({
                                 y={scaleY(currentDisplayPrice) - 10}
                                 width="75"
                                 height="20"
-                                fill="#ef4444"
+                                fill="#676767ff"
                                 rx="3"
                                 opacity="0.9"
                             />

@@ -11,7 +11,7 @@ export const useStockData = (symbol) => {
   const [error, setError] = useState(null);
 
   // fetchChartData 함수 - StockDetail.jsx에서 기대하는 함수명
-  const fetchChartData = useCallback(async (symbol, period = '1d') => {
+  const fetchChartData = useCallback(async (symbol, period = '1일') => {
     if (!symbol) {
       console.log('❌ symbol가 없어서 API 호출 중단');
       return;
@@ -32,11 +32,6 @@ export const useStockData = (symbol) => {
         setCurrentPrice(result.data.currentPrice || 0);
         setTimeData(result.data.timeData || { labels: [], timestamps: [] });
 
-        // const generateTimeData = result.data.timeData?.labels || result.data.candleData.map((item, index) => {
-        //   const date = new Date(timeData.timestamp || Date.now()- (result.data.candleData.length - index) * 60000 );
-        //   return formatDate(date, period);
-        // });
-
         console.log('✅ 데이터 설정 완료');
         console.log('📊 candleData 길이:', result.data.candleData?.length);
         console.log('💰 currentPrice:', result.data.currentPrice);
@@ -56,7 +51,7 @@ export const useStockData = (symbol) => {
   useEffect(() => {
     console.log('🔄 useEffect 실행 - symbol 변경:', symbol);
     if (symbol) {
-      fetchChartData(symbol, '1d'); // 기본 period
+      fetchChartData(symbol, '1일'); // 기본 period
     } else {
       console.log('⚠️ symbol이 없어서 초기화');
       setChartData(null);

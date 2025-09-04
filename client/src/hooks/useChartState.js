@@ -16,8 +16,8 @@ export const useChartState = () => {
 
     
         const handlePeriodChange = (period) => {
-            // const visibleCandles = period === '1일' ? 60 : period === '1주' ? 25 : period === '1개월' ? 22 : 40;
-            const visibleCandles = 80;
+            const visibleCandles = period === '1일' ? 60 : period === '1주' ? 25 : period === '1개월' ? 22 : 40;
+            // const visibleCandles = 80;
     
             setChartState(prev => ({
                 ...prev,
