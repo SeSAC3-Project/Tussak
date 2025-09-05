@@ -3,6 +3,7 @@ import requests
 import os
 import json
 import time
+from datetime import datetime, timedelta
 from flask import current_app
 
 from config.redis import get_redis
@@ -219,3 +220,164 @@ class KisAPI:
         except Exception as e:
             current_app.logger.warning(f"KIS API 호출 실패 {stock_code}: {e}")
             return None
+
+    def fetch_minute_data_raw(self, stock_code, target_date=None):
+        """
+        주식당일분봉조회 API - 순수 API 호출만
+        target_date: datetime 객체 (None이면 오늘)
+        """
+        try:
+            if target_date is None:
+                target_date = datetime.now()
+            
+            time_str = target_date.strftime("%H%M%S")
+            
+            url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-time-itemchartprice"
+            
+            headers = {
+                "Content-Type": "application/json",
+                "authorization": f"Bearer {self.kis_token}",
+                "appkey": KIS_CLIENT_ID,
+                "appsecret": KIS_CLIENT_SECRET,
+                "tr_id": "FHKST03010200"
+            }
+            
+            params = {
+                "fid_etc_cls_code": "",
+                "fid_cond_mrkt_div_code": "J",
+                "fid_input_iscd": stock_code,
+                "fid_input_hour_1": time_str,
+                "fid_pw_data_incu_yn": "Y"
+            }
+            
+            response = requests.get(url, headers=headers, params=params)
+            data = response.json()
+
+            current_app.logger.info(f"당일분봉 API 호출: {stock_code}, rt_cd={data.get('rt_cd')}")
+            
+            return {
+                'success': data.get('rt_cd') == '0',
+                'data': data.get('output2', []) if data.get('rt_cd') == '0' else [],
+                'message': data.get('msg1', ''),
+                'raw_response': data
+            }
+                
+        except Exception as e:
+            current_app.logger.error(f"주식당일분봉조회 API 호출 실패: {e}")
+            return {
+                'success': False,
+                'data': [],
+                'message': str(e),
+                'raw_response': {}
+            }
+
+    def fetch_weekly_minute_data_raw(self, stock_code, start_date, end_date):
+        """
+        주식일별분봉조회 API - 순수 API 호출만
+        start_date, end_date: datetime 객체
+        """
+        try:
+            url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-time-dailychartprice"
+            
+            headers = {
+                "Content-Type": "application/json",
+                "authorization": f"Bearer {self.kis_token}",
+                "appkey": KIS_CLIENT_ID,
+                "appsecret": KIS_CLIENT_SECRET,
+                "tr_id": "FHKST03010100"
+            }
+            
+            params = {
+                "fid_cond_mrkt_div_code": "J",
+                "fid_input_iscd": stock_code,
+                "fid_input_date_1": start_date.strftime("%Y%m%d"),
+                "fid_input_date_2": end_date.strftime("%Y%m%d"),
+                "fid_period_div_code": "M",  # M:분봉
+                "fid_org_adj_prc": "1"
+            }
+            
+            response = requests.get(url, headers=headers, params=params)
+            data = response.json()
+            
+            current_app.logger.info(f"주식일별분봉조회 API 호출: {stock_code}, rt_cd={data.get('rt_cd')}, msg={data.get('msg1')}")
+            
+            if data.get('rt_cd') == '0':
+                return {
+                    'success': True,
+                    'data': data.get('output2', []),
+                    'message': 'API 호출 성공',
+                    'raw_response': data
+                }
+            else:
+                # 방법 2: 분봉이 지원되지 않으면 일봉으로 시도
+                current_app.logger.warning(f"분봉 조회 실패, 일봉으로 대체 시도: {data.get('msg1')}")
+                
+                params['fid_period_div_code'] = "D"  # D:일봉
+                
+                response = requests.get(url, headers=headers, params=params)
+                data = response.json()
+                
+                current_app.logger.info(f"일봉 대체 API: {stock_code}, rt_cd={data.get('rt_cd')}")
+                
+                return {
+                    'success': data.get('rt_cd') == '0',
+                    'data': data.get('output2', []) if data.get('rt_cd') == '0' else [],
+                    'message': data.get('msg1', ''),
+                    'fallback_to_daily': True,
+                    'raw_response': data
+                }
+                
+        except Exception as e:
+            current_app.logger.error(f"주식일별분봉조회 API 호출 실패: {e}")
+            return {
+                'success': False,
+                'data': [],
+                'message': str(e),
+                'raw_response': {}
+            }
+
+    def fetch_daily_data_raw(self, stock_code, start_date, end_date):
+        """
+        국내주식기간별시세 API - 순수 API 호출만
+        start_date, end_date: datetime 객체
+        """
+        try:
+            url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
+            
+            headers = {
+                "Content-Type": "application/json",
+                "authorization": f"Bearer {self.kis_token}",
+                "appkey": KIS_CLIENT_ID,
+                "appsecret": KIS_CLIENT_SECRET,
+                "tr_id": "FHKST03010100"
+            }
+            
+            params = {
+                "fid_cond_mrkt_div_code": "J",
+                "fid_input_iscd": stock_code,
+                "fid_input_date_1": start_date.strftime("%Y%m%d"),
+                "fid_input_date_2": end_date.strftime("%Y%m%d"),
+                "fid_period_div_code": "D",  # D:일봉
+                "fid_org_adj_prc": "1"
+            }
+            
+            response = requests.get(url, headers=headers, params=params)
+            data = response.json()
+
+            current_app.logger.info(f"일봉 API 호출: {stock_code}, rt_cd={data.get('rt_cd')}")
+            
+            return {
+                'success': data.get('rt_cd') == '0',
+                'data': data.get('output2', []) if data.get('rt_cd') == '0' else [],
+                'message': data.get('msg1', ''),
+                'raw_response': data
+            }
+                
+        except Exception as e:
+            current_app.logger.error(f"국내주식기간별시세 API 호출 실패: {e}")
+            return {
+                'success': False,
+                'data': [],
+                'message': str(e),
+                'raw_response': {}
+            }
