@@ -11,13 +11,6 @@ import StockHeader from '../components/stock/StockHeader';
 import StockInfo from '../components/stock/StockInfo';
 import CompanyOverview from '../components/stock/CompanyOverview';
 
-// 모달 구현용 
-import { useState, useEffect } from 'react';
-import BuyModal from '../components/modals/BuyModal';
-import OrderConfirmedModal from '../components/modals/OrderConfirmedModal';
-import { stockApi } from '../services/stockApi';
-
-
 export default function StockDetail() {
 
     const { selectedStock } = useApp()
@@ -125,59 +118,6 @@ export default function StockDetail() {
         handleMouseLeaveChart
     } = useChartInteraction(chartState, setChartState, chartRef, dragRef, candleData);
 
-    
-
-    
-    // ================ [매수] 모달 ==============
-    const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
-    const [isOrderConfirmedModalOpen, setIsOrderConfirmedModalOpen] = useState(false);
-    const [orderDetails, setOrderDetails] = useState(null);
-
-    const [realTimePrice, setRealTimePrice] = useState(null);
-
-    useEffect(() => {
-        if (!selectedStock?.stock_code) return;
-
-        const fetchRealTimePrice = async () => {
-            try {
-                const price = await stockApi.fetchRealTimePrice(selectedStock.stock_code);
-                setRealTimePrice(price);
-            } catch (error) {
-                console.warn('실시간 데이터 불러오는데 실패하였습니다', error)
-                // setRealTimePrice 더미 vs 여기서 또 더미
-                // 그냥 임의로
-                setRealTimePrice(20000); 
-            }
-        };
-
-        fetchRealTimePrice();
-
-        // 여기서 fetch 간격 5초 주기 vs stockApi 에서 이미 5초 설정
-    }, [selectedStock?.stock_code]);
-
-    const handleBuyClick = () => {
-        setIsBuyModalOpen(true);
-    };
-
-    const handleBuyModalClose = () => {
-        setIsBuyModalOpen(false);
-    };
-
-    const handleBuyComplete = (orderDetails) => {
-        setIsBuyModalOpen(false);
-        setOrderDetails(orderDetails);
-        setIsOrderConfirmedModalOpen(true);
-    };
-    
-    const handleOrderConfirmedClose = () => {
-        setIsOrderConfirmedModalOpen(false);
-        setOrderDetails(null);
-    };
-    
-    // API인지 데미인지 피드 결정하고..
-    // const displayPrice = realTimePrice || currentPrice || 0;
-    const displayPrice = 20000;
-    
     // selectedStock 없을 때
     if (!selectedStock) {
         return (
@@ -210,13 +150,14 @@ export default function StockDetail() {
             </div>
         );
     }
+
+
     return (
         <div>
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* 주식 헤더 */}
                 <StockHeader
                     selectedStock={selectedStock}
-                    onBuyClick={handleBuyClick}
                 />
 
                 {/* 차트 섹션 */}
@@ -264,22 +205,6 @@ export default function StockDetail() {
                     <CompanyOverview />
                 </div>
             </div>
-
-            {/* 모달 */}
-            <BuyModal
-                isOpen={isBuyModalOpen}
-                onClose={handleBuyModalClose}
-                onBuyComplete={handleBuyComplete}
-                stockCode={selectedStock?.stock_code || ''}
-                stockName={selectedStock?.stock_name || ''}
-                initialPrice={displayPrice}
-            />
-
-            <OrderConfirmedModal
-                isOpen={isOrderConfirmedModalOpen}
-                onClose={handleOrderConfirmedClose}
-                orderDetails={orderDetails}
-            />
         </div>
     );
 };
