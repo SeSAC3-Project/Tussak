@@ -14,8 +14,8 @@ import CompanyOverview from '../components/stock/CompanyOverview';
 export default function StockDetail() {
 
     const { selectedStock } = useApp()
-    
-    console.log('StockDetail시작 -- selectedStock:', selectedStock) 
+
+    console.log('StockDetail시작 -- selectedStock:', selectedStock)
 
     // 커스텀 훅으로 차트 상태 관리
     const {
@@ -43,12 +43,12 @@ export default function StockDetail() {
     console.log('error:', error);
 
     const candleData = useMemo(() => {
-        if (!loading && chartData && Array.isArray(chartData) && chartData.length > 0) {
+        if (chartData && Array.isArray(chartData) && chartData.length > 0) {
             return chartData;
         }
-        return chartData || [];
-    }, [chartData, loading]);
-    
+        return [];
+    }, [chartData]);
+
     // 현재가
     const currentPrice = useMemo(() => {
         // API 현재가 있으면
@@ -65,30 +65,44 @@ export default function StockDetail() {
 
 
     // 기간 변경 시 ( selectedStock 여부에 따라 API 재호출 )
+
     const handlePeriodChange = (period) => {
-        originalHandlePeriodChange(period);
+        originalHandlePeriodChange(period, candleData.length);
         console.log('기간변경 시 selectedStock 바뀌나요?:', selectedStock)
         if (selectedStock?.stock_code) {
             fetchChartData(selectedStock.stock_code, period);
         }
     };
-        
+
+    console.log('🔍 chartState debugging:');
+    console.log('  - candleData.length:', candleData?.length);
+    console.log('  - chartState.startIndex:', chartState.startIndex);
+    console.log('  - chartState.visibleCandles:', chartState.visibleCandles);
+    console.log('  - slice range:', chartState.startIndex, 'to', chartState.startIndex + chartState.visibleCandles);
+
     // 보여줄 데이터 슬라이싱
     const visibleData = useMemo(() => {
-        if (!candleData || candleData.length === 0) return [];
-
+        if (loading || !candleData || candleData.length === 0) {
+            return [];
+        }
         return candleData.slice(
             chartState.startIndex,
             chartState.startIndex + chartState.visibleCandles
         );
-    }, [candleData, chartState.startIndex, chartState.visibleCandles]);
+    }, [candleData, chartState.startIndex, chartState.visibleCandles, loading]);
+
+    console.log('🎯 CandlestickChart render 직전:');
+    console.log('  - loading:', loading);
+    console.log('  - candleData.length:', candleData?.length);
+    console.log('  - visibleData.length:', visibleData?.length);
+    console.log('  - visibleData:', visibleData);
 
 
     // 가격 범위
     const priceRange = useMemo(() => {
         if (!visibleData || visibleData.length === 0) {
             console.log('⚠️ priceRange: visibleData 없음');
-            return { min:0, max: 0};
+            return { min: 0, max: 0 };
         }
         const result = getPriceRange(visibleData);
         console.log('📈 priceRange 계산:', result);
@@ -114,7 +128,7 @@ export default function StockDetail() {
     }
 
     // 로딩 처리
-     if (loading) {
+    if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="text-gray-500">차트 데이터를 불러오는 중...</div>
@@ -127,7 +141,7 @@ export default function StockDetail() {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="text-red-500">차트 데이터가 없습니다.</div>
-                <button 
+                <button
                     onClick={() => fetchChartData(selectedStock.code, chartState.selectedPeriod)}
                     className="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                 >
@@ -142,14 +156,14 @@ export default function StockDetail() {
         <div>
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* 주식 헤더 */}
-                <StockHeader 
-                    selectedStock={selectedStock} 
+                <StockHeader
+                    selectedStock={selectedStock}
                 />
 
                 {/* 차트 섹션 */}
                 <div className="bg-white rounded-2xl shadow-lg p-6">
-                    
-                    <ChartControls 
+
+                    <ChartControls
                         chartState={chartState}
                         onPeriodChange={handlePeriodChange}
                     />
@@ -163,10 +177,10 @@ export default function StockDetail() {
                         chartState={chartState}
                         currentPrice={currentPrice}
                         chartRef={chartRef}
-                        // handleWheel={handleWheel}
-                        // handleMouseDown={handleMouseDown}
-                        // handleMouseMoveChart={handleMouseMoveChart}
-                        // handleMouseLeaveChart={handleMouseLeaveChart}
+                    // handleWheel={handleWheel}
+                    // handleMouseDown={handleMouseDown}
+                    // handleMouseMoveChart={handleMouseMoveChart}
+                    // handleMouseLeaveChart={handleMouseLeaveChart}
                     />
 
                     {/* 거래량 차트 */}
@@ -174,13 +188,13 @@ export default function StockDetail() {
                         <div className="flex items-center mb-2">
                             <span className="text-xs text-gray-500 ml-10">거래량</span>
                         </div>
-                        <VolumeChart 
+                        <VolumeChart
                             stockData={{
-                            candleData: visibleData,
-                            priceRange: priceRange,
-                            timeData: timeData
-                        }}
-                            chartState={chartState} 
+                                candleData: visibleData,
+                                priceRange: priceRange,
+                                timeData: timeData
+                            }}
+                            chartState={chartState}
                         />
                     </div>
                 </div>

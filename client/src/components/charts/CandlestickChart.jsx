@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 
+
 const CandlestickChart = ({
     chartState,
     stockData,
@@ -10,6 +11,7 @@ const CandlestickChart = ({
     handleMouseMoveChart,
     handleMouseLeaveChart
 }) => {
+
     const containerRef = useRef(null);
     const candleData = stockData?.candleData;
     const priceRange = stockData?.priceRange;

@@ -1,7 +1,7 @@
 export const generatePeriodData = (period) => {
     const data = [];
     let basePrice = 235000;
-    const totalPoints = 300;
+    const totalPoints = 500;
     const dateIncrement = (i) => new Date(2024, 0, 15 + i);
 
     let sliceCount;
