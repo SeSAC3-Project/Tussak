@@ -151,6 +151,93 @@ def get_realtime_by_stock_code(stock_code):
             'message': f'오류가 발생했습니다: {str(e)}'
         }), 500
 
+@stock_bp.route('/realtime/add', methods=['POST'])
+def add_subscriptions():
+    """검색 결과 종목들을 추가 구독"""
+    try:
+        data = request.get_json()
+        stock_codes = data.get('stock_codes', [])
+        
+        if not stock_codes:
+            return jsonify({
+                'success': False,
+                'message': '추가할 종목 코드가 없습니다.'
+            }), 400
+        
+        websocket_service = get_websocket_service(current_app._get_current_object())
+        
+        if websocket_service.add_additional_subscriptions(stock_codes):
+            subscription_info = websocket_service.get_subscription_status()
+            
+            return jsonify({
+                'success': True,
+                'message': f'추가 구독 완료',
+                'subscription_info': subscription_info
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': '추가 구독 실패'
+            }), 500
+        
+    except Exception as e:
+        current_app.logger.error(f"추가 구독 API 오류: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'오류가 발생했습니다: {str(e)}'
+        }), 500
+
+@stock_bp.route('/realtime/remove', methods=['POST'])
+def remove_subscriptions():
+    """특정 추가 구독 종목 해제"""
+    try:
+        data = request.get_json()
+        stock_codes = data.get('stock_codes', [])
+        
+        websocket_service = get_websocket_service(current_app._get_current_object())
+        
+        if websocket_service.remove_additional_subscriptions(stock_codes):
+            return jsonify({
+                'success': True,
+                'message': f'{len(stock_codes)}개 종목 구독 해제 완료'
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': '구독 해제 실패'
+            }), 500
+        
+    except Exception as e:
+        current_app.logger.error(f"구독 해제 API 오류: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'오류가 발생했습니다: {str(e)}'
+        }), 500
+
+@stock_bp.route('/realtime/clear', methods=['POST'])
+def clear_additional_subscriptions():
+    """모든 추가 구독 해제 (기본 top28은 유지)"""
+    try:
+        websocket_service = get_websocket_service(current_app._get_current_object())
+        
+        if websocket_service.clear_all_additional_subscriptions():
+            return jsonify({
+                'success': True,
+                'message': '모든 추가 구독 해제 완료 (기본 랭킹은 유지)'
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': '구독 해제 실패'
+            }), 500
+        
+    except Exception as e:
+        current_app.logger.error(f"전체 구독 해제 API 오류: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'오류가 발생했습니다: {str(e)}'
+        }), 500
+
 # 실시간 서비스 상태 조회
 @stock_bp.route('/realtime/status')
 def get_realtime_status():

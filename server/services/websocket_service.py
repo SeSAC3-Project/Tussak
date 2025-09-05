@@ -3,13 +3,12 @@ import json
 import threading
 import time
 from datetime import datetime
-from flask import current_app
 from config.redis import get_redis
 import os
 from dotenv import load_dotenv
 
 from services.stock_service import StockService
-from utils.kis_websocket import kis_websocket_access_token, get_websocket_token, invalidate_websocket_token, _is_token_format_valid
+from utils.kis_websocket import get_websocket_token, invalidate_websocket_token, _is_token_format_valid
 
 load_dotenv()
 
@@ -22,7 +21,11 @@ class KisWebSocketService:
         self.is_connected = False
         self.reconnect_attempts = 0
         self.max_reconnect_attempts = 3 # 재시도 횟수
-        self.stock_codes = []
+
+        self.base_stock_codes = []       # 기본 top28 종목 (항상 유지)
+        self.additional_stock_codes = [] # 추가 구독 종목들 (검색, 상세페이지 등)
+        self.stock_codes = []           # 전체 구독 종목 (base + additional의 합)
+
         self.redis_client = get_redis()
         self.app = app
         
@@ -33,10 +36,13 @@ class KisWebSocketService:
         self.successful_subscriptions = 0
         self.failed_subscriptions = []  # 실패한 구독 추적
         
-    def connect(self, stock_codes):
-        """웹소켓 연결"""
+    def connect(self, base_stock_codes):
+        """웹소켓 연결 - 기본 종목들로 시작(top28)"""
         try:
-            self.stock_codes = stock_codes
+            self.base_stock_codes = base_stock_codes
+            self.additional_stock_codes = []  # 초기화
+            self.stock_codes = base_stock_codes.copy()  # 초기에는 기본 종목만
+
             self.access_token = get_websocket_token()
 
             if not self.access_token:
@@ -45,11 +51,7 @@ class KisWebSocketService:
             # 웹소켓 URL
             ws_url = "ws://ops.koreainvestment.com:21000"
 
-            self.app.logger.info("🔴 실전투자용 WebSocket 서버 연결 시도")
-            self.app.logger.info(f"WebSocket URL: {ws_url}")
-            self.app.logger.info(f"구독할 종목 수: {len(self.stock_codes)}")
-            self.app.logger.info(f"구독할 종목들: {self.stock_codes}")
-            self.app.logger.info(f"Access Token: {self.access_token}")
+            self.app.logger.info("🔴 WebSocket 서버 연결 시도")
             
             # 웹소켓 연결
             self.ws = websocket.WebSocketApp(
@@ -80,8 +82,8 @@ class KisWebSocketService:
             self.app.logger.info("🎉 웹소켓 연결 성공!")
 
             # 종목 구독 (1초 간격)
-            for i, stock_code in enumerate(self.stock_codes):
-                self.app.logger.info(f"구독 시도 {i+1}/{len(self.stock_codes)}: {stock_code}")
+            for i, stock_code in enumerate(self.base_stock_codes):
+                self.app.logger.info(f"구독 시도 {i+1}/{len(self.base_stock_codes)}: {stock_code}")
                 self.subscribe_stock(stock_code)
                 time.sleep(1)
             
@@ -114,26 +116,120 @@ class KisWebSocketService:
             }
             
             message_json = json.dumps(auth_message)
-            self.app.logger.info(f"📤 구독 메시지 전송: {stock_code}")
-            self.app.logger.debug(f"구독 메시지 내용: {message_json}")
 
             if not self.ws or not hasattr(self.ws, 'sock') or self.ws.sock is None:
                 self.app.logger.error("WebSocket 연결이 이미 끊어진 상태입니다")
                 self.is_connected = False
-                return
+                return False
 
             self.ws.send(message_json)
             self.app.logger.info(f"✅ 종목 구독 요청 전송 완료: {stock_code}")
+
+            return True
             
         except Exception as e:
             self.app.logger.error(f"❌ 종목 구독 실패 {stock_code}: {e}")
+            return False
+    
+    # 추가 구독 기능
+    def add_additional_subscriptions(self, new_stock_codes):
+        """추가 종목 구독 (기본 종목은 유지)"""
+        try:
+            # 중복 제거: 이미 구독 중인 종목 제외
+            current_all_codes = set(self.base_stock_codes + self.additional_stock_codes)
+            codes_to_add = [code for code in new_stock_codes if code not in current_all_codes]
+            
+            if not codes_to_add:
+                self.app.logger.info("추가할 새로운 종목이 없습니다")
+                return True
+            
+            # 최대 추가 구독 수 제한 (예: 50개)
+            max_additional = 50
+            if len(self.additional_stock_codes) + len(codes_to_add) > max_additional:
+                available_slots = max_additional - len(self.additional_stock_codes)
+                codes_to_add = codes_to_add[:available_slots]
+                self.app.logger.warning(f"추가 구독 제한으로 {len(codes_to_add)}개만 구독")
+            
+            # 새 종목들 구독
+            success_count = 0
+            for stock_code in codes_to_add:
+                if self.subscribe_stock(stock_code):
+                    self.additional_stock_codes.append(stock_code)
+                    self.stock_codes.append(stock_code)
+                    success_count += 1
+                time.sleep(0.5)  # 구독 간격
+            
+            self.app.logger.info(f"추가 구독 완료: {success_count}/{len(codes_to_add)}개 종목")
+            self.app.logger.info(f"현재 총 구독: {len(self.stock_codes)}개 (기본: {len(self.base_stock_codes)}, 추가: {len(self.additional_stock_codes)})")
+            
+            return success_count > 0
+            
+        except Exception as e:
+            self.app.logger.error(f"추가 구독 실패: {e}")
+            return False
+    
+    def unsubscribe_stock(self, stock_code):
+        """개별 종목 구독 해제"""
+        try:
+            unsubscribe_message = {
+                "header": {
+                    "approval_key": self.access_token,
+                    "custtype": "P",
+                    "tr_type": "2",  # 2 = 해제
+                    "content-type": "utf-8"
+                },
+                "body": {
+                    "input": {
+                        "tr_id": "H0STCNT0",
+                        "tr_key": stock_code
+                    }
+                }
+            }
+            
+            if not self.ws or not hasattr(self.ws, 'sock') or self.ws.sock is None:
+                self.app.logger.error("WebSocket 연결이 끊어진 상태입니다")
+                return False
+            
+            self.ws.send(json.dumps(unsubscribe_message))
+            self.app.logger.info(f"구독 해제: {stock_code}")
+            return True
+            
+        except Exception as e:
+            self.app.logger.error(f"구독 해제 실패 {stock_code}: {e}")
+            return False
 
+    def remove_additional_subscriptions(self, stock_codes_to_remove):
+        """특정 추가 구독 종목 해제 (기본 종목은 유지)"""
+        try:
+            removed_count = 0
+            
+            for stock_code in stock_codes_to_remove:
+                # 기본 구독 종목은 해제하지 않음
+                if stock_code in self.base_stock_codes:
+                    self.app.logger.info(f"기본 구독 종목은 해제하지 않습니다: {stock_code}")
+                    continue
+                
+                if stock_code in self.additional_stock_codes:
+                    if self.unsubscribe_stock(stock_code):
+                        self.additional_stock_codes.remove(stock_code)
+                        self.stock_codes.remove(stock_code)
+                        removed_count += 1
+                    time.sleep(0.5)
+            
+            self.app.logger.info(f"추가 구독 해제 완료: {removed_count}개 종목")
+            return True
+            
+        except Exception as e:
+            self.app.logger.error(f"추가 구독 해제 실패: {e}")
+            return False
+
+    def clear_all_additional_subscriptions(self):
+        """모든 추가 구독 해제 (기본 종목은 유지)"""
+        return self.remove_additional_subscriptions(self.additional_stock_codes.copy())
     
     def on_message(self, ws, message):
         """웹소켓 메시지 수신 시"""
         try:
-            self.app.logger.info(f"📥 메시지 수신: {message[:100]}...")
-
             # 메시지가 JSON 형태인지 확인 (초기 응답)
             if message.startswith('{'):
                 try:
@@ -243,7 +339,7 @@ class KisWebSocketService:
                 data_count = parts[2]
                 raw_data = parts[3]
 
-                self.app.logger.info(f"📊 실시간 데이터: TR_ID={tr_id}, COUNT={data_count}")
+                self.app.logger.debug(f"📊 실시간 데이터: TR_ID={tr_id}, COUNT={data_count}")
                 
                 if tr_id == "H0STCNT0":  # 주식 체결가
                     self.process_stock_price_data(raw_data)
@@ -256,8 +352,6 @@ class KisWebSocketService:
         try:
             # 데이터를 ^ 구분자로 분리
             fields = raw_data.split('^')
-
-            self.app.logger.info(f"📈 주식 데이터 필드 수: {len(fields)}")
             
             if len(fields) < 14:
                 self.app.logger.warning(f"⚠️ 필드 수 부족: {len(fields)}개 (최소 14개 필요)")
@@ -301,10 +395,10 @@ class KisWebSocketService:
                 sign_map = {'1': '↑', '2': '▲', '3': '=', '4': '↓', '5': '▼'}
                 sign_symbol = sign_map.get(change_sign, '')
                 
-                self.app.logger.debug(
-                    f"📊 실시간: {stock_code} {current_price_float:,.0f}원 "
-                    f"{sign_symbol} {change_rate_float:+.2f}%"
-                )
+                # self.app.logger.debug(
+                #     f"📊 실시간: {stock_code} {current_price_float:,.0f}원 "
+                #     f"{sign_symbol} {change_rate_float:+.2f}%"
+                # )
                     
         except Exception as e:
             self.app.logger.error(f"❌ 주식 체결가 데이터 처리 실패: {e}")
@@ -324,7 +418,7 @@ class KisWebSocketService:
             self.reconnect_attempts += 1
             self.app.logger.info(f"웹소켓 재연결 시도 {self.reconnect_attempts}/{self.max_reconnect_attempts}")
             time.sleep(5)  # 5초 대기 후 재연결
-            self.connect(self.stock_codes)
+            self.connect(self.base_stock_codes) # 기본 종목으로 재연결
         else:
             self.app.logger.error("❌ 최대 재연결 시도 횟수 초과. 재연결을 포기합니다.")
     
@@ -375,12 +469,23 @@ class KisWebSocketService:
     def get_subscription_status(self):
         """구독 상태 정보 반환"""
         return {
-            'total_stocks': len(self.stock_codes),
+            'base_subscriptions': {
+                'count': len(self.base_stock_codes),
+                'codes': self.base_stock_codes
+            },
+            'additional_subscriptions': {
+                'count': len(self.additional_stock_codes),
+                'codes': self.additional_stock_codes,
+                'max_limit': 50
+            },
+            'total_subscriptions': {
+                'count': len(self.stock_codes),
+                'codes': self.stock_codes
+            },
+            'connection_status': self.is_connected,
             'successful_subscriptions': self.successful_subscriptions,
             'failed_subscriptions': len(self.failed_subscriptions),
-            'failed_stock_codes': self.failed_subscriptions,
-            'connection_status': self.is_connected,
-            'current_token': self.access_token[:20] + "..." if self.access_token else None
+            'failed_stock_codes': self.failed_subscriptions
         }
 
 # 전역 웹소켓 서비스 인스턴스 (None으로 초기화)

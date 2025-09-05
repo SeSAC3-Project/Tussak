@@ -6,8 +6,8 @@ import threading
 
 # scheduler
 from utils.kis_api import kis_access_token
-from utils.kis_websocket import scheduled_refresh_websocket_token
-from services.websocket_service import kis_websocket_access_token, get_websocket_service
+from utils.kis_websocket import kis_websocket_access_token, scheduled_refresh_websocket_token
+from services.websocket_service import get_websocket_service
 from services.stock_service import StockService
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
