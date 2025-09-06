@@ -185,9 +185,9 @@ function NewsSection() {
 
     return (
         <div className="bg-white rounded-xl py-5 px-7">
-        <h2 className="font-bold mb-6" style={{ fontFamily: 'DM Sans', fontSize: '20px', color: 'rgb(15, 37, 11)' }}>
-            뉴스
-        </h2>
+            <h2 className="font-bold mb-6" style={{ fontFamily: 'DM Sans', fontSize: '20px', color: 'rgb(15, 37, 11)' }}>
+                뉴스
+            </h2>
         <div>
             {newsData.map((news, index) => (
                 <div key={index}>
