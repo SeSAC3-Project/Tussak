@@ -68,11 +68,11 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
             <div className="hidden sm:block">
                 {hasRealtimeData ? (
                     // 실시간 가격 데이터 표시
-                    <div>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-1">
                         <div className="text-[18px] font-regular text-[#0F250B] mb-1">
                             {currentPrice.toLocaleString()}
                         </div>
-                        <div className={`flex items-center justify-between text-sm ${textColor}`}>
+                        <div className={`flex items-center justify-between gap-1 text-sm sm:text-base font-medium ${textColor}`}>
                             <span>{changeIcon}</span>
                             <span>({changePercent > 0 ? '+' : ''}{changePercent.toFixed(2)}%)</span>
                         </div>
