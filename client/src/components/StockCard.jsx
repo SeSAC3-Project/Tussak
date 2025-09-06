@@ -48,44 +48,53 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
 
     return (
         <div 
-            className="bg-white py-[15px] px-[19px] rounded-[20px] flex flex-col justify-between h-full" style={{fontFamily: 'DM Sans'}}
+            className="bg-white py-3 px-4 sm:py-[15px] sm:px-[19px] rounded-[20px] flex flex-col justify-between h-full cursor-pointer hover:shadow-md transition-shadow" style={{fontFamily: 'DM Sans'}}
             onClick={navigateToStockDetail}
         >
             {/* 상단 요소들: 종목코드, 시장, 좋아요*/}
-            <div className="flex justify-between items-center text-[#8A8A8A] text-[15px] font-regular">
-                <span>{stockCode} {market}</span>
-                <button className="hover:text-red-500" onClick={() => setActive(!active)}>
+            <div className="flex justify-between items-center text-[#8A8A8A] text-xs md:text-[15px] font-regular">
+                <div className="flex items-center gap-1">
+                    <span>{stockCode}</span>
+                    <span className="hidden md:inline">{market}</span>
+                </div>
+                <button 
+                    className="hover:text-red-500" 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setActive(!active)
+                    }}
+                >
                     <HeartIcon active={active} />
                 </button>
             </div>
 
             {/* 중간 요소: 종목명 */}
             <div>
-                <h3 className="text-xl font-normal text-[#0F250B]" style={{letterSpacing: '0.02em'}}>{stockName}</h3>
+                <h3 className="text-base md:text-xl font-normal text-[#0F250B] truncate" style={{letterSpacing: '0.02em'}}>{stockName}</h3>
             </div>
 
             {/* 하단 요소들: 현재가, 변동(화살표, 1주당얼마, 비율) -> 없으면 PER/PBR */}
-            <div className="hidden sm:block">
+            <div className="hidden md:block">
                 {hasRealtimeData ? (
                     // 실시간 가격 데이터 표시
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-1">
-                        <div className="text-[18px] font-regular text-[#0F250B] mb-1">
+                        <div className="text-base sm:text-[18px] font-regular text-[#0F250B] mb-1">
                             {currentPrice.toLocaleString()}
                         </div>
                         <div className={`flex items-center justify-between gap-1 text-sm sm:text-base font-medium ${textColor}`}>
-                            <span>{changeIcon}</span>
+                            <span className="text-xs sm:text-sm">{changeIcon}</span>
                             <span>({changePercent > 0 ? '+' : ''}{changePercent.toFixed(2)}%)</span>
                         </div>
                     </div>
                 ) : (
                     // 기본 정보 표시 (가격, 변동액, 변동률)
                     <div className={`flex items-center justify-between text-[18px] font-regular ${changeAmount >= 0 ? 'text-[#FF383C]' : 'text-[#0088FF]'}`} style={{letterSpacing: '0.02em'}}>
-                        <div>
-                            {typeof price === 'number' ? price.toLocaleString() : price}원
+                        <div >
+                            {typeof price === 'number' ? price.toLocaleString() : price}
                         </div>
                         <div className="flex items-center">
-                            <span>{changeAmount >= 0 ? '▲' : '▼'}</span>
-                            <span className="ml-1">{Math.abs(parseFloat(changeRate)).toFixed(2)}%</span>
+                            <span className="text-xs sm:text-sm">{changeAmount >= 0 ? '▲' : '▼'}</span>
+                            <span className="sm:ml-1">{Math.abs(parseFloat(changeRate)).toFixed(2)}%</span>
                         </div>
                     </div>
                 )}
