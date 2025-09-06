@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../AppContext.js';
-import { FaSearch, FaChevronRight } from 'react-icons/fa';
+import { FaChevronRight } from 'react-icons/fa';
 import InvestorRank from './InvestorRank.jsx';
 import Chatbot from '../components/Chatbot.jsx'
 import StockCard from '../components/StockCard.jsx'
@@ -84,6 +84,8 @@ function WatchList() {
 
 
 function StockRank() {
+    const { navigateToMarket } = useApp();
+
     const stockData = [
         { name: '대한전선', volume: 13120, change: +0.54, amount: 10000, up: true },
         { name: '삼성전자', volume: 64200, change: +0.54, amount: 10000, up: true },
@@ -95,10 +97,12 @@ function StockRank() {
         <div className="bg-white rounded-[20px] h-[345px] py-[19px] px-[28px]" style={{fontFamily: 'DM Sans'}}>
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-[20px] font-bold text-[#0F250B]">거래량 순위</h2>
-                <a href="#" className="flex items-center text-[16px] text-[#8A8A8A] font-regular">
+                <button 
+                    onClick={navigateToMarket} 
+                    className="flex items-center text-[16px] text-[#8A8A8A] font-regular">
                     더보기
                     <FaChevronRight className="ml-1 w-3 h-3" />
-                </a>
+                </button>
             </div>
             <ul>
                 {stockData.map((stock, index) => (
