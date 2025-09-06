@@ -9,6 +9,7 @@ from utils.kis_api import kis_access_token
 from utils.kis_websocket import kis_websocket_access_token, scheduled_refresh_websocket_token
 from services.websocket_service import get_websocket_service
 from services.stock_service import StockService
+from services.ranking_service import RankingService
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import atexit
@@ -151,6 +152,17 @@ def save_daily_stock_history(app):
         except Exception as e:
             app.logger.error(f"❌ 일별 OHLCV 히스토리 저장 실패: {e}")
 
+def update_daily_rankings(app):
+    with app.app_context():
+        try:
+            result = RankingService.calculate_and_update_rankings()
+            if result['success']:
+                app.logger.info("✅ 일별 투자 랭킹 업데이트 완료")
+            else:
+                app.logger.error(f"❌ 일별 투자 랭킹 업데이트 실패: {result['message']}")
+        except Exception as e:
+            app.logger.error(f"❌ 일별 투자 랭킹 업데이트 실패: {e}")
+
 # WebSocket 실시간 시세 서비스 시작
 def start_websocket_service(app):
     with app.app_context():
@@ -240,6 +252,15 @@ def setup_scheduler(app):
     name='Save Daily OHLCV History',
     replace_existing=True
 )
+
+    # 매일 오후 11시 45분 - 일별 투자 랭킹 업데이트 (한국 시간)
+    scheduler.add_job(
+        func=lambda: update_daily_rankings(app),
+        trigger=CronTrigger(hour=23, minute=45, timezone='Asia/Seoul'),
+        id='update_daily_rankings',
+        name='Update Daily Investment Rankings',
+        replace_existing=True
+    )
     
     # 앱 종료 시 웹소켓 연결 해제, 스케줄러도 종료
     atexit.register(cleanup_websocket)

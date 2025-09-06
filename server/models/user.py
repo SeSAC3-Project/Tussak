@@ -16,6 +16,7 @@ class User(db.Model):
     initial_balance = db.Column(db.DECIMAL(15, 2), default=USER_INITIAL_BALANCE)
     current_balance = db.Column(db.DECIMAL(15, 2), default=USER_INITIAL_BALANCE)
     total_asset = db.Column(db.DECIMAL(15, 2), default=USER_INITIAL_BALANCE)
+    ranking = db.Column(db.Integer, nullable=True)  # 투자 랭킹 (1부터 시작)
     
     # created_at = db.Column(db.TIMESTAMP, default=datetime.now(datetime.timezone.utc))
     # updated_at = db.Column(db.TIMESTAMP, default=datetime.now(datetime.timezone.utc))
