@@ -16,7 +16,7 @@ export function AppProvider({ children }) {
 
     const navigateToMarket = (searchTerm) =>{
         setActiveSection('Market');
-        setInitialSearchTerm(searchTerm);
+        setInitialSearchTerm(searchTerm);s
         setSelectedStock(null);
     };
 

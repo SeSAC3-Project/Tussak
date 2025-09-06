@@ -89,7 +89,7 @@ function StockRank() {
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-[20px] font-bold text-[#0F250B]">거래량 순위</h2>
                 <button 
-                    onClick={navigateToMarket} 
+                    onClick={() => navigateToMarket('')}
                     className="flex items-center text-[16px] text-[#8A8A8A] font-regular">
                     더보기
                     <FaChevronRight className="ml-1 w-3 h-3" />
