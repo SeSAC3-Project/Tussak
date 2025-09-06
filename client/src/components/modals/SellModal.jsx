@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 
-const BuyModal = ({
+const SellModal = ({
     isOpen,
     onClose,
-    onBuyComplete,
+    onSellComplete,
     stockName,
     stockCode,
     initialPrice
@@ -66,7 +66,7 @@ const BuyModal = ({
         };
 
         setIsSubmitting(false)
-        onBuyComplete(orderDetails);
+        onSellComplete(orderDetails);
     };
 
     const formatNumber = (num) => {
@@ -185,4 +185,4 @@ const BuyModal = ({
     )
 };
 
-export default BuyModal;
+export default SellModal;

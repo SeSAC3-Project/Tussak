@@ -15,6 +15,7 @@ import CompanyOverview from '../components/stock/CompanyOverview';
 import { useState, useEffect } from 'react';
 import BuyModal from '../components/modals/BuyModal';
 import OrderConfirmedModal from '../components/modals/OrderConfirmedModal';
+import SellModal from '../components/modals/SellModal';
 import { stockApi } from '../services/stockApi';
 
 
@@ -178,6 +179,22 @@ export default function StockDetail() {
     // const displayPrice = realTimePrice || currentPrice || 0;
     const displayPrice = 20000;
     
+    // ============ [매도] 모달 ===========
+
+    // <SellModal
+    //             isOpen={isSellModalOpen}
+    //             onClose={handleSellModalClose}
+    //             onSellComplete={handleSellComplete}
+    //             stockCode={selectedStock?.stock_code || ''}
+    //             stockName={selectedStock?.stock_name || ''}
+    //             initialPrice={displayPrice}
+    //         />
+    const [isSellModalOpen, setIsSellModalOpen] = useState(false);
+    // const [isOrderConfirmedModalOpen, setIsOrderConfirmedModalOpen] = useState(false);
+    // const [orderDetails, setOrderDetails] = useState(null);
+
+
+
     // selectedStock 없을 때
     if (!selectedStock) {
         return (
@@ -265,7 +282,7 @@ export default function StockDetail() {
                 </div>
             </div>
 
-            {/* 모달 */}
+            {/* 매수 모달 */}
             <BuyModal
                 isOpen={isBuyModalOpen}
                 onClose={handleBuyModalClose}
@@ -279,6 +296,16 @@ export default function StockDetail() {
                 isOpen={isOrderConfirmedModalOpen}
                 onClose={handleOrderConfirmedClose}
                 orderDetails={orderDetails}
+            />
+            
+            {/* 매도 모달 */}
+            <SellModal
+                isOpen={isSellModalOpen}
+                onClose={handleSellModalClose}
+                onSellComplete={handleSellComplete}
+                stockCode={selectedStock?.stock_code || ''}
+                stockName={selectedStock?.stock_name || ''}
+                initialPrice={displayPrice}
             />
         </div>
     );
