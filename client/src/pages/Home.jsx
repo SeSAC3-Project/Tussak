@@ -64,7 +64,7 @@ function WatchList() {
 
     return (
         <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {mockStockData.map((stock, index) => (
                     <StockCard key={index} stock={stock} />
                 ))}
@@ -100,13 +100,14 @@ function StockRank() {
                     <li key={index} className="flex justify-between items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0">
                         <div className="flex items-center">
                             <span className="w-6 text-center font-normal text-[20px] text-[#8A8A8A]">{index + 1}</span>
-                            <span className="ml-4 font-normal text-[20px] text-[#0F250B]">{stock.name}</span>
+                            <span className="ml-4 font-normal text-[20px] text-[#0F250B] min-w-[100px] truncate">{stock.name}</span>
                         </div>
                         <div className="flex items-center">
-                            <span className={`text-[20px] font-normal mr-10 text-[#0F250B]`}>{stock.volume.toLocaleString()}원</span>
-                            <span className={`flex items-center text-[20px] font-normal ${stock.up ? 'text-[#FF383C]' : 'text-[#0088FF]'}`}>
-                                <span className="ml-1">{stock.up ? '+' : '-'}{stock.amount.toLocaleString()}원</span>
-                                <span className="ml-1">({Math.abs(stock.change).toFixed(2)}%)</span>
+                            <div className="hidden lg:inline">
+                                <span className={`text-[20px] font-normal mr-10 text-[#0F250B]`}>{stock.volume.toLocaleString()}원</span>
+                            </div>
+                            <span className={`flex items-center text-[15px] md:text-[20px] font-normal min-w-[120px] ${stock.up ? 'text-[#FF383C]' : 'text-[#0088FF]'}`}>
+                                <span className="ml-1">{stock.up ? '+' : '-'}{stock.amount.toLocaleString()}원 ({Math.abs(stock.change).toFixed(2)}%)</span>
                             </span>
                         </div>
                     </li>
