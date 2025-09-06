@@ -14,8 +14,9 @@ import CompanyOverview from '../components/stock/CompanyOverview';
 // 모달 구현용 
 import { useState, useEffect } from 'react';
 import BuyModal from '../components/modals/BuyModal';
-import OrderConfirmedModal from '../components/modals/OrderConfirmedModal';
 import SellModal from '../components/modals/SellModal';
+import OrderConfirmedModal from '../components/modals/OrderConfirmedModal';
+import SellConfirmedModal from '../components/modals/SellConfirmedModal';
 import { stockApi } from '../services/stockApi';
 
 
@@ -132,6 +133,8 @@ export default function StockDetail() {
     // ================ [매수] 모달 ==============
     const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
     const [isOrderConfirmedModalOpen, setIsOrderConfirmedModalOpen] = useState(false);
+    const [isSellModalOpen, setIsSellModalOpen] = useState(false);
+    const [isSellConfirmedModalOpen, setIsSellConfirmedModalOpen] = useState(false);
     const [orderDetails, setOrderDetails] = useState(null);
 
     const [realTimePrice, setRealTimePrice] = useState(null);
@@ -144,7 +147,7 @@ export default function StockDetail() {
                 const price = await stockApi.fetchRealTimePrice(selectedStock.stock_code);
                 setRealTimePrice(price);
             } catch (error) {
-                console.warn('실시간 데이터 불러오는데 실패하였습니다', error)
+                console.warn('실시간 데이터 불러오는데 실패하였습니다:', error)
                 // setRealTimePrice 더미 vs 여기서 또 더미
                 // 그냥 임의로
                 setRealTimePrice(20000); 
@@ -154,6 +157,7 @@ export default function StockDetail() {
         fetchRealTimePrice();
 
         // 여기서 fetch 간격 5초 주기 vs stockApi 에서 이미 5초 설정
+
     }, [selectedStock?.stock_code]);
 
     const handleBuyClick = () => {
@@ -175,25 +179,30 @@ export default function StockDetail() {
         setOrderDetails(null);
     };
     
+    const handleSellClick = () => {
+        setIsSellModalOpen(true);
+    };
+
+    const handleSellModalClose = () => {
+        setIsSellModalOpen(false);
+    };
+
+    const handleSellComplete = (orderDetails) => {
+        setIsSellModalOpen(false);
+        setOrderDetails(orderDetails);
+        setIsOrderConfirmedModalOpen(true);
+    };
+    
+    const handleSellConfirmedClose = () => {
+        setIsSellConfirmedModalOpen(false);
+        setOrderDetails(null);
+    };
+    
     // API인지 데미인지 피드 결정하고..
-    // const displayPrice = realTimePrice || currentPrice || 0;
-    const displayPrice = 20000;
+    const displayPrice = realTimePrice || currentPrice || 20000;
+    // const displayPrice = 20000;
     
     // ============ [매도] 모달 ===========
-
-    // <SellModal
-    //             isOpen={isSellModalOpen}
-    //             onClose={handleSellModalClose}
-    //             onSellComplete={handleSellComplete}
-    //             stockCode={selectedStock?.stock_code || ''}
-    //             stockName={selectedStock?.stock_name || ''}
-    //             initialPrice={displayPrice}
-    //         />
-    const [isSellModalOpen, setIsSellModalOpen] = useState(false);
-    // const [isOrderConfirmedModalOpen, setIsOrderConfirmedModalOpen] = useState(false);
-    // const [orderDetails, setOrderDetails] = useState(null);
-
-
 
     // selectedStock 없을 때
     if (!selectedStock) {
@@ -227,18 +236,20 @@ export default function StockDetail() {
             </div>
         );
     }
+
     return (
         <div>
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* 주식 헤더 */}
                 <StockHeader
                     selectedStock={selectedStock}
+                    currentPrice={displayPrice}
                     onBuyClick={handleBuyClick}
+                    onSellClick={handleSellClick}
                 />
 
                 {/* 차트 섹션 */}
                 <div className="bg-white rounded-2xl shadow-lg p-6">
-
                     <ChartControls
                         chartState={chartState}
                         onPeriodChange={handlePeriodChange}
@@ -305,7 +316,15 @@ export default function StockDetail() {
                 onSellComplete={handleSellComplete}
                 stockCode={selectedStock?.stock_code || ''}
                 stockName={selectedStock?.stock_name || ''}
-                initialPrice={displayPrice}
+                // 필드명 고민 initialPrice VS currentPrice
+                initialPrice={displayPrice} 
+                holdingQuantity={100}
+            />
+
+            <SellConfirmedModal
+                isOpen={isSellConfirmedModalOpen}
+                onClose={handleSellConfirmedClose}
+                orderDetails={orderDetails}
             />
         </div>
     );

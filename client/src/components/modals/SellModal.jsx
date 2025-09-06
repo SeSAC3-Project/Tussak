@@ -6,49 +6,49 @@ const SellModal = ({
     onSellComplete,
     stockName,
     stockCode,
-    initialPrice
+    initialPrice,
+    holdingQuantity = 100
 }) => {
-    const [orderPrice, setOrderPrice] = useState(initialPrice || 0)
+    const [sellPrice, setSellPrice] = useState(initialPrice || 0)
     const [quantity, setQuantity] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // 시세 변할 때 orderPrice update
     useEffect(() => {
         if (initialPrice) {
-            setOrderPrice(initialPrice);
+            setSellPrice(initialPrice);
         }
     }, [initialPrice]);
 
     // 모달 기본 세팅
     useEffect(() => {
         if (isOpen) {
-            setOrderPrice(initialPrice || 0)
+            setSellPrice(initialPrice || 0)
             setQuantity(1);
             setIsSubmitting(false)
         }
     }, [isOpen, initialPrice]);
 
-    const totalAmount = orderPrice * quantity;
-    const maxQuantity = 100;
+    const totalAmount = sellPrice * quantity;
     // 주문 가능 수량 : 사용자 자금에 따라 설정 (지금은 하드코딩)
 
     const handlePriceChange = (e) => {
         const value = parseFloat(e.target.value) || 0;
         if (value >= 0) {
-            setOrderPrice(value);
+            setSellPrice(value);
         }
     };
 
     const handleQuantityChange = (e) => {
         const value = parseInt(e.target.value) || 0;
-        if (value >= 0 && value <= maxQuantity) {
+        if (value >= 0 && value <= holdingQuantity) {
             setQuantity(value);
         }
     };
 
-    const isValidOrder = orderPrice > 0 && quantity > 0 && quantity <= maxQuantity;
+    const isValidOrder = sellPrice > 0 && quantity > 0 && quantity <= holdingQuantity;
 
-    const handleBuy = async () => {
+    const handleSell = async () => {
         if (!isValidOrder) return;
 
         setIsSubmitting(true);
@@ -59,10 +59,11 @@ const SellModal = ({
         const orderDetails = {
             name: stockName,
             code: stockCode,
-            price: orderPrice,
+            price: sellPrice,
             quantity: quantity,
             total: totalAmount,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            orderType: 'sell'
         };
 
         setIsSubmitting(false)
@@ -71,6 +72,10 @@ const SellModal = ({
 
     const formatNumber = (num) => {
         return new Intl.NumberFormat('ko-KR').format(num);
+    };
+
+    const handleSellAll = () => {
+        setQuantity(holdingQuantity);
     };
 
     if (!isOpen) return null;
@@ -88,12 +93,12 @@ const SellModal = ({
             <div
                 className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6"
                 role="dialog"
-                aria-labelledby="buy-modal-title"
+                aria-labelledby="sell-modal-title"
                 aria-modal="true"
             >
                 <div className="flex items-center mb-6 relative w-full">
                     <h2 id="buy-modal-title" className="absolute left-1/2 transform -translate-x-1/2 text-xl font-bold text-gray-900">
-                        매수 주문
+                        매도 주문
                     </h2>
 
                     <button
@@ -110,27 +115,40 @@ const SellModal = ({
                 <div className="space-y-4">
                     {/* Quantity */}
                     <div>
-                        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
-                            수량 <span className="text-xs text-gray-500">(최대 {maxQuantity}주)</span>
-                        </label>
+                        <div className="flex justify-between items-center mb-2">
+                            <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
+                                매도 수량 <span className="text-xs text-gray-500">(보유 {holdingQuantity}주)</span>
+                            </label>
+                            <button
+                                type="button"
+                                onClick={handleSellAll}
+                                className="text-xs text-blue-600 hover:text:blue-800 underline"
+                            >
+                                전량 매도
+                            </button>
+                        </div>
+
                         <div className="flex items-center space-x-2">
                             <input
                                 id="quantity"
                                 type="number"
                                 value={quantity}
                                 onChange={handleQuantityChange}
-                                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-center"
+                                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center"
                                 placeholder="1"
                                 min="1"
-                                max={maxQuantity}
+                                max={holdingQuantity}
                             />
+                        </div>
+                        <div className="mt-2 text-xs text-gray-600">
+                            매도 후 보유: <span className="font-medium">{formatNumber(holdingQuantity - quantity)}주</span>
                         </div>
                     </div>
 
                     {/* Order Price */}
                     <div>
                         <label htmlFor="order-price" className="block text-sm font-medium text-gray-700 mb-2">
-                            주문가격
+                            매도가격
                         </label>
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none">
                             {/* <input
@@ -138,27 +156,27 @@ const SellModal = ({
                                 type="number"
                                 value={orderPrice}
                                 onChange={handlePriceChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-red-500 text-right mr-8 text-gray-800"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-blue-500 text-right mr-8 text-gray-800"
                                 placeholder="0"
                                 min="0"
                                 step="100"
                             /> */}
                             <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none">
-                                {orderPrice}원
+                                {sellPrice}원
                             </span>
                         </div>
                     </div>
 
                     {/* Total Amount */}
-                    <div className="mt-8 bg-red-50 p-4 rounded-lg">
+                    <div className="mt-8 bg-blue-50 p-4 rounded-lg">
                         <div className="flex justify-between items-center">
                             <span className="text-sm font-medium text-gray-700">주문 총액</span>
-                            <span className="text-xl font-bold text-red-600">
+                            <span className="text-xl font-bold text-blue-600">
                                 {formatNumber(totalAmount)}원
                             </span>
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                            {formatNumber(orderPrice)}원 × {quantity}주
+                            {formatNumber(sellPrice)}원 × {quantity}주
                         </div>
                     </div>
 
@@ -172,11 +190,11 @@ const SellModal = ({
                             취소
                         </button>
                         <button
-                            onClick={handleBuy}
+                            onClick={handleSell}
                             disabled={!isValidOrder || isSubmitting}
-                            className="flex-1 py-3 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                            className="flex-1 py-3 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                         >
-                            {isSubmitting ? '처리중...' : '매수'}
+                            {isSubmitting ? '처리중...' : '매도'}
                         </button>
                     </div>
                 </div>
