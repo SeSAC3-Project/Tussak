@@ -22,7 +22,8 @@ import { stockApi } from '../services/stockApi';
 
 export default function StockDetail() {
 
-    const { selectedStock } = useApp()
+    const { selectedStock } = useApp();
+    const { goBack } = useApp();
 
     console.log('StockDetail시작 -- selectedStock:', selectedStock)
 
@@ -240,6 +241,9 @@ export default function StockDetail() {
     return (
         <div>
             <div className="max-w-7xl mx-auto space-y-6">
+                {/* 뒤로 가기 */}
+                <button onClick={goBack}>뒤로 가기</button>
+                
                 {/* 주식 헤더 */}
                 <StockHeader
                     selectedStock={selectedStock}
