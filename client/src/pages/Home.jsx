@@ -4,6 +4,7 @@ import { FaChevronRight } from 'react-icons/fa';
 import InvestorRank from './InvestorRank.jsx';
 import Chatbot from '../components/Chatbot.jsx'
 import StockCard from '../components/StockCard.jsx'
+import SearchBar from '../components/SearchBar.jsx'
 
 
 export default function Home() {
@@ -44,21 +45,6 @@ export default function Home() {
             </div>
         </div>
     </div>
-    )
-}
-
-
-function SearchBar() {
-    return (
-        <div className="flex items-center bg-white rounded-[10px] h-[46px] px-5 focus-within:shadow-lg transition-shadow duration-200">
-            <img src="/icon/search.png" alt="Search icon" className="w-3 h-3 mr-3"/>
-            <input 
-                type="text" 
-                placeholder="종목 검색" 
-                className="flex-1 bg-transparent focus:outline-none placeholder-[#8A8A8A] text-gray-800 text-sm font-regular"
-                style={{fontFamily: 'DM Sans'}}
-            />
-        </div>
     )
 }
 

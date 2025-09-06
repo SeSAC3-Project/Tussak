@@ -7,10 +7,10 @@ import StockCard from '../components/StockCard';
 import SearchBar from '../components/SearchBar';
 
 
-export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
+export default function StockList({ onSelectStock, searchTerm }) {
     const [stocks, setStocks] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
-    const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+    // const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState(null);
@@ -20,11 +20,11 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
         fetchTopStocks();
     }, []);
 
-    useEffect(() => {
-        if (initialSearchTerm) {
-            setSearchTerm(initialSearchTerm)
-        }
-    }, [initialSearchTerm]);
+    // useEffect(() => {
+    //     if (searchTerm) {
+    //         setSearchTerm(searchTerm)
+    //     }
+    // }, [searchTerm]);
 
     // 거래대금 상위 28개 종목 조회
     const fetchTopStocks = async () => {
@@ -101,9 +101,9 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
     }, [searchTerm, searchStocks]);
 
     // SearchBar에서 호출할 검색어 핸들러
-    const handleSearchChange = (value) => {
-        setSearchTerm(value);
-    };
+    // const handleSearchChange = (value) => {
+    //     setSearchTerm(value);
+    // };
 
     // 표시할 종목 목록 결정
     const displayStocks = searchTerm.trim() ? searchResults : stocks;
@@ -125,19 +125,7 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
     }
 
     return (
-        <div className="p-4 sm:p-6 lg:p-8 max-w-full mx-auto">
-            {/* 검색 입력 */}
-            <div className="flex justify-end items-center">
-                <div className="w-full lg:w-1/2">
-                    <SearchBar 
-                        onSearchChange={handleSearchChange}
-                        placeholder="종목 검색"
-                        variant = "market"
-                        showClearButton={true}
-                    />
-                </div>
-            </div>
-            
+        <div className="p-4 sm:p-6 lg:p-8 max-w-full mx-auto">            
             {/* 상태 표시 */}
             {isLoading && (
                 <div className="flex justify-center p-8">
