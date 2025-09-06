@@ -9,11 +9,14 @@ import SearchBar from '../components/SearchBar.jsx'
 
 export default function Home() {
     const { navigateToMarket } = useApp();
-    const [activeSection, setActiveSection] = useState(null)
+    const [activeSection, setActiveSection] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Home 에서 검색 시 Market 페이지로 이동
     const handleSearch = (searchTerm) => {
-        navigateToMarket(searchTerm);
+        if (searchTerm.trim()){
+        navigateToMarket(searchTerm.trim());
+        }
     };
 
     return (
@@ -22,7 +25,9 @@ export default function Home() {
             <div className="flex justify-end items-center">
                 <div className="w-full lg:w-[calc(50%-6px)]">
                     <SearchBar 
+                        value={searchTerm}
                         onSearch={handleSearch}
+                        onSearchChange={setSearchTerm}
                         placeholder="종목 검색"
                         variant="home"
                     />

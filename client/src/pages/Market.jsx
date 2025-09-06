@@ -24,6 +24,7 @@ export default function Market({ initialSearchTerm = '' }) {
             <div className="flex justify-end items-center">
                 <div className="w-full lg:w-1/2">
                     <SearchBar
+                        value={searchTerm}
                         onSearch={handleDirectSearch}
                         onSearchChange={handleSearchChange}
                         placeholder="종목 검색"
