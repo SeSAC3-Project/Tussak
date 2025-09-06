@@ -35,6 +35,7 @@ from routes.insight_routes import insight_bp
 from routes.user_routes import user_bp
 from routes.ranking_routes import ranking_bp
 from routes.stock_routes import stock_bp
+from routes.bookmark_routes import bookmark_bp
 
 load_dotenv()
 
@@ -273,6 +274,7 @@ def register_blueprints(app):
     app.register_blueprint(user_bp)
     app.register_blueprint(ranking_bp)
     app.register_blueprint(stock_bp)
+    app.register_blueprint(bookmark_bp)
 
 if __name__ == '__main__':
     app = create_app()
