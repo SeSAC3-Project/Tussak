@@ -7,6 +7,7 @@ const generateMockStockData = (symbol, period) => {
     // 더미 캔들스틱 데이터 생성
     const periodData = generatePeriodData(period);
 
+
     const candleData = periodData.map(item => ({
         open: item.open,
         high: item.high,
@@ -14,6 +15,7 @@ const generateMockStockData = (symbol, period) => {
         close: item.close,
         volume: item.volume,
         timestamp: item.date.getTime()
+
     }));
     
     console.log('📊 생성된 candleData:', candleData.length, '개');
@@ -24,7 +26,7 @@ const generateMockStockData = (symbol, period) => {
 
     const priceRange = getPriceRange(candleData);
 
-    const labels = candleData.map(item => formatDate(item.date, period))
+    const labels = candleData.map(item => formatDate(new Date(item.timestamp), period))
     console.log('formatDate 설정 후 labels:', labels)
 
     const timeData = {

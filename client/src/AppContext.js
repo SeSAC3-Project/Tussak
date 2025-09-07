@@ -6,6 +6,7 @@ export function AppProvider({ children }) {
     const [activeSection, setActiveSection] = useState('Home');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStock, setSelectedStock] = useState(null);
+    const [initialSearchTerm, setInitialSearchTerm] = useState('')
 
     const navigateToHome = () => {
         setActiveSection('Home');
@@ -13,8 +14,9 @@ export function AppProvider({ children }) {
         setSelectedStock(null);
     };
 
-    const navigateToMarket = (searchTerm = '') =>{
+    const navigateToMarket = (searchTerm) =>{
         setActiveSection('Market');
+        setInitialSearchTerm(searchTerm);
         setSelectedStock(null);
     };
 
@@ -45,6 +47,7 @@ export function AppProvider({ children }) {
         activeSection,
         searchQuery,
         selectedStock,
+        initialSearchTerm,
         // 동작함수들
         navigateToHome,
         navigateToMarket,

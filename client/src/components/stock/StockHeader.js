@@ -1,4 +1,4 @@
-const StockHeader = ({ selectedStock }) => {
+const StockHeader = ({ selectedStock, currentPrice, onBuyClick, onSellClick }) => {
     if (!selectedStock) return null;
 
     const stockName = selectedStock.stock_name || '종목명 없음';
@@ -26,11 +26,16 @@ const StockHeader = ({ selectedStock }) => {
                     </div>
                 </div>
                 <div className="flex space-x-2">
-                    <button className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors font-medium">
-                        매도
-                    </button>
-                    <button className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                    <button 
+                        onClick={onBuyClick}
+                        className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors font-medium">
                         매수
+                    </button>
+                    <button
+                        onClick={onSellClick} 
+                        disabled={!currentPrice}
+                        className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                        매도
                     </button>
                 </div>
             </div>

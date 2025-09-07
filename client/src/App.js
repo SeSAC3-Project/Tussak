@@ -13,15 +13,16 @@ import NavSidebar from './components/NavigationSidebar.jsx';
 import StockDetail from './pages/StockDetail.jsx'
 
 function AppContent() {
-  const { activeSection, selectedStock, goBack } = useApp();
+  const { activeSection, initialSearchTerm, selectedStock, goBack } = useApp();
   
+
   return (
     <div className="flex h-screen text-white font-sans">
       <NavSidebar activeSection={activeSection} />
       
       <div className="flex-1 p-8 overflow-y-auto">
         {(activeSection === 'Home' || !activeSection) && <Home />}
-        {activeSection === 'Market' && <Market />}
+        {activeSection === 'Market' && <Market initialSearchTerm={initialSearchTerm} />}
         {activeSection === 'Insight' && <Insight />}
         {activeSection === 'Portfolio' && <Portfolio />}
         {activeSection === 'History' && <History />}
