@@ -52,13 +52,13 @@ export default function History() {
         {/* 헤더 */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">거래 내역</h1>
-          <p className="text-gray-600">전체 거래 내역을 최신순으로 확인하실 수 있습니다.</p>
+          <p className="text-gray-600" style={{ fontFamily: 'DM Sans' }}>전체 거래 내역을 최신순으로 확인하실 수 있습니다.</p>
         </div>
 
         {/* 거래 내역 테이블 */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full" style={{ fontFamily: 'DM Sans' }}>
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
