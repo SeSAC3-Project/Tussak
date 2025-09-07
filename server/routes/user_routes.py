@@ -1,36 +1,15 @@
 from flask import Blueprint, request, jsonify
-from functools import wraps
 from services.auth_service import AuthService
 from services.transaction_service import TransactionService
-import jwt
+from services.portfolio_service import PortfolioService
+from routes.auth_routes import jwt_required
 from flask import current_app
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/user')
 
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.headers.get('Authorization')
-        if token and token.startswith('Bearer '):
-            token = token.split(' ')[1]
-        
-        if not token:
-            return jsonify({'error': '토큰이 필요합니다'}), 401
-        
-        try:
-            data = jwt.decode(token, current_app.config['JWT_SECRET_KEY'], algorithms=['HS256'])
-            current_user_id = data['user_id']
-        except jwt.ExpiredSignatureError:
-            return jsonify({'error': '토큰이 만료되었습니다'}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({'error': '유효하지 않은 토큰입니다'}), 401
-        
-        return f(current_user_id, *args, **kwargs)
-    return decorated
-
 @user_bp.route('/transaction', methods=['POST'])
-@token_required
-def create_transaction(current_user_id):
+@jwt_required
+def create_transaction(current_user):
     try:
         data = request.get_json()
         
@@ -49,7 +28,7 @@ def create_transaction(current_user_id):
         
         # 거래 처리
         result = TransactionService.create_transaction(
-            user_id=current_user_id,
+            user_id=current_user.id,
             stock_code=data['stock_code'],
             stock_name=data['stock_name'],
             transaction_type=data['type'],
@@ -69,8 +48,8 @@ def create_transaction(current_user_id):
         return jsonify({'error': '거래 처리 중 오류가 발생했습니다'}), 500
 
 @user_bp.route('/transactions', methods=['GET'])
-@token_required
-def get_transactions(current_user_id):
+@jwt_required
+def get_transactions(current_user):
     try:
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
@@ -79,7 +58,7 @@ def get_transactions(current_user_id):
             per_page = 100
         
         result = TransactionService.get_user_transactions(
-            user_id=current_user_id,
+            user_id=current_user.id,
             page=page,
             per_page=per_page
         )
@@ -89,3 +68,29 @@ def get_transactions(current_user_id):
     except Exception as e:
         current_app.logger.error(f"거래 내역 조회 실패: {str(e)}")
         return jsonify({'error': '거래 내역 조회 중 오류가 발생했습니다'}), 500
+
+@user_bp.route('/portfolio', methods=['GET'])
+@jwt_required
+def get_portfolio(current_user):
+    try:
+        result = PortfolioService.get_user_portfolio(current_user.id)
+        return jsonify(result), 200
+        
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        current_app.logger.error(f"포트폴리오 조회 실패: {str(e)}")
+        return jsonify({'error': '포트폴리오 조회 중 오류가 발생했습니다'}), 500
+
+@user_bp.route('/portfolio/summary', methods=['GET'])
+@jwt_required
+def get_portfolio_summary(current_user):
+    try:
+        result = PortfolioService.get_portfolio_summary(current_user.id)
+        return jsonify(result), 200
+        
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        current_app.logger.error(f"포트폴리오 요약 조회 실패: {str(e)}")
+        return jsonify({'error': '포트폴리오 요약 조회 중 오류가 발생했습니다'}), 500
