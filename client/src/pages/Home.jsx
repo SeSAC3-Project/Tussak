@@ -56,8 +56,7 @@ export default function Home() {
 
 
 function WatchList() {
-    // 로그인 상태 - 기본값은 false (로그인 안한 상태)
-    const isLoggedIn = false;
+    const { isLoggedIn } = useApp();
     // 관심종목 데이터 - 기본값은 빈 배열
     const watchlistData = [];
 
@@ -135,13 +134,48 @@ function StockRank() {
 
 
 function LoginCard() {
+    const { isLoggedIn, user, handleKakaoLogin, handleLogout, isLoading } = useApp();
+
+    if (isLoggedIn) {
+        return (
+            <div
+                className="rounded-[20px] h-[345px] p-6 flex flex-col items-center justify-center space-y-4 bg-cover bg-bottom"
+                style={{ backgroundImage: "url('/icon/blurred.png')" }}
+            >
+                <div className="text-center">
+                    <p className="text-sm text-white font-medium mb-2">안녕하세요!</p>
+                    <p className="text-lg text-white font-bold">{user?.nickname || '사용자'}님</p>
+                    <p className="text-sm text-white mt-2">
+                        보유 현금: {user?.current_balance?.toLocaleString() || '0'}원
+                    </p>
+                </div>
+                <button
+                    onClick={handleLogout}
+                    className="px-6 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                    disabled={isLoading}
+                >
+                    {isLoading ? '로그아웃 중...' : '로그아웃'}
+                </button>
+            </div>
+        );
+    }
+
     return (
         <div
             className="rounded-[20px] h-[345px] p-6 flex flex-col items-center justify-start pt-14 space-y-1 bg-cover bg-bottom"
             style={{ backgroundImage: "url('/icon/blurred.png')" }}
         >
             <p className="text-sm text-gray-500 text-center" alt="카카오 로그인">모의 투자를 진행하려면<br />로그인이 필요합니다</p>
-            <img className="cursor-pointer w-64" src="/icon/kakao_login.png" />
+            <img 
+                className="cursor-pointer w-64 hover:opacity-80 transition-opacity" 
+                src="/icon/kakao_login.png" 
+                alt="카카오 로그인"
+                onClick={handleKakaoLogin}
+                style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
+            />
+            {isLoading && (
+                <p className="text-sm text-gray-500 mt-2">로그인 중...</p>
+            )}
         </div>
     );
 }

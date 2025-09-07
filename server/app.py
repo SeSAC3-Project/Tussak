@@ -49,12 +49,12 @@ def create_app():
     CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000'])
 
     init_db(app)
-    init_redis(app)
+    # init_redis(app)
     register_blueprints(app)
-    setup_scheduler(app)
+    # setup_scheduler(app)
 
+    # DB
     with app.app_context():
-        # DB
         try:
             # DB 연결 테스트
             db.engine.connect()
@@ -68,21 +68,21 @@ def create_app():
             app.logger.error(f"❌ 데이터베이스 연결 실패: {e}")
             raise
 
-        # KIS Token
-        try:
-            kis_access_token()  # 앱 시작 시 토큰 발급
-            app.logger.info("✅ 앱 시작 시 KIS Access Token 생성 완료")
+    #     # KIS Token
+    #     try:
+    #         kis_access_token()  # 앱 시작 시 토큰 발급
+    #         app.logger.info("✅ 앱 시작 시 KIS Access Token 생성 완료")
 
-        except Exception as e:
-            app.logger.error(f"❌ 앱 시작 시 KIS Token 생성 실패: {e}")
+    #     except Exception as e:
+    #         app.logger.error(f"❌ 앱 시작 시 KIS Token 생성 실패: {e}")
 
-        # KIS WebSocket Token
-        try:
-            kis_websocket_access_token()  # 앱 시작 시 토큰 발급
-            app.logger.info("✅ 앱 시작 시 KIS WebSocket Access Token 생성 완료")
+    #     # KIS WebSocket Token
+    #     try:
+    #         kis_websocket_access_token()  # 앱 시작 시 토큰 발급
+    #         app.logger.info("✅ 앱 시작 시 KIS WebSocket Access Token 생성 완료")
 
-        except Exception as e:
-            app.logger.error(f"❌ 앱 시작 시 KIS WebSocket Token 생성 실패: {e}")
+    #     except Exception as e:
+    #         app.logger.error(f"❌ 앱 시작 시 KIS WebSocket Token 생성 실패: {e}")
 
         # Stock and StockHistory Data Sync
         # 코드 수정하면 app reload 발생 
@@ -100,19 +100,19 @@ def create_app():
         #     app.logger.error(f"❌ 앱 시작 시 주식 종목 데이터 동기화 실패: {e}")
 
         # WebSocket 서비스 시작 (앱 시작 후 3초 지연)
-        try:
-            def delayed_websocket_start():
-                time.sleep(3)  # 앱 완전 시작 후 3초 대기
-                start_websocket_service(app)
+        # try:
+        #     def delayed_websocket_start():
+        #         time.sleep(3)  # 앱 완전 시작 후 3초 대기
+        #         start_websocket_service(app)
             
-            ws_thread = threading.Thread(target=delayed_websocket_start)
-            ws_thread.daemon = True
-            ws_thread.start()
+        #     ws_thread = threading.Thread(target=delayed_websocket_start)
+        #     ws_thread.daemon = True
+        #     ws_thread.start()
             
-            app.logger.info("✅ WebSocket 서비스 시작 스레드 생성 완료")
+        #     app.logger.info("✅ WebSocket 서비스 시작 스레드 생성 완료")
             
-        except Exception as e:
-            app.logger.error(f"❌ WebSocket 서비스 시작 실패: {e}")
+        # except Exception as e:
+        #     app.logger.error(f"❌ WebSocket 서비스 시작 실패: {e}")
 
     return app
 

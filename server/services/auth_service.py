@@ -1,7 +1,7 @@
 import jwt
 import os
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import current_app
 from models.user import User
 from models import db
@@ -18,8 +18,8 @@ class AuthService:
                 
             payload = {
                 'user_id': user_id,
-                'exp': datetime.now(datetime.timezone.utc) + timedelta(days=7),  # 7일 후 만료 (UTC)
-                'iat': datetime.now(datetime.timezone.utc)                      # 발급 시간 (UTC)
+                'exp': datetime.now(timezone.utc) + timedelta(days=7),  # 7일 후 만료 (UTC)
+                'iat': datetime.now(timezone.utc)                      # 발급 시간 (UTC)
             }
             token = jwt.encode(
                 payload, 
@@ -91,12 +91,11 @@ class AuthService:
                 # 기존 사용자 정보 업데이트
                 user.nickname = profile.get('nickname', user.nickname)
                 user.profile_image_url = profile.get('profile_image_url', user.profile_image_url)
-                datetime.now(datetime.timezone.utc) 
+                user.updated_at = datetime.now(timezone.utc) 
             else:
                 # 새 사용자 생성
                 user = User(
                     kakao_id=kakao_id,
-                    email=kakao_account.get('email', ''),
                     nickname=profile.get('nickname', f'사용자{kakao_id}'),
                     profile_image_url=profile.get('profile_image_url', '')
                 )
@@ -115,8 +114,12 @@ class AuthService:
     @staticmethod
     def authenticate_with_kakao(access_token):
         try:
+            current_app.logger.info(f"카카오 인증 시작: access_token={access_token[:20]}...")
+            
             # 카카오 사용자 조회
             kakao_user_info = AuthService.get_kakao_user_info(access_token)
+            current_app.logger.info(f"카카오 사용자 정보: {kakao_user_info}")
+            
             if not kakao_user_info:
                 return None, "카카오 사용자 정보를 가져올 수 없습니다"
             

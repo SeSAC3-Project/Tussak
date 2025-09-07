@@ -9,7 +9,6 @@ class User(db.Model):
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     kakao_id = db.Column(db.String(50), unique=True, nullable=False, index=True)
-    email = db.Column(db.String(100), unique=True, nullable=False)
     nickname = db.Column(db.String(50), nullable=False)
     profile_image_url = db.Column(db.Text)
 
@@ -18,8 +17,6 @@ class User(db.Model):
     total_asset = db.Column(db.DECIMAL(15, 2), default=USER_INITIAL_BALANCE)
     ranking = db.Column(db.Integer, nullable=True)  # 투자 랭킹 (1부터 시작)
     
-    # created_at = db.Column(db.TIMESTAMP, default=datetime.now(datetime.timezone.utc))
-    # updated_at = db.Column(db.TIMESTAMP, default=datetime.now(datetime.timezone.utc))
     created_at = db.Column(db.TIMESTAMP, default=datetime.now(timezone.utc))
     updated_at = db.Column(db.TIMESTAMP, default=datetime.now(timezone.utc))
     

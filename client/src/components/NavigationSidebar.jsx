@@ -2,6 +2,45 @@ import { useApp } from '../AppContext';
 import { useState } from 'react';
 import { FaBars, FaTimes } from "react-icons/fa";
 
+function LoginButton() {
+  const { isLoggedIn, user, handleKakaoLogin, handleLogout, isLoading } = useApp();
+
+  if (isLoggedIn) {
+    return (
+      <div className="text-center">
+        <div className="mb-2">
+          <p className="text-sm font-medium text-gray-700" style={{fontFamily: 'DM Sans'}}>
+            {user?.nickname || '사용자'}님
+          </p>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center text-sm text-gray-500 w-full justify-center p-[10px] cursor-pointer hover:bg-red-100 rounded-md transition-colors duration-200"
+          disabled={isLoading}
+        >
+          <img src="/icon/login.png" alt="Logout icon" className="w-6 h-6 mr-[14px]" />
+          <p className="font-normal" style={{fontFamily: 'DM Sans'}}>
+            {isLoading ? '로그아웃 중...' : 'Log Out'}
+          </p>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleKakaoLogin}
+      className="flex items-center text-sm text-gray-500 w-full justify-center p-[10px] cursor-pointer hover:bg-lime-100 rounded-md transition-colors duration-200"
+      disabled={isLoading}
+    >
+      <img src="/icon/login.png" alt="Login icon" className="w-6 h-6 mr-[14px]" />
+      <p className="font-normal" style={{fontFamily: 'DM Sans'}}>
+        {isLoading ? '로그인 중...' : 'Log In'}
+      </p>
+    </button>
+  );
+}
+
 export default function NavSidebar({ activeSection }) {
 
   const {
@@ -98,10 +137,7 @@ export default function NavSidebar({ activeSection }) {
           </div>
 
           <div className="text-base text-[#8A8A8A] mb-[50px] mx-[38px]">
-            <div className="flex items-center text-sm text-gray-500 inline-flex items-center justify-center p-[10px] mb-8 cursor-pointer hover:bg-lime-100 rounded-md transition-colors duration-200">
-              <img src="/icon/login.png" alt="Login icon" className="w-6 h-6 mr-[14px]" />
-              <p className="font-normal" style={{fontFamily: 'DM Sans'}}>Log In</p>
-            </div>
+            <LoginButton />
           </div>
         </div>
       </nav>
