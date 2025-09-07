@@ -11,6 +11,7 @@ const HeartIcon = ({ active }) => (
 );
 
 const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
+    const { isLoggedIn } = useApp();
     const [active, setActive] = useState(true);
 
     // StockCard에서 home, market에서 필드 차이 발생 (home 더미데이터 market에 맞게 ... 수정해야겠다 )
@@ -61,6 +62,10 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
                     className="hover:text-red-500" 
                     onClick={(e) => {
                         e.stopPropagation();
+                        if (!isLoggedIn) {
+                            alert('로그인이 필요한 서비스입니다');
+                            return;
+                        }
                         setActive(!active)
                     }}
                 >

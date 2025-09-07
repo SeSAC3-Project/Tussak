@@ -7,23 +7,16 @@ function LoginButton() {
 
   if (isLoggedIn) {
     return (
-      <div className="text-center">
-        <div className="mb-2">
-          <p className="text-sm font-medium text-gray-700" style={{fontFamily: 'DM Sans'}}>
-            {user?.nickname || '사용자'}님
-          </p>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center text-sm text-gray-500 w-full justify-center p-[10px] cursor-pointer hover:bg-red-100 rounded-md transition-colors duration-200"
-          disabled={isLoading}
-        >
-          <img src="/icon/login.png" alt="Logout icon" className="w-6 h-6 mr-[14px]" />
-          <p className="font-normal" style={{fontFamily: 'DM Sans'}}>
-            {isLoading ? '로그아웃 중...' : 'Log Out'}
-          </p>
-        </button>
-      </div>
+      <button
+        onClick={handleLogout}
+        className="flex items-center text-sm text-gray-500 w-full justify-center p-[10px] cursor-pointer hover:bg-red-100 rounded-md transition-colors duration-200"
+        disabled={isLoading}
+      >
+        <img src="/icon/login.png" alt="Logout icon" className="w-6 h-6 mr-[14px]" />
+        <p className="font-normal" style={{fontFamily: 'DM Sans'}}>
+          {isLoading ? '로그아웃 중...' : 'Log Out'}
+        </p>
+      </button>
     );
   }
 
@@ -49,10 +42,21 @@ export default function NavSidebar({ activeSection }) {
     navigateToInsight,
     navigateToPortfolio,
     navigateToHistory,
-    setActiveSection
+    setActiveSection,
+    isLoggedIn
   } = useApp();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // 로그인이 필요한 페이지 체크 함수
+  const handleNavigationClick = (item) => {
+    if ((item.name === 'Portfolio' || item.name === 'History') && !isLoggedIn) {
+      alert('로그인이 필요한 서비스입니다');
+      return;
+    }
+    setActiveSection(item.name);
+    setIsSidebarOpen(false);
+  };
 
   const navItems = [
     { name: 'Home', icon: '/icon/home.png', onClick: navigateToHome },
@@ -116,10 +120,7 @@ export default function NavSidebar({ activeSection }) {
                 return (
                   <li key={item.name} className="mb-[15px]">
                     <button
-                      onClick={() => {
-                        setActiveSection(item.name);
-                        setIsSidebarOpen(false); // Close sidebar on mobile after clicking
-                      }}
+                      onClick={() => handleNavigationClick(item)}
                       className={`group flex items-center w-[214px] py-3 px-4 rounded-[5px] mx-auto transition-colors duration-200 
                         ${isActive ? 'bg-[#A4E480] text-white font-normal' : 'hover:bg-gray-100 text-[#8A8A8A]'}`}
                     >

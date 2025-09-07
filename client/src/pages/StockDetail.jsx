@@ -22,7 +22,7 @@ import { stockApi } from '../services/stockApi';
 
 export default function StockDetail() {
 
-    const { selectedStock } = useApp();
+    const { selectedStock, isLoggedIn } = useApp();
     const { goBack } = useApp();
 
     console.log('StockDetail시작 -- selectedStock:', selectedStock)
@@ -162,6 +162,10 @@ export default function StockDetail() {
     }, [selectedStock?.stock_code]);
 
     const handleBuyClick = () => {
+        if (!isLoggedIn) {
+            alert('로그인이 필요한 서비스입니다');
+            return;
+        }
         setIsBuyModalOpen(true);
     };
 
@@ -181,6 +185,10 @@ export default function StockDetail() {
     };
     
     const handleSellClick = () => {
+        if (!isLoggedIn) {
+            alert('로그인이 필요한 서비스입니다');
+            return;
+        }
         setIsSellModalOpen(true);
     };
 

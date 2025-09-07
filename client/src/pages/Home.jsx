@@ -149,13 +149,6 @@ function LoginCard() {
                         보유 현금: {user?.current_balance?.toLocaleString() || '0'}원
                     </p>
                 </div>
-                <button
-                    onClick={handleLogout}
-                    className="px-6 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-                    disabled={isLoading}
-                >
-                    {isLoading ? '로그아웃 중...' : '로그아웃'}
-                </button>
             </div>
         );
     }
