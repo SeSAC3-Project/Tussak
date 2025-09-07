@@ -3,6 +3,7 @@ import requests
 import os
 import json
 import time
+from datetime import datetime, timedelta
 from flask import current_app
 
 from config.redis import get_redis
@@ -220,81 +221,163 @@ class KisAPI:
             current_app.logger.warning(f"KIS API 호출 실패 {stock_code}: {e}")
             return None
 
-    # 거래대금 순위 조회
-    def fetch_volume_ranking(self, limit=30):
+    def fetch_minute_data_raw(self, stock_code, target_date=None):
+        """
+        주식당일분봉조회 API - 순수 API 호출만
+        target_date: datetime 객체 (None이면 오늘)
+        """
         try:
-            current_app.logger.info("🔍 거래대금 순위 조회 시작")
-
-            # 거래대금 순위 API URL
-            url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-price"
+            if target_date is None:
+                target_date = datetime.now()
+            
+            time_str = target_date.strftime("%H%M%S")
+            
+            url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-time-itemchartprice"
             
             headers = {
                 "Content-Type": "application/json",
                 "authorization": f"Bearer {self.kis_token}",
                 "appkey": KIS_CLIENT_ID,
                 "appsecret": KIS_CLIENT_SECRET,
-                "tr_id": "FHPST01710000",  # 🆕 거래대금 순위 전용 tr_id
-                "custtype": "P"
+                "tr_id": "FHKST03010200"
             }
             
-            # 거래대금 순위에 맞는 파라미터
             params = {
-                "FID_COND_MRKT_DIV_CODE": "J",  # J: KRX 전체
-                "FID_COND_SCR_DIV_CODE": "20171",  # 🆕 거래대금 순위
-                "FID_INPUT_PRICE_1": "0",  # 🆕 시작 가격
-                "FID_INPUT_PRICE_2": "999999999",  # �� 끝 가격
-                "FID_VOL_CNT": str(limit)  # 🆕 조회 개수
+                "fid_etc_cls_code": "",
+                "fid_cond_mrkt_div_code": "J",
+                "fid_input_iscd": stock_code,
+                "fid_input_hour_1": time_str,
+                "fid_pw_data_incu_yn": "Y"
             }
-
-            current_app.logger.info(f"📡 API 호출: {url}")
-            current_app.logger.info(f"🔑 Headers: {headers}")
-            current_app.logger.info(f"📋 Params: {params}")
             
             response = requests.get(url, headers=headers, params=params)
-
-            current_app.logger.info(f"📊 응답 상태: {response.status_code}")
-            current_app.logger.info(f"📄 응답 헤더: {dict(response.headers)}")
-            
-            # 응답 상태 확인
-            if response.status_code != 200:
-                current_app.logger.error(f"API 응답 오류: {response.status_code} - {response.text}")
-                return []
-            
-            # 응답 내용 로깅
-            current_app.logger.debug(f"API 전체 응답: {response.text}")
-            
             data = response.json()
-            current_app.logger.debug(f"파싱된 API 데이터: {data}")
+
+            current_app.logger.info(f"당일분봉 API 호출: {stock_code}, rt_cd={data.get('rt_cd')}")
+            
+            return {
+                'success': data.get('rt_cd') == '0',
+                'data': data.get('output2', []) if data.get('rt_cd') == '0' else [],
+                'message': data.get('msg1', ''),
+                'raw_response': data
+            }
+                
+        except Exception as e:
+            current_app.logger.error(f"주식당일분봉조회 API 호출 실패: {e}")
+            return {
+                'success': False,
+                'data': [],
+                'message': str(e),
+                'raw_response': {}
+            }
+
+    def fetch_weekly_minute_data_raw(self, stock_code, start_date, end_date):
+        """
+        주식일별분봉조회 API - 순수 API 호출만
+        start_date, end_date: datetime 객체
+        """
+        try:
+            url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-time-dailychartprice"
+            
+            headers = {
+                "Content-Type": "application/json",
+                "authorization": f"Bearer {self.kis_token}",
+                "appkey": KIS_CLIENT_ID,
+                "appsecret": KIS_CLIENT_SECRET,
+                "tr_id": "FHKST03010100"
+            }
+            
+            params = {
+                "fid_cond_mrkt_div_code": "J",
+                "fid_input_iscd": stock_code,
+                "fid_input_date_1": start_date.strftime("%Y%m%d"),
+                "fid_input_date_2": end_date.strftime("%Y%m%d"),
+                "fid_period_div_code": "M",  # M:분봉
+                "fid_org_adj_prc": "1"
+            }
+            
+            response = requests.get(url, headers=headers, params=params)
+            data = response.json()
+            
+            current_app.logger.info(f"주식일별분봉조회 API 호출: {stock_code}, rt_cd={data.get('rt_cd')}, msg={data.get('msg1')}")
             
             if data.get('rt_cd') == '0':
-                output = data.get('output', [])
-                current_app.logger.info(f"✅ 성공: output 개수 {len(output)}")
-                results = []
+                return {
+                    'success': True,
+                    'data': data.get('output2', []),
+                    'message': 'API 호출 성공',
+                    'raw_response': data
+                }
+            else:
+                # 방법 2: 분봉이 지원되지 않으면 일봉으로 시도
+                current_app.logger.warning(f"분봉 조회 실패, 일봉으로 대체 시도: {data.get('msg1')}")
                 
-                for item in output:
-                    results.append({
-                        'stock_code': item.get('hts_kor_isnm', '').strip(),
-                        'stock_name': item.get('hts_kor_isnm', '').strip(),
-                        'current_price': float(item.get('stck_prpr', 0)) if item.get('stck_prpr') else None,
-                        'change_rate': float(item.get('prdy_ctrt', 0)) if item.get('prdy_ctrt') else None,
-                        'change_amount': float(item.get('prdy_vrss', 0)) if item.get('prdy_vrss') else None,
-                        'daily_volume': int(item.get('acml_vol', 0)) if item.get('acml_vol') else None,
-                        'trade_amount': int(item.get('acml_tr_pbmn', 0)) if item.get('acml_tr_pbmn') else None,
-                        'market': item.get('rprs_mrkt_kor_name', '')
-                    })
+                params['fid_period_div_code'] = "D"  # D:일봉
                 
-                current_app.logger.info(f"�� 결과: {len(results)}개 종목")
-                return results[:limit]
-            
-            current_app.logger.error(f"❌ KIS API 오류:")
-            current_app.logger.error(f"   - rt_cd: '{data.get('rt_cd')}'")
-            current_app.logger.error(f"   - msg_cd: '{data.get('msg_cd')}'")
-            current_app.logger.error(f"   - msg1: '{data.get('msg1')}'")
-            current_app.logger.error(f"   - 전체 응답: {data}")
-            return []
-            
+                response = requests.get(url, headers=headers, params=params)
+                data = response.json()
+                
+                current_app.logger.info(f"일봉 대체 API: {stock_code}, rt_cd={data.get('rt_cd')}")
+                
+                return {
+                    'success': data.get('rt_cd') == '0',
+                    'data': data.get('output2', []) if data.get('rt_cd') == '0' else [],
+                    'message': data.get('msg1', ''),
+                    'fallback_to_daily': True,
+                    'raw_response': data
+                }
+                
         except Exception as e:
-            current_app.logger.error(f"💥 거래대금 순위 조회 실패: {e}")
-            import traceback
-            current_app.logger.error(f"📚 상세 오류: {traceback.format_exc()}")
-            return []
+            current_app.logger.error(f"주식일별분봉조회 API 호출 실패: {e}")
+            return {
+                'success': False,
+                'data': [],
+                'message': str(e),
+                'raw_response': {}
+            }
+
+    def fetch_daily_data_raw(self, stock_code, start_date, end_date):
+        """
+        국내주식기간별시세 API - 순수 API 호출만
+        start_date, end_date: datetime 객체
+        """
+        try:
+            url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
+            
+            headers = {
+                "Content-Type": "application/json",
+                "authorization": f"Bearer {self.kis_token}",
+                "appkey": KIS_CLIENT_ID,
+                "appsecret": KIS_CLIENT_SECRET,
+                "tr_id": "FHKST03010100"
+            }
+            
+            params = {
+                "fid_cond_mrkt_div_code": "J",
+                "fid_input_iscd": stock_code,
+                "fid_input_date_1": start_date.strftime("%Y%m%d"),
+                "fid_input_date_2": end_date.strftime("%Y%m%d"),
+                "fid_period_div_code": "D",  # D:일봉
+                "fid_org_adj_prc": "1"
+            }
+            
+            response = requests.get(url, headers=headers, params=params)
+            data = response.json()
+
+            current_app.logger.info(f"일봉 API 호출: {stock_code}, rt_cd={data.get('rt_cd')}")
+            
+            return {
+                'success': data.get('rt_cd') == '0',
+                'data': data.get('output2', []) if data.get('rt_cd') == '0' else [],
+                'message': data.get('msg1', ''),
+                'raw_response': data
+            }
+                
+        except Exception as e:
+            current_app.logger.error(f"국내주식기간별시세 API 호출 실패: {e}")
+            return {
+                'success': False,
+                'data': [],
+                'message': str(e),
+                'raw_response': {}
+            }

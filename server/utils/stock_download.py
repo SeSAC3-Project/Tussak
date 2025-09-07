@@ -2,7 +2,6 @@ import urllib.request
 import os
 import ssl
 import zipfile
-# import pandas as pd
 import tempfile
 import shutil
 
@@ -63,10 +62,14 @@ def download_stock_master_file(market='kospi'):
 def parse_mst_file(file_path, market):
 
     stocks_data = []
+    total_count = 0
+    filtered_count = 0
     
     try:
         with open(file_path, mode="r", encoding="cp949") as f:
             for line in f:
+                total_count += 1
+
                 if market.lower() == 'kospi':
                     # 코스피: 228바이트 구조
                     basic_info = line[0:len(line) - 228]
@@ -83,45 +86,85 @@ def parse_mst_file(file_path, market):
                 
                 if not stock_code or not stock_name:
                     continue
-                
-                # 업종 코드 추출 (확장 정보에서)
+
+                # 1단계: 6자리 숫자 체크
+                if not (stock_code.isdigit() and len(stock_code) == 6):
+                    # if total_count <= 10:  # 처음 10개만 로깅
+                    #     current_app.logger.debug(f"종목코드 필터링 제외: '{stock_code}' (길이: {len(stock_code)}, 숫자여부: {stock_code.isdigit()})")
+                    continue
+
                 if market.lower() == 'kosdaq':
-                    # 코스닥: 헤더 파일 기준 위치
-                    bstp_larg_code = extended_info[5:9].strip()   # 지수업종 대분류 (4자리)
-                    bstp_medm_code = extended_info[9:13].strip()  # 지수업종 중분류 (4자리)  
-                    bstp_smal_code = extended_info[13:17].strip() # 지수업종 소분류 (4자리)
-                else:  # 코스피
-                    # 코스피: 헤더 파일 기준 위치
-                    bstp_larg_code = extended_info[5:9].strip()
-                    bstp_medm_code = extended_info[9:13].strip()
-                    bstp_smal_code = extended_info[13:17].strip()
+                    # 코스닥
+                    issue_code = extended_info[0:2].strip() # 증권종류
+                else: 
+                    # 코스피
+                    issue_code = extended_info[0:2].strip() # 증권종류
                 
-                # sector 코드 조합 생성
-                sector_parts = []
-                if bstp_larg_code:
-                    sector_parts.append(bstp_larg_code)
-                if bstp_medm_code:
-                    sector_parts.append(bstp_medm_code)
-                if bstp_smal_code:
-                    sector_parts.append(bstp_smal_code)
                 
-                sector_code = '>'.join(sector_parts) if sector_parts else None
+                # 2단계: ST(주권)만 허용
+                if issue_code and issue_code != 'ST':
+                    # current_app.logger.debug(f"증권그룹 필터링 제외: {stock_code} - {stock_name} (그룹: {issue_code})")
+                    continue
+
+                # 3단계: ETF/ETN 종목명 패턴 제외
+                if is_etf_or_special_product(stock_name):
+                    # if total_count <= 10:  # 처음 10개만 로깅
+                    #     current_app.logger.debug(f"ETF/특수상품 필터링 제외: '{stock_name}'")
+                    continue
                 
+                filtered_count += 1
+
                 # 유효한 종목만 추가
                 stock_info = {
                     'stock_code': stock_code,
                     'standard_code': standard_code,
                     'stock_name': stock_name,
-                    'market': market.upper(),
-                    'sector': sector_code
+                    'market': market.upper()
                 }
                 stocks_data.append(stock_info)
         
+        current_app.logger.info(f"{market.upper()} - 전체: {total_count}개, 필터링 후: {filtered_count}개")
+
         return stocks_data
         
     except Exception as e:
         current_app.logger.error(f"확장 MST 파일 파싱 실패: {e}")
         raise e
+
+# ETF, ETN, 레버리지, 인버스 등 특수 상품인지 판별
+def is_etf_or_special_product(stock_name):
+    if not stock_name:
+        return False
+    
+    # ETF/ETN 브랜드명들
+    etf_brands = [
+        'KODEX', 'TIGER', 'ARIRANG', 'KBSTAR', 'HANARO', 'SMART', 
+        'ACE', 'TIMEFOLIO', 'SOL', 'PLUS', 'TRUE', 'FOCUS'
+    ]
+    
+    # 특수 상품 키워드들
+    special_keywords = [
+        '레버리지', '인버스', 'LEVERAGE', 'INVERSE',
+        '2X', '3X', '-1X', '-2X', '-3X',
+        'ETF', 'ETN', 'REIT', '리츠',
+        '선물', '옵션', '파생',
+        '인덱스', 'INDEX', 
+        '베어', 'BEAR', '불', 'BULL'
+    ]
+    
+    stock_name_upper = stock_name.upper()
+    
+    # ETF 브랜드명 체크
+    for brand in etf_brands:
+        if brand in stock_name_upper:
+            return True
+    
+    # 특수 상품 키워드 체크  
+    for keyword in special_keywords:
+        if keyword in stock_name_upper:
+            return True
+    
+    return False
 
 # 코스피 전체 종목 조회
 def get_kospi_stocks():
