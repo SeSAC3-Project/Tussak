@@ -8,7 +8,7 @@ import SearchBar from '../components/SearchBar.jsx'
 
 
 export default function Home() {
-    const { navigateToMarket, isLoggedIn, login } = useApp();
+    const { navigateToMarket } = useApp();
     const [activeSection, setActiveSection] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -34,8 +34,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* isLoggedIn 상태에 따른 WatchList */}
-                {isLoggedIn && <WatchList />}
+                <WatchList />
 
                 <div className="flex flex-col lg:flex-row gap-3">
 
@@ -115,37 +114,19 @@ function StockRank() {
     )
 };
 
-// onLogin 함수를 호출하는 코드 추가
-function LoginCard({ onLogin }) {
+
+function LoginCard() {
     return (
         <div
             className="rounded-[20px] h-[345px] p-6 flex flex-col items-center justify-start pt-14 space-y-1 bg-cover bg-bottom"
             style={{ backgroundImage: "url('/icon/blurred.png')" }}
         >
             <p className="text-sm text-gray-500 text-center" alt="카카오 로그인">모의 투자를 진행하려면<br />로그인이 필요합니다</p>
-            <img 
-                className="cursor-pointer w-64" src="/icon/kakao_login.png" 
-                onClick={onLogin}
-            />
+            <img className="cursor-pointer w-64" src="/icon/kakao_login.png" />
         </div>
     );
 }
 
-function UserProfileCard() {
-    const { logout } = useApp();
-    return (
-        <div className="bg-white rounded-[20px] h-[345px] p-6 flex flex-col items-center justify-center space-y-4">
-            <h3 className="text-xl font-bold">꺄! 환영합니다!</h3>
-            <p>로그인되었습니다.</p>
-            <button 
-              onClick={logout}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"
-            >
-              로그아웃
-            </button>
-        </div>
-    );
-}
 function ChatWindow() {
     return (
         <div>
