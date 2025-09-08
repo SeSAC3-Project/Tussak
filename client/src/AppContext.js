@@ -1,12 +1,15 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 
 const AppContext = createContext();
+
 
 export function AppProvider({ children }) {
     const [activeSection, setActiveSection] = useState('Home');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStock, setSelectedStock] = useState(null);
     const [initialSearchTerm, setInitialSearchTerm] = useState('')
+    // 브라우저 저장소 토큰 유무 확인 코드 필요하면 추가
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const navigateToHome = () => {
         setActiveSection('Home');
@@ -42,12 +45,23 @@ export function AppProvider({ children }) {
         }
     };
 
+    const login = useCallback(()  => {
+        console.log("로그인 상태");
+        setIsLoggedIn(true);
+    }, []);
+
+    const logout = useCallback(() => {
+        console.log("로그아웃 상태")
+        setIsLoggedIn(false);
+    }, []);
+
     const contextValue = {
         // 상태값들
         activeSection,
         searchQuery,
         selectedStock,
         initialSearchTerm,
+        isLoggedIn,
         // 동작함수들
         navigateToHome,
         navigateToMarket,
@@ -56,7 +70,9 @@ export function AppProvider({ children }) {
         goBack,
         setSearchQuery,
         setSelectedStock,
-        setActiveSection
+        setActiveSection,
+        login,
+        logout
     };
 
     return (
