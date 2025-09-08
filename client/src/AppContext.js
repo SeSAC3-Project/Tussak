@@ -111,27 +111,27 @@ export function AppProvider({ children }) {
         }
     };
 
-    // 로그아웃 함수 (강력한 완전 해제)
+    // 로그아웃 함수 
     const handleLogout = async () => {
         try {
-            console.log('🚪 로그아웃 시작...');
+            console.log('로그아웃 시작');
             
             // 1단계: 서버 로그아웃
             if (authToken) {
                 await authApi.logout(authToken);
-                console.log('✅ 서버 로그아웃 완료');
+                console.log('서버 로그아웃 완료');
             }
             
             // 2단계: 카카오 완전 해제
             if (window.Kakao && window.Kakao.Auth) {
                 try {
-                    // 카카오 앱 연결 해제 (강제)
+                    // 카카오 앱 연결 해제
                     if (window.Kakao.API && window.Kakao.Auth.getAccessToken()) {
                         await new Promise((resolve) => {
                             window.Kakao.API.request({
                                 url: '/v1/user/unlink',
                                 success: () => {
-                                    console.log('✅ 카카오 앱 연결 해제 완료');
+                                    console.log('카카오 앱 연결 해제 완료');
                                     resolve();
                                 },
                                 fail: () => {
@@ -144,7 +144,7 @@ export function AppProvider({ children }) {
                     
                     // 카카오 로그아웃
                     await kakaoAuth.logout();
-                    console.log('✅ 카카오 세션 해제 완료');
+                    console.log('카카오 세션 해제 완료');
                 } catch (kakaoError) {
                     console.log('카카오 로그아웃 중 에러 (무시):', kakaoError);
                 }
@@ -172,7 +172,7 @@ export function AppProvider({ children }) {
                     });
                 });
                 
-                console.log('✅ 브라우저 데이터 완전 클리어');
+                console.log('브라우저 데이터 완전 클리어');
             } catch (cleanupError) {
                 console.log('브라우저 정리 중 에러 (무시):', cleanupError);
             }
@@ -181,7 +181,7 @@ export function AppProvider({ children }) {
             setAuthToken(null);
             setUser(null);
             setIsLoggedIn(false);
-            console.log('✅ 로그아웃 완료');
+            console.log('로그아웃 완료');
             
         } catch (error) {
             console.error('로그아웃 실패:', error);
