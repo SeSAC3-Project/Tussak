@@ -160,7 +160,7 @@ export default function Portfolio() {
         
             <div class="max-w-7xl mx-auto">
                 {/* 내 자산 현황 */}
-                <div className="mt-4 mx-2 mb-7 overflow-visible" style={{ fontFamily: 'DM Sans' }}>
+                <div className="mt-4 mx-2 mb-7 overflow-visible">
 
                     <div className="bg-white px-7 py-5 rounded-lg mb-7">
                         <h1 className="font-bold mb-6" style={{ fontFamily: 'DM Sans', fontSize: '20px', color: 'rgb(15, 37, 11)' }}>내 자산 현황</h1>
@@ -180,7 +180,7 @@ export default function Portfolio() {
                 {/* 보유 주식 */}
                 <div class="mx-2 mb-4">
                     <div className="bg-white p-4 lg:p-6 rounded-lg shadow-sm overflow-hidden" style={{ fontFamily: 'DM Sans' }}>
-                        <h2 className="text-[20px] font-bold text-[#0F250B] mb-6">보유 주식</h2>
+                        <h2 className="text-[20px] font-bold text-[#0F250B]">보유 주식</h2>
                         {/* 테이블 - lg 이상 */}
                         <div className="hidden lg:block overflow-x-auto">
                             <table className="w-full">
@@ -222,7 +222,7 @@ export default function Portfolio() {
                         {/* 카드 형태 - lg 미만 */}
                         <div className="block lg:hidden space-y-3">
                             {aggregatedStocks.map((stock, index) => (
-                                <div key={`${stock.name}-${index}`} className="border border-gray-100 rounded-lg p-4 my-4 hover:bg-gray-50 transition-colors">
+                                <div key={`${stock.name}-${index}`} className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
                                     {/* 주식명과 보유수량 */}
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
