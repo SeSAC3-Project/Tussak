@@ -111,25 +111,84 @@ export function AppProvider({ children }) {
         }
     };
 
-    // 로그아웃 함수
+    // 로그아웃 함수 (강력한 완전 해제)
     const handleLogout = async () => {
         try {
+            console.log('🚪 로그아웃 시작...');
+            
+            // 1단계: 서버 로그아웃
             if (authToken) {
                 await authApi.logout(authToken);
+                console.log('✅ 서버 로그아웃 완료');
             }
             
-            // 카카오 로그아웃
-            await kakaoAuth.logout();
+            // 2단계: 카카오 완전 해제
+            if (window.Kakao && window.Kakao.Auth) {
+                try {
+                    // 카카오 앱 연결 해제 (강제)
+                    if (window.Kakao.API && window.Kakao.Auth.getAccessToken()) {
+                        await new Promise((resolve) => {
+                            window.Kakao.API.request({
+                                url: '/v1/user/unlink',
+                                success: () => {
+                                    console.log('✅ 카카오 앱 연결 해제 완료');
+                                    resolve();
+                                },
+                                fail: () => {
+                                    console.log('앱 연결 해제 실패 (계속 진행)');
+                                    resolve();
+                                }
+                            });
+                        });
+                    }
+                    
+                    // 카카오 로그아웃
+                    await kakaoAuth.logout();
+                    console.log('✅ 카카오 세션 해제 완료');
+                } catch (kakaoError) {
+                    console.log('카카오 로그아웃 중 에러 (무시):', kakaoError);
+                }
+            }
             
-            // 상태 초기화
-            localStorage.removeItem('authToken');
+            // 3단계: 모든 브라우저 데이터 클리어
+            try {
+                // 로컬/세션 스토리지 완전 클리어
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // 모든 쿠키 삭제 (더 광범위하게)
+                document.cookie.split(";").forEach(cookie => {
+                    const eqPos = cookie.indexOf("=");
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                    
+                    // 여러 도메인/경로에서 삭제
+                    const domains = ['', '.kakao.com', '.daum.net', '.localhost', 'localhost'];
+                    const paths = ['/', '/auth'];
+                    
+                    domains.forEach(domain => {
+                        paths.forEach(path => {
+                            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${domain};`;
+                        });
+                    });
+                });
+                
+                console.log('✅ 브라우저 데이터 완전 클리어');
+            } catch (cleanupError) {
+                console.log('브라우저 정리 중 에러 (무시):', cleanupError);
+            }
+            
+            // 4단계: React 상태 초기화
             setAuthToken(null);
             setUser(null);
             setIsLoggedIn(false);
+            console.log('✅ 로그아웃 완료');
+            
         } catch (error) {
             console.error('로그아웃 실패:', error);
-            // 에러가 발생해도 로컬 상태는 초기화
-            localStorage.removeItem('authToken');
+            
+            // 에러 발생 시에도 강제로 상태 초기화
+            localStorage.clear();
+            sessionStorage.clear();
             setAuthToken(null);
             setUser(null);
             setIsLoggedIn(false);
