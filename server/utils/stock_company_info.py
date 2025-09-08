@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 import requests
 import os
 import zipfile
@@ -15,8 +14,6 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableLambda
 
 from flask import current_app
-
-load_dotenv()
 
 DART_CLIENT_ID=os.getenv("DART_API_KEY")
 GPT_API_KEY = os.getenv("OPENAI_API_KEY")

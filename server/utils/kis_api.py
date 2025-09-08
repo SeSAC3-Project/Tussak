@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 import requests
 import os
 import json
@@ -7,8 +6,6 @@ from datetime import datetime, timedelta
 from flask import current_app
 
 from config.redis import get_redis
-
-load_dotenv()
 
 KIS_CLIENT_ID=os.getenv("KIS_API_KEY")
 KIS_CLIENT_SECRET=os.getenv("KIS_SECRET_KEY")
