@@ -3,7 +3,7 @@ from models.stock_history import StockHistory
 from services.cache_service import CacheService
 
 class KeywordService:
-    # 거래대금순 상위 30개 주식의 세부산업군 빈도수 기반
+    # 거래대금순 상위 28개 주식의 세부산업군 빈도수 기반
     @staticmethod
     def get_keywords():
         try:
@@ -11,26 +11,30 @@ class KeywordService:
             if cached_keywords:
                 return cached_keywords
             
-            # 거래대금순 종목 호출 작업 완료 후 수정
-            top_stocks = StockHistory.all()
+            # 거래대금순 상위 28개 종목 조회
+            from services.stock_service import StockService
+            top_stocks = StockService.get_volume_ranking(28)
             
             if not top_stocks:
                 return []
             
+            # 세부산업군(sector_detail) 빈도수 계산
             sector_counter = Counter()
             for stock_data in top_stocks:
-                sector = stock_data.sector
-                if sector:
-                    sector_counter[sector] += 1
+                sector_detail = stock_data.get('sector_detail')
+                if sector_detail and sector_detail.strip():
+                    sector_counter[sector_detail] += 1
             
+            # 상위 10개 세부산업군을 키워드로 생성
             keywords = []
-            for sector, frequency in sector_counter.most_common(10):
+            for sector_detail, frequency in sector_counter.most_common(10):
                 keywords.append({
-                    'keyword': sector,
+                    'keyword': sector_detail,
                     'frequency': frequency
                 })
             
-            CacheService.set('keywords', keywords, expire_hours=1)
+            # 24시간 캐싱 (매일 한 번 업데이트)
+            CacheService.set('keywords', keywords, expire_hours=24)
             
             return keywords
             
