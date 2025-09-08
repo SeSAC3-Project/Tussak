@@ -2,13 +2,18 @@ from flask import Flask
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
+import threading
 
 # scheduler
 from utils.kis_api import kis_access_token
+from utils.kis_websocket import kis_websocket_access_token, scheduled_refresh_websocket_token
+from services.websocket_service import get_websocket_service
 from services.stock_service import StockService
+from services.ranking_service import RankingService
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import atexit
+import time
 
 # config
 from config import setup_logging # logging
@@ -30,6 +35,7 @@ from routes.insight_routes import insight_bp
 from routes.user_routes import user_bp
 from routes.ranking_routes import ranking_bp
 from routes.stock_routes import stock_bp
+from routes.bookmark_routes import bookmark_bp
 
 load_dotenv()
 
@@ -43,12 +49,12 @@ def create_app():
     CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000'])
 
     init_db(app)
-    init_redis(app)
+    # init_redis(app)
     register_blueprints(app)
-    setup_scheduler(app)
+    # setup_scheduler(app)
 
+    # DB
     with app.app_context():
-        # DB
         try:
             # DB 연결 테스트
             db.engine.connect()
@@ -62,13 +68,21 @@ def create_app():
             app.logger.error(f"❌ 데이터베이스 연결 실패: {e}")
             raise
 
-        # KIS Token
-        try:
-            kis_access_token()  # 앱 시작 시 토큰 발급
-            app.logger.info("✅ 앱 시작 시 KIS Access Token 생성 완료")
+    #     # KIS Token
+    #     try:
+    #         kis_access_token()  # 앱 시작 시 토큰 발급
+    #         app.logger.info("✅ 앱 시작 시 KIS Access Token 생성 완료")
 
-        except Exception as e:
-            app.logger.error(f"❌ 앱 시작 시 KIS Token 생성 실패: {e}")
+    #     except Exception as e:
+    #         app.logger.error(f"❌ 앱 시작 시 KIS Token 생성 실패: {e}")
+
+    #     # KIS WebSocket Token
+    #     try:
+    #         kis_websocket_access_token()  # 앱 시작 시 토큰 발급
+    #         app.logger.info("✅ 앱 시작 시 KIS WebSocket Access Token 생성 완료")
+
+    #     except Exception as e:
+    #         app.logger.error(f"❌ 앱 시작 시 KIS WebSocket Token 생성 실패: {e}")
 
         # Stock and StockHistory Data Sync
         # 코드 수정하면 app reload 발생 
@@ -84,6 +98,21 @@ def create_app():
 
         # except Exception as e:
         #     app.logger.error(f"❌ 앱 시작 시 주식 종목 데이터 동기화 실패: {e}")
+
+        # WebSocket 서비스 시작 (앱 시작 후 3초 지연)
+        # try:
+        #     def delayed_websocket_start():
+        #         time.sleep(3)  # 앱 완전 시작 후 3초 대기
+        #         start_websocket_service(app)
+            
+        #     ws_thread = threading.Thread(target=delayed_websocket_start)
+        #     ws_thread.daemon = True
+        #     ws_thread.start()
+            
+        #     app.logger.info("✅ WebSocket 서비스 시작 스레드 생성 완료")
+            
+        # except Exception as e:
+        #     app.logger.error(f"❌ WebSocket 서비스 시작 실패: {e}")
 
     return app
 
@@ -126,6 +155,66 @@ def save_daily_stock_history(app):
         except Exception as e:
             app.logger.error(f"❌ 일별 OHLCV 히스토리 저장 실패: {e}")
 
+def update_daily_rankings(app):
+    with app.app_context():
+        try:
+            result = RankingService.calculate_and_update_rankings()
+            if result['success']:
+                app.logger.info("✅ 일별 투자 랭킹 업데이트 완료")
+            else:
+                app.logger.error(f"❌ 일별 투자 랭킹 업데이트 실패: {result['message']}")
+        except Exception as e:
+            app.logger.error(f"❌ 일별 투자 랭킹 업데이트 실패: {e}")
+
+# WebSocket 실시간 시세 서비스 시작
+def start_websocket_service(app):
+    with app.app_context():
+        try:
+            # 거래대금 상위 28개 종목 코드 가져오기
+            stocks = StockService.get_volume_ranking(28)
+            stock_codes = [stock['stock_code'] for stock in stocks]
+            
+            # 웹소켓 서비스 초기화 및 연결
+            websocket_service = get_websocket_service(app)
+            websocket_service.connect(stock_codes)
+            
+            app.logger.info(f"✅ WebSocket 실시간 시세 서비스 시작: {len(stock_codes)}개 종목")
+
+            # 연결 상태 확인
+            max_wait = 10  # 최대 10초 대기
+            wait_count = 0
+            while not websocket_service.is_connected and wait_count < max_wait:
+                time.sleep(1)
+                wait_count += 1
+            
+            if websocket_service.is_connected:
+                app.logger.info("✅ WebSocket 연결 성공 확인")
+            else:
+                app.logger.warning("⚠️ WebSocket 연결 상태를 확인할 수 없습니다")
+            
+        except Exception as e:
+            app.logger.error(f"❌ WebSocket 서비스 시작 실패: {e}")
+
+# WebSocket 토큰 갱신
+def refresh_websocket_token(app):
+    with app.app_context():
+        try:
+            token = scheduled_refresh_websocket_token()
+            app.logger.info("✅ 스케줄러에 의한 WebSocket 토큰 갱신 완료")
+        except Exception as e:
+            app.logger.error(f"❌ 스케줄러 WebSocket 토큰 갱신 실패: {e}")
+
+# 앱 종료 시 웹소켓 연결 해제
+def cleanup_websocket():
+    try:
+        websocket_service = get_websocket_service(None)
+        if websocket_service:
+            websocket_service.disconnect()
+        print("✅ WebSocket 정리 완료")
+    except Exception as e:
+        print(f"❌ WebSocket 정리 중 오류: {e}")
+
+
 def setup_scheduler(app):
     # 스케줄러 초기화
     scheduler = BackgroundScheduler()
@@ -137,6 +226,15 @@ def setup_scheduler(app):
         trigger=CronTrigger(hour=8, minute=0, timezone='Asia/Seoul'),
         id='refresh_kis_token',
         name='Refresh KIS Access Token',
+        replace_existing=True
+    )
+
+    # 매일 오전 8시 30분에 WebSocket 토큰 갱신 (한국 시간)
+    scheduler.add_job(
+        func=lambda: refresh_websocket_token(app),
+        trigger=CronTrigger(hour=8, minute=30, timezone='Asia/Seoul'),
+        id='refresh_websocket_token',
+        name='Refresh KIS WebSocket Token',
         replace_existing=True
     )
     
@@ -154,10 +252,21 @@ def setup_scheduler(app):
     func=lambda: save_daily_stock_history(app),
     trigger=CronTrigger(hour=22, minute=0, timezone='Asia/Seoul'),
     id='save_daily_history',
-    name='Save Daily OHLCV History'
+    name='Save Daily OHLCV History',
+    replace_existing=True
 )
+
+    # 매일 오후 11시 45분 - 일별 투자 랭킹 업데이트 (한국 시간)
+    scheduler.add_job(
+        func=lambda: update_daily_rankings(app),
+        trigger=CronTrigger(hour=23, minute=45, timezone='Asia/Seoul'),
+        id='update_daily_rankings',
+        name='Update Daily Investment Rankings',
+        replace_existing=True
+    )
     
-    # 앱 종료 시 스케줄러도 종료
+    # 앱 종료 시 웹소켓 연결 해제, 스케줄러도 종료
+    atexit.register(cleanup_websocket)
     atexit.register(lambda: scheduler.shutdown())
 
 def register_blueprints(app):
@@ -167,6 +276,7 @@ def register_blueprints(app):
     app.register_blueprint(user_bp)
     app.register_blueprint(ranking_bp)
     app.register_blueprint(stock_bp)
+    app.register_blueprint(bookmark_bp)
 
 if __name__ == '__main__':
     app = create_app()

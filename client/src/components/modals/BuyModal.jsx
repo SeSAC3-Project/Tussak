@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useApp } from '../../AppContext';
+import transactionApi from '../../services/transactionApi';
 
 const BuyModal = ({
     isOpen,
@@ -8,9 +10,11 @@ const BuyModal = ({
     stockCode,
     initialPrice
 }) => {
+    const { authToken } = useApp();
     const [orderPrice, setOrderPrice] = useState(initialPrice || 0)
     const [quantity, setQuantity] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
 
     // 시세 변할 때 orderPrice update
     useEffect(() => {
@@ -24,7 +28,8 @@ const BuyModal = ({
         if (isOpen) {
             setOrderPrice(initialPrice || 0)
             setQuantity(1);
-            setIsSubmitting(false)
+            setIsSubmitting(false);
+            setError('');
         }
     }, [isOpen, initialPrice]);
 
@@ -52,21 +57,36 @@ const BuyModal = ({
         if (!isValidOrder) return;
 
         setIsSubmitting(true);
+        setError('');
 
-        // API 지연 상황 임의로 반영
-        await new Promise(resolve => setTimeout(resolve, 500));
+        try {
+            const transactionData = {
+                stockCode: stockCode,
+                stockName: stockName,
+                type: 'BUY',
+                quantity: quantity,
+                price: orderPrice
+            };
 
-        const orderDetails = {
-            name: stockName,
-            code: stockCode,
-            price: orderPrice,
-            quantity: quantity,
-            total: totalAmount,
-            timestamp: new Date().toISOString()
-        };
+            const result = await transactionApi.createTransaction(transactionData, authToken);
+            
+            const orderDetails = {
+                name: stockName,
+                code: stockCode,
+                price: orderPrice,
+                quantity: quantity,
+                total: totalAmount,
+                timestamp: new Date().toISOString(),
+                transactionId: result.transaction.transaction_id,
+                updatedBalance: result.transaction.updated_balance
+            };
 
-        setIsSubmitting(false)
-        onBuyComplete(orderDetails);
+            setIsSubmitting(false);
+            onBuyComplete(orderDetails);
+        } catch (error) {
+            setIsSubmitting(false);
+            setError(error.message || '매수 주문에 실패했습니다');
+        }
     };
 
     const formatNumber = (num) => {
@@ -148,6 +168,13 @@ const BuyModal = ({
                             </span>
                         </div>
                     </div>
+
+                    {/* Error Message */}
+                    {error && (
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                            <span className="text-sm">{error}</span>
+                        </div>
+                    )}
 
                     {/* Total Amount */}
                     <div className="mt-8 bg-red-50 p-4 rounded-lg">
