@@ -12,7 +12,7 @@ class RedisConfig:
     
     def init_redis(self, app):
         """Redis 초기화"""
-        redis_url = os.getenv('REDIS_URL_TAEHEE')
+        redis_url = os.getenv('REDIS_URL')
         
         try:
             self.redis_client = redis.from_url(
