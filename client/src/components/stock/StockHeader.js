@@ -14,25 +14,24 @@ const StockHeader = ({ selectedStock, currentPrice, onBuyClick, onSellClick }) =
 
     return (
         <div className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="flex items-center flex-wrap gap-x-4 gap-y-1">
                     <h1 className="text-2xl font-bold text-gray-800">{stockName}</h1>
                     <span className="text-sm text-gray-500">{stockCode} {market}</span>
+                    <div className="flex items-basline gap-3"></div>
                     <span className="text-2xl font-bold text-gray-800">{price.toLocaleString()}</span>
-                    <div className="flex items-center space-x-2">
-                        <span className={`font-semibold ${textColor}`}>
-                            {changeIcon} {change.toLocaleString()} ({changePercent.toFixed(2)}%)
-                        </span>
-                    </div>
+                    <span className={`font-semibold ${textColor}`}>
+                        {changeIcon} {change.toLocaleString()} ({changePercent.toFixed(2)}%)
+                    </span>
                 </div>
-                <div className="flex space-x-2">
-                    <button 
+                <div className="grid grid-cols-2 lg:flex gap-2 w-full lg:w-auto">
+                    <button
                         onClick={onBuyClick}
                         className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors font-medium">
                         매수
                     </button>
                     <button
-                        onClick={onSellClick} 
+                        onClick={onSellClick}
                         disabled={!currentPrice}
                         className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors font-medium">
                         매도

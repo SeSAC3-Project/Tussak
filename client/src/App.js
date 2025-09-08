@@ -1,3 +1,5 @@
+// 커밋 하기 전 redis_url 바꿔놓을 것!!
+
 // npm install lucide-react
 // npm install tailwind-scrollbar
 

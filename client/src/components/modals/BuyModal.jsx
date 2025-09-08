@@ -37,12 +37,12 @@ const BuyModal = ({
     const maxQuantity = 100;
     // 주문 가능 수량 : 사용자 자금에 따라 설정 (지금은 하드코딩)
 
-    const handlePriceChange = (e) => {
-        const value = parseFloat(e.target.value) || 0;
-        if (value >= 0) {
-            setOrderPrice(value);
-        }
-    };
+    // const handlePriceChange = (e) => {
+    //     const value = parseFloat(e.target.value) || 0;
+    //     if (value >= 0) {
+    //         setOrderPrice(value);
+    //     }
+    // };
 
     const handleQuantityChange = (e) => {
         const value = parseInt(e.target.value) || 0;
