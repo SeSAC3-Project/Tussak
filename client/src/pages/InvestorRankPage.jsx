@@ -8,7 +8,7 @@ const InvestmentRanking = () => {
     const allInvestorData = [
         { name: '김수식', gain: 199.99 },
         { name: '박투자', gain: 199.99 },
-        { name: '최새싹', gain: 189.99 },
+        { name: '최재벌', gain: 189.99 },
         { name: '이초보', gain: 189.99 },
         { name: '이초보', gain: 189.99 },
         { name: '이초보', gain: 189.99 },

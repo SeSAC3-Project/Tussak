@@ -2,15 +2,35 @@
 // fetchTopStocks() : 백엔드에서 모든 종목 가져와 거래대금 순으로 정렬 후 상위 28개 표시
 // searchStocks() : 검색 API 호출해서 KTS 전체 데이터에서 검색
 
-import { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import StockCard from '../components/StockCard'; 
-import SearchBar from '../components/SearchBar';
+import { FaSearch } from 'react-icons/fa';
 
+// api 로 받아올 주식 데이터들 임의 설정
+const mockStockData = [
+    { id: '001201', market: '코스피', name: '상지전자', price: 81300, change: 1200, changePercent: 1.50, direction: 'up' },
+    { id: '001202', market: '코스피', name: '지니생명', price: 45750, change: -50, changePercent: -0.11, direction: 'down' },
+    { id: '001203', market: '코스피', name: 'Calia솔루션', price: 350000, change: 2000, changePercent: 0.57, direction: 'up' },
+    { id: '001204', market: '코스피', name: 'HM캐피털', price: 224000, change: -1500, changePercent: -0.67, direction: 'down' },
+]
 
-export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
+// 4x7 그리드 채울려고
+const initialStocks = [];
+for (let groupIndex = 0; groupIndex < 7; groupIndex++) {
+    for (let index = 0; index < mockStockData.length; index++) {
+        const stock = mockStockData[index];
+        initialStocks.push({
+            ...stock,
+            reactKey: `${stock.id}-${groupIndex}-${index}`,
+        });
+    }
+}
+
+export default function StockList({ onSelectStock }) {
     const [stocks, setStocks] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
-    const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+    const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState(null);
@@ -19,12 +39,6 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
     useEffect(() => {
         fetchTopStocks();
     }, []);
-
-    useEffect(() => {
-        if (initialSearchTerm) {
-            setSearchTerm(initialSearchTerm)
-        }
-    }, [initialSearchTerm]);
 
     // 거래대금 상위 28개 종목 조회
     const fetchTopStocks = async () => {
@@ -99,9 +113,16 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
         return () => clearTimeout(timeoutId);
     }, [searchTerm, searchStocks]);
 
-    // SearchBar에서 호출할 검색어 핸들러
-    const handleSearchChange = (value) => {
-        setSearchTerm(value);
+    // 검색어 입력 핸들러
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    // 검색 초기화
+    const clearSearch = () => {
+        setSearchTerm('');
+        setSearchResults([]);
+        setError(null);
     };
 
     // 표시할 종목 목록 결정
@@ -124,19 +145,26 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
     }
 
     return (
-        <div className="p-4 sm:p-6 lg:p-8 max-w-full mx-auto">
+        <div className="space-y-4">
             {/* 검색 입력 */}
-            <div className="flex justify-end items-center">
-                <div className="w-full lg:w-1/2">
-                    <SearchBar 
-                        onSearchChange={handleSearchChange}
-                        placeholder="종목 검색"
-                        variant = "market"
-                        showClearButton={true}
-                    />
-                </div>
+            <div className="relative">
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    placeholder="종목명 검색..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {searchTerm && (
+                    <button
+                        onClick={clearSearch}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                        ✕
+                    </button>
+                )}
             </div>
-            
+
             {/* 상태 표시 */}
             {isLoading && (
                 <div className="flex justify-center p-8">
@@ -164,7 +192,7 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
                 </div>
             )}
 
-            {/* 검색 중 발생한 에러에 대한 메시지 */}
+            {/* 에러 메시지 (검색 중 발생한 에러) */}
             {error && searchTerm && (
                 <div className="text-red-500 text-center p-4 bg-red-50 rounded">
                     {error}
@@ -174,7 +202,7 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
             {/* 종목 그리드 */}
             {!isLoading && displayStocks.length > 0 && (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 overflow-y-autoscrollbar-thin scrollbar-thumb-gray-400 mt-8">
+                    <div className="grid grid-cols-4 gap-4">
                         {displayStocks.map((stock, index) => (
                             <StockCard
                                 key={stock.stock_code || stock.id || `stock-${index}`}
@@ -184,10 +212,10 @@ export default function StockList({ onSelectStock, initialSearchTerm = '' }) {
                         ))}
                     </div>
                     
-                    {/* 기본 28개 종목 표시 안내 */}
+                    {/* 기본 28개 종목 표시 중일 때의 안내 */}
                     {!searchTerm && stocks.length === 28 && (
                         <div className="text-center text-sm text-gray-500 mt-4">
-                            28개 종목만을 표시하고 있습니다. 
+                            거래대금 상위 28개 종목을 표시하고 있습니다. 
                             다른 종목을 찾으시려면 검색을 이용해주세요.
                         </div>
                     )}

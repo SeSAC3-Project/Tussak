@@ -1,3 +1,5 @@
+import React from 'react';
+
 const ChartControls = ({ chartState, onPeriodChange }) => {
     return (
         <div className="mb-4 space-y-3">

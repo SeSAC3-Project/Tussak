@@ -1,4 +1,3 @@
-import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Pagination({ currentPage, totalPages, onPageChange }) {
   const getVisiblePages = () => {
@@ -33,25 +32,19 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       {/* First 버튼 */}
       <button
         onClick={() => onPageChange(1)}
-        className={`w-8 px-1 py-1 rounded text-sm 
-          ${ 
-            currentPage === 1
-            ? "text-gray-300 cursor-not-allowed"
-            : "text-gray-400 hover:text-gray-800"}`}
+        disabled={currentPage === 1}
+        className="px-3 py-1 rounded text-sm text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:hover:text-gray-400"
       >
-        <ChevronFirst />
+        ««
       </button>
       
-      {/* Left 버튼 */}
+      {/* Previous 버튼 */}
       <button
-        onClick={() => onPageChange(Math.min(totalPages, currentPage - 1))}
-        className={`w-8 px-1 py-1 rounded text-sm 
-          ${ 
-            currentPage === 1
-            ? "text-gray-300 cursor-not-allowed"
-            : "text-gray-400 hover:text-gray-800"}`}
+        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+        disabled={currentPage === 1}
+        className="px-3 py-1 rounded text-sm text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:hover:text-gray-400"
       >
-        <ChevronLeft />
+        ‹
       </button>
 
       {/* 페이지 번호들 */}
@@ -59,7 +52,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
         <button
           key={page}
           onClick={() => onPageChange(page)}
-          className={`w-8 h-8 flex items-center justify-center rounded text-sm ${
+          className={`px-3 py-1 rounded text-sm ${
             page === currentPage
               ? 'bg-green-500 text-white'
               : 'text-gray-600 hover:text-gray-800'
@@ -69,30 +62,22 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
         </button>
       ))}
 
-      {/* Right 버튼 */}
+      {/* Next 버튼 */}
       <button
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        className={`w-8 px-1 py-1 rounded text-sm 
-          ${ 
-            currentPage === totalPages
-            ? 'text-gray-300 cursor-not-allowed'
-            : 'text-gray-400 hover:text-gray-800' 
-          }`}
+        disabled={currentPage === totalPages}
+        className="px-3 py-1 rounded text-sm text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:hover:text-gray-400"
       >
-        <ChevronRight />
+        ›
       </button>
 
       {/* Last 버튼 */}
       <button
         onClick={() => onPageChange(totalPages)}
-        className={`w-8 px-1 py-1 rounded text-sm 
-          ${ 
-            currentPage === totalPages
-            ? 'text-gray-300 cursor-not-allowed'
-            : 'text-gray-400 hover:text-gray-800' 
-          }`}
+        disabled={currentPage === totalPages}
+        className="px-3 py-1 rounded text-sm text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:hover:text-gray-400"
       >
-        <ChevronLast />
+        »»
       </button>
     </div>
   );

@@ -113,25 +113,16 @@ class NewsService:
                 current_app.logger.info(f"캐시된 뉴스: {keyword}")
                 return cached_news
             
-            # 거래대금 상위 28개에서 해당 세부산업군에 속하는 주식들 조회
-            from services.stock_service import StockService
-            top_stocks = StockService.get_volume_ranking(28)
+            # 해당 키워드(섹터)의 주요 주식들 조회 - 수정 필요
+            stocks = Stock.query.filter(Stock.sector.like(f'%{keyword}%')).limit(10).all()
             
-            # 해당 키워드(세부산업군)에 속하는 주식들 필터링
-            matching_stocks = [
-                stock for stock in top_stocks 
-                if stock.get('sector_detail') and keyword in stock.get('sector_detail', '')
-            ]
-            
-            if not matching_stocks:
+            if not stocks:
                 # 키워드로 직접 검색
                 search_query = f"{keyword} 주식"
-                current_app.logger.info(f"직접 검색: {search_query}")
             else:
-                # 해당 세부산업군의 상위 종목명들로 검색 쿼리 생성
-                stock_names = [stock['stock_name'] for stock in matching_stocks[:3]]  # 상위 3개 종목
+                # 종목명들로 검색 쿼리 생성
+                stock_names = [stock.stock_name for stock in stocks[:3]]  # 상위 3개 종목
                 search_query = f"{keyword} " + " OR ".join(stock_names)
-                current_app.logger.info(f"종목 기반 검색: {search_query}")
             
             news_data = NewsService.get_naver_news(search_query, display)
             

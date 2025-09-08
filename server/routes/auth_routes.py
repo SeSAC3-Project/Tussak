@@ -84,6 +84,7 @@ def verify_token(current_user):
             'user': {
                 'id': current_user.id,
                 'kakao_id': current_user.kakao_id,
+                'email': current_user.email,
                 'nickname': current_user.nickname,
                 'profile_image_url': current_user.profile_image_url,
                 'current_balance': float(current_user.current_balance),
@@ -127,6 +128,7 @@ def get_user_profile(current_user):
                 'id': current_user.id,
                 'kakao_id': current_user.kakao_id,
                 'nickname': current_user.nickname,
+                'email': current_user.email,
                 'profile_image_url': current_user.profile_image_url,
                 'current_balance': float(current_user.current_balance),
                 'total_asset': float(current_user.total_asset),
