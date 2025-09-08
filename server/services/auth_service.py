@@ -7,7 +7,7 @@ from flask import current_app
 from models.user import User
 from models import db
 
-load_dotenv()
+# load_dotenv()
 
 class AuthService:
     # JWT 토큰 생성
