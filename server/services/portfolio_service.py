@@ -6,6 +6,7 @@ from models import db
 from flask import current_app
 from decimal import Decimal
 import traceback
+from services.websocket_service import get_websocket_service
 
 class PortfolioService:
     @staticmethod
@@ -84,26 +85,35 @@ class PortfolioService:
     
     @staticmethod
     def _calculate_average_price(user_id, stock_code):
-        """사용자의 특정 주식에 대한 평균단가를 계산"""
+        """사용자의 특정 주식에 대한 평균단가를 계산 (매도 고려한 가중평균)"""
         try:
-            # 해당 주식의 매수 거래들을 조회
-            buy_transactions = Transaction.query.filter_by(
+            # 해당 주식의 모든 거래들을 시간순으로 조회
+            transactions = Transaction.query.filter_by(
                 user_id=user_id, 
-                stock_code=stock_code, 
-                type='BUY'
-            ).all()
+                stock_code=stock_code
+            ).order_by(Transaction.created_at.asc()).all()
             
-            if not buy_transactions:
+            if not transactions:
                 return Decimal('0')
             
             total_cost = Decimal('0')
             total_quantity = 0
             
-            for transaction in buy_transactions:
-                total_cost += transaction.total_amount
-                total_quantity += transaction.quantity
+            # 거래 내역을 순차적으로 처리하여 평균단가 계산
+            for transaction in transactions:
+                if transaction.type == 'BUY':
+                    # 매수: 비용과 수량 추가
+                    total_cost += transaction.total_amount
+                    total_quantity += transaction.quantity
+                elif transaction.type == 'SELL':
+                    # 매도: 평균단가 기준으로 비용 차감
+                    if total_quantity > 0:
+                        avg_price = total_cost / total_quantity
+                        sold_cost = avg_price * transaction.quantity
+                        total_cost -= sold_cost
+                        total_quantity -= transaction.quantity
             
-            if total_quantity == 0:
+            if total_quantity <= 0:
                 return Decimal('0')
             
             average_price = total_cost / total_quantity
@@ -115,16 +125,32 @@ class PortfolioService:
     
     @staticmethod
     def _get_current_price(stock_code):
-        # 임시로 주식별 고정 가격 설정 - 시간 주식 API 연동 필요
+        """실시간 주식 가격 조회"""
+        try:
+            # WebSocket 서비스에서 실시간 가격 조회
+            websocket_service = get_websocket_service(current_app._get_current_object())
+            realtime_data = websocket_service.get_realtime_price(stock_code)
+            
+            if realtime_data and 'current_price' in realtime_data:
+                current_price = Decimal(str(realtime_data['current_price']))
+                current_app.logger.info(f"실시간 가격 조회 성공: {stock_code} = {current_price}")
+                return current_price.quantize(Decimal('1'))
+            else:
+                current_app.logger.warning(f"실시간 데이터 없음: {stock_code}, 기본값 사용")
+                
+        except Exception as e:
+            current_app.logger.warning(f"실시간 가격 조회 실패: {stock_code}, 오류: {str(e)}")
+        
+        # 실시간 데이터가 없을 경우 임시 가격 사용
         mock_prices = {
             '005930': Decimal('75500'),   # 삼성전자
             '000660': Decimal('123000'),  # SK하이닉스  
             '005380': Decimal('182000'),  # 현대차
         }
         
-        # 해당 주식코드의 가격이 있으면 반환, 없으면 기본값
         price = mock_prices.get(stock_code, Decimal('50000'))
-        return price.quantize(Decimal('1'))  # 소수점 제거
+        current_app.logger.info(f"기본 가격 사용: {stock_code} = {price}")
+        return price.quantize(Decimal('1'))
     
     @staticmethod
     def get_portfolio_summary(user_id):
