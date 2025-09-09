@@ -11,8 +11,8 @@ export default function Insight() {
     };
 
     return (
-        <div className="pt-[15px] pb-[20px] px-[39px] max-w-full mx-auto">
-            <div className="flex flex-col gap-[16px]">
+        <div className="max-w-7xl mx-auto">
+            <div className="pt-[15px] pb-[20px] mx-2 flex flex-col gap-[16px]">
                 <HotKeywordSection 
                     onKeywordSelect={handleKeywordSelect}
                     selectedKeyword={selectedKeyword}

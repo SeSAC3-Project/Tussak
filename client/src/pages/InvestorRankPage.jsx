@@ -1,154 +1,90 @@
-import { useApp } from '../AppContext'
-import { Trophy, Medal, Award } from 'lucide-react';
-
+import { useState, useEffect } from 'react';
+import { rankingApi } from '../services/rankingApi';
 
 const InvestmentRanking = () => {
-    const { goBack } = useApp();
+    const [investorData, setInvestorData] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const allInvestorData = [
-        { name: '김수식', gain: 199.99 },
-        { name: '박투자', gain: 199.99 },
-        { name: '최새싹', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-        { name: '이초보', gain: 189.99 },
-    ];
+    // 투자 랭킹 데이터 로드 (전체)
+    useEffect(() => {
+        const fetchInvestorRanking = async () => {
+            try {
+                setIsLoading(true);
+                const response = await rankingApi.getInvestmentRanking(50); // 상위 50개 조회
+                
+                if (response.success && response.data) {
+                    setInvestorData(response.data);
+                } else {
+                    console.error('투자 랭킹 조회 실패:', response.error);
+                    setInvestorData([]);
+                }
+            } catch (error) {
+                console.error('투자 랭킹 로드 오류:', error);
+                setInvestorData([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    const getRankIcon = (index) => {
-        switch (index) {
-            case 0:
-                return <Trophy className="w-6 h-6 text-lime-400" />;
-            case 1:
-                return <Medal className="w-6 h-6 text-lime-400" />;
-            case 2:
-                return <Award className="w-6 h-6 text-lime-400" />;
-            default:
-                return null;
-        }
-    };
-
-    const getProfileColor = (name) => {
-        const colors = [
-            'from-blue-400 to-purple-500',
-            'from-green-400 to-blue-500',
-            'from-purple-400 to-pink-500',
-            'from-red-400 to-yellow-500',
-            'from-indigo-400 to-purple-500',
-            'from-pink-400 to-red-500',
-            'from-yellow-400 to-orange-500',
-            'from-teal-400 to-blue-500',
-            'from-orange-400 to-red-500',
-            'from-cyan-400 to-blue-500'
-        ];
-        const hash = name.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-        return colors[hash % colors.length];
-    };
+        fetchInvestorRanking();
+    }, []);
 
     return (
-        <div className="min-h-screen p-4 sm:p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto">
-                {/* 뒤로 가기 */}
-                <button onClick={goBack}>뒤로 가기</button>
-                {/* 사이드바와 메인 컨텐츠를 감싸는 컨테이너 */}
-                <div className="lg:flex lg:gap-8">
-
-                    {/* 메인 컨텐츠 */}
-                    <div className="flex-1">
-
-                        {/* 랭킹 카드 */}
-                        <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-                            {/* '투자 랭킹' */}
-                            <div className="bg-[#B0EE8E] p-4 lg:p-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="ml-4">
-                                        <h2 className="text-xl lg:text-2xl font-bold text-black mb-2 ">전체 투자 랭킹</h2>
-                                        <p className="text-sm text-gray-600">수익률 기준으로 정렬됩니다</p>
-                                    </div>
-                                    <div className="bg-white bg-opacity-20 rounded-full p-4">
-                                        <div className="text-xl">🏆</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="p-6 lg:p-8">
-                                {/* 상위 3명 하이라이트 */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                                    {allInvestorData.slice(0, 3).map((investor, index) => (
-                                        <div key={index} className={`p-6 rounded-2xl ${
-                                            // index === 0 ? 'bg-gradient-to-br from-[#DFFFD6] to-lime-100 border-2 border-lime-300' :
-                                            // index === 1 ? 'bg-gradient-to-br from-[#DFFFD6] to-lime-100 border-2 border-lime-300' :
-                                            'bg-gradient-to-br from-[#DFFFD6] to-lime-100 hover:to-[#B0EE8E] transition-colors border-2 border-[#DFFFD6]'
-                                        }`}>
-                                            <div className="text-center">
-                                                <div className="flex justify-center mb-3">
-                                                    {getRankIcon(index)}
-                                                </div>
-                                                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getProfileColor(investor.name)} mx-auto mb-3 flex items-center justify-center text-white font-bold text-xl shadow-lg`}>
-                                                    {investor.name.charAt(0)}
-                                                </div>
-                                                <h3 className="font-bold text-gray-800 mb-1">{investor.name}</h3>
-                                                <p className="text-2xl font-bold text-red-500">+{investor.gain}%</p>
-                                                <p className="text-sm text-gray-600 mt-1">
-                                                    {index === 0 ? '👑 1위' : index === 1 ? '🥈 2위' : '🥉 3위'}
-                                                </p>
+        <div className="max-w-7xl mx-auto">
+            <div className="pt-[15px] pb-[20px] mx-2 flex flex-col gap-[16px]">
+                {/* 투자 랭킹 카드 */}
+                <div className="bg-white rounded-xl py-5 px-7" style={{ fontFamily: 'DM Sans' }}>
+                    <h2 className="font-bold mb-6" style={{ fontSize: '20px', color: '#0F250B' }}>전체 투자 랭킹</h2>
+                    
+                    {isLoading ? (
+                        <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                            <span className="ml-2 text-gray-500">투자 랭킹을 불러오는 중...</span>
+                        </div>
+                    ) : investorData.length === 0 ? (
+                        <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+                            <span className="text-gray-500">투자 랭킹 데이터를 불러올 수 없습니다</span>
+                        </div>
+                    ) : (
+                        <div className="h-[calc(100vh-200px)] overflow-y-auto">
+                            <ul className="space-y-0">
+                                {investorData.map((investor, index) => (
+                                    <li key={investor.user_id || index} className="flex items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0">
+                                        <span className={`w-8 text-center font-normal text-base lg:text-[20px] flex-shrink-0 ${
+                                            index === 0 ? 'text-[#FFCC00]' : 
+                                            index === 1 ? 'text-[#CCCCCC]' : 
+                                            index === 2 ? 'text-[#AC7F5E]' : 
+                                            'text-[#8A8A8A]'
+                                        }`}>{investor.rank || index + 1}</span>
+                                        <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full ml-4 flex-shrink-0 flex items-center justify-center text-xs overflow-hidden">
+                                            {investor.profile_image_url ? (
+                                                <img 
+                                                    src={investor.profile_image_url} 
+                                                    alt={investor.nickname}
+                                                    className="w-full h-full rounded-full object-cover"
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.nextSibling.style.display = 'flex';
+                                                    }}
+                                                />
+                                            ) : null}
+                                            <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-gray-600" style={{display: investor.profile_image_url ? 'none' : 'flex'}}>
+                                                {investor.nickname ? investor.nickname.charAt(0) : '?'}
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-
-                                {/* 나머지 순위 리스트 */}
-                                <div className="space-y-3">
-                                    <div className="grid gap-2 max-h-[800px] overflow-y-scroll scrollbar-thin scrollbar-thumb-line-300">
-                                        {allInvestorData.slice(3).map((investor, index) => (
-                                            <div key={index + 3} className="flex items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors mr-4">
-                                                <div className="w-10 h-10 rounded-full flex items-center justify-center text-gray-600 font-bold mr-4">
-                                                    {index + 4}
-                                                </div>
-                                                
-                                                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getProfileColor(investor.name)} flex items-center justify-center text-white font-bold shadow-md mr-4`}>
-                                                    {investor.name.charAt(0)}
-                                                </div>
-                                                
-                                                <div className="flex-1">
-                                                    <span className="font-medium text-gray-800 text-lg">{investor.name}</span>
-                                                </div>
-                                                
-                                                <div className="text-right">
-                                                    <span className="text-xl font-bold text-red-500">
-                                                        +{investor.gain}% (+130.00%)
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
+                                        <span className="ml-4 font-normal flex-1 text-[20px] text-[#0F250B] truncate min-w-0 pr-2">{investor.nickname || '익명'}</span>
+                                        <span className={`text-sm lg:text-[20px] font-normal flex-shrink-0 whitespace-nowrap ${
+                                            investor.profit_amount > 0 ? 'text-[#FF383C]' : 
+                                            investor.profit_amount < 0 ? 'text-[#0088FF]' : 
+                                            'text-[#8A8A8A]'
+                                        }`}>
+                                            {investor.profit_amount > 0 ? '+' : ''}{(investor.profit_amount || 0).toLocaleString()}원
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>
