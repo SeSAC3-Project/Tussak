@@ -46,7 +46,7 @@ export default function Portfolio() {
             try {
                 setError(null);
                 const data = await portfolioApi.getPortfolio(authToken);
-                
+
                 if (data) {
                     setPortfolioData(data);
                     const transformedStocks = transformPortfolioData(data);
@@ -89,8 +89,8 @@ export default function Portfolio() {
     }
 
     return (
-        
-            <div class="max-w-7xl mx-auto">
+
+            <div className="max-w-7xl mx-auto">
                 {/* 내 자산 현황 */}
                 <div className="mt-4 mx-2 mb-7 overflow-visible">
 
@@ -98,24 +98,25 @@ export default function Portfolio() {
                         <h1 className="font-bold mb-6" style={{ fontFamily: 'DM Sans', fontSize: '20px', color: 'rgb(15, 37, 11)' }}>내 자산 현황</h1>
                         <div className="bg-white-300 p-4 rounded-lg shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]">
                             <div className="text-gray-600">
-                                현재 잔고: {formatKRW(portfolioData.user_info?.current_balance || 0)}
+                                현금잔고: {formatKRW(portfolioData.user_info?.current_balance || 0)}
                             </div>
                             <div className="text-gray-600">
-                                총 투자금: {formatKRW(portfolioData.portfolio_summary?.total_investment || 0)}
-                            </div>
-                            <div className="text-gray-600">
-                                총 평가금액: {formatKRW(portfolioData.portfolio_summary?.total_current_value || 0)}
+                                투자금액: {formatKRW(portfolioData.portfolio_summary?.total_investment || 0)}
                             </div>
                             <div className={`${portfolioData.portfolio_summary?.total_profit_loss >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
-                                평가손익: {formatKRW(portfolioData.portfolio_summary?.total_profit_loss || 0)} ({formatPercentage(portfolioData.portfolio_summary?.total_profit_loss_rate || 0)})
+                                투자손익: {formatKRW(portfolioData.portfolio_summary?.total_profit_loss || 0)} ({formatPercentage(portfolioData.portfolio_summary?.total_profit_loss_rate || 0)})
                             </div>
+                            <div className="text-gray-600">
+                                총 자산: {formatKRW(portfolioData.portfolio_summary?.total_asset || 0)}
+                            </div>
+                            
                         </div>
                     </div>
                 </div>
                 {/* 보유 주식 */}
-                <div class="mx-2 mb-4">
-                    <div className="bg-white p-4 lg:p-6 rounded-lg shadow-sm overflow-hidden" style={{ fontFamily: 'DM Sans' }}>
-                        <h2 className="text-[20px] font-bold text-[#0F250B]">보유 주식</h2>
+                <div className="mx-2 mb-4">
+                    <div className="bg-white p-4 lg:p-6 rounded-xl shadow-sm overflow-hidden" style={{ fontFamily: 'DM Sans' }}>
+                        <h2 className="text-[20px] font-bold text-[#0F250B] mb-6">보유 주식</h2>
                         {/* 테이블 - lg 이상 */}
                         <div className="hidden lg:block overflow-x-auto">
                             <table className="w-full">
@@ -132,20 +133,20 @@ export default function Portfolio() {
                                 </thead>
                                 <tbody>
                                     {portfolioStocks.map((stock, index) => (
-                                        <tr key={`${stock.stock_code}-${index}`} className="border-b border-gray-100 hover:bg-gray-50">
-                                            <td className="py-4 px-4 text-gray-800 font-medium">{stock.name}</td>
-                                            <td className="py-4 px-2 text-gray-700">{stock.quantity}주</td>
-                                            <td className="py-4 px-2 text-gray-800 font-medium">{formatKRW(stock.evaluationAmount)}</td>
-                                            <td className={`py-4 px-2 font-medium ${stock.unrealizedPL >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
+                                        <tr key={`${stock.stock_code}-${index}`} className="border-b border-[#E9E9E9] last:border-b-0 hover:bg-gray-50">
+                                            <td className="py-4 px-4 text-gray-800 font-normal text-base">{stock.name}</td>
+                                            <td className="py-4 px-2 text-gray-700 font-normal text-base">{stock.quantity}주</td>
+                                            <td className="py-4 px-2 text-gray-800 font-normal text-base">{formatKRW(stock.evaluationAmount)}</td>
+                                            <td className={`py-4 px-2 font-normal text-base ${stock.unrealizedPL >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
                                                 {formatKRW(stock.unrealizedPL)}
                                             </td>
-                                            <td className={`py-4 px-2 font-medium ${stock.returnRate >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
+                                            <td className={`py-4 px-2 font-normal text-base ${stock.returnRate >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
                                                 {formatPercentage(stock.returnRate)}
                                             </td>
-                                            <td className="py-4 px-2 text-right text-gray-800">
+                                            <td className="py-4 px-2 text-right text-gray-800 font-normal text-base">
                                                 {formatKRW(stock.currentPrice)}
                                             </td>
-                                            <td className="py-4 px-4 text-right text-gray-800">
+                                            <td className="py-4 px-4 text-right text-gray-800 font-normal text-base">
                                                 {formatKRW(stock.averageCost)}
                                             </td>
                                         </tr>
@@ -161,19 +162,19 @@ export default function Portfolio() {
                                     {/* 주식명과 보유수량 */}
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
-                                            <h3 className="text-base font-semibold text-gray-800">{stock.name}</h3>
-                                            <p className="text-sm text-gray-600">{stock.quantity}주</p>
+                                            <h3 className="text-lg font-normal text-gray-800">{stock.name}</h3>
+                                            <p className="text-base font-normal text-gray-600">{stock.quantity}주</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-base font-semibold text-gray-800">{formatKRW(stock.evaluationAmount)}</p>
-                                            <p className={`text-sm font-medium ${stock.unrealizedPL >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
+                                            <p className="text-lg font-normal text-gray-800">{formatKRW(stock.evaluationAmount)}</p>
+                                            <p className={`text-base font-normal ${stock.unrealizedPL >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
                                                 {formatKRW(stock.unrealizedPL)} ({formatPercentage(stock.returnRate)})
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* 평균단가와 현재가 */}
-                                    <div className="flex justify-between text-sm text-gray-600">
+                                    <div className="flex justify-between text-base font-normal text-gray-600">
                                         <div>
                                             <span className="text-gray-500">평균단가</span>
                                             <span className="ml-2 text-gray-800">{formatKRW(stock.averageCost)}</span>

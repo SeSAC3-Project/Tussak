@@ -105,7 +105,7 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
 
             {/* 중간 요소: 종목명 */}
             <div>
-                <h3 className="text-xl font-normal text-[#0F250B] truncate" style={{letterSpacing: '0.02em'}}>{stockName}</h3>
+                <h3 className="text-lg font-normal text-[#0F250B] truncate" style={{letterSpacing: '0.02em'}}>{stockName}</h3>
             </div>
 
             {/* 하단 요소들: 현재가, 변동(화살표, 1주당얼마, 비율) */}

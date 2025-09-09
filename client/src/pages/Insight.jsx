@@ -71,11 +71,11 @@ function HotKeywordSection({ onKeywordSelect, selectedKeyword, onKeywordDataLoad
             {isLoading ? (
                 <div className="flex justify-center items-center h-[350px]">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                    <span className="ml-2 text-gray-500">키워드를 불러오는 중...</span>
+                    <span className="ml-2 text-sm text-gray-500">키워드를 불러오는 중...</span>
                 </div>
             ) : keywordData.length === 0 ? (
                 <div className="flex justify-center items-center h-[350px]">
-                    <span className="text-gray-500">키워드 데이터를 불러올 수 없습니다</span>
+                    <span className="text-sm text-gray-500">키워드 데이터를 불러올 수 없습니다</span>
                 </div>
             ) : (
                 <WordCloud 
@@ -254,29 +254,28 @@ function NewsSection({ selectedKeyword, keywordData }) {
                     뉴스
                 </h2>
                 {currentKeyword && (
-                    <span className="px-3 py-1 bg-gray-100 text-black rounded-full text-sm font-medium">
+                    <span className="px-3 py-1 bg-gray-100 text-black rounded-full text-xs font-medium">
                         {currentKeyword}
                     </span>
                 )}
             </div>
             {isLoading ? (
                 <div className="flex justify-center items-center h-[200px]">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                    <span className="ml-2 text-gray-500">뉴스를 불러오는 중...</span>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
                 </div>
             ) : error ? (
                 <div className="flex justify-center items-center h-[200px]">
                     <div className="text-center">
                         <span className="text-red-500 block">뉴스 로드 오류</span>
-                        <span className="text-sm text-gray-400 mt-1 block">{error}</span>
+                        <span className="text-xs text-gray-400 mt-1 block">{error}</span>
                     </div>
                 </div>
             ) : newsData.length === 0 ? (
                 <div className="flex justify-center items-center h-[200px]">
                     <div className="text-center">
-                        <span className="text-gray-500 block">해당 키워드의 최신 뉴스가 없습니다</span>
+                        <span className="text-sm text-gray-500 block">해당 키워드의 최신 뉴스가 없습니다</span>
                         {currentKeyword && (
-                            <span className="text-sm text-gray-400 mt-1 block">
+                            <span className="text-xs text-gray-400 mt-1 block">
                                 "{currentKeyword}" 관련 뉴스를 찾을 수 없어요
                             </span>
                         )}
@@ -289,23 +288,23 @@ function NewsSection({ selectedKeyword, keywordData }) {
                             {/* md 이상 */}
                             <div className="hidden md:flex items-center justify-between py-4 px-10">
                                 <div className="flex items-center space-x-4 flex-1 min-w-0">
-                                    <span 
-                                        className="font-normal flex-shrink-0" 
-                                        style={{ fontFamily: 'DM Sans', fontSize: '19px', color: '#8A8A8A', minWidth: '80px' }}
+                                    <span
+                                        className="font-normal flex-shrink-0"
+                                        style={{ fontFamily: 'DM Sans', fontSize: '16px', color: '#8A8A8A', minWidth: '80px' }}
                                     >
                                         {news.pub_date}
                                     </span>
-                                    <span 
-                                        className="font-normal flex-1 truncate pr-4" 
-                                        style={{ fontFamily: 'DM Sans', fontSize: '19px', color: '#0F250B' }}
+                                    <span
+                                        className="font-normal flex-1 truncate pr-4"
+                                        style={{ fontFamily: 'DM Sans', fontSize: '16px', color: '#0F250B' }}
                                         title={news.title} // hover시 전체 제목 표시
                                     >
                                         {news.title}
                                     </span>
                                 </div>
-                                <span 
-                                    className="font-normal flex-shrink-0 whitespace-nowrap" 
-                                    style={{ fontFamily: 'DM Sans', fontSize: '19px', color: '#8A8A8A' }}
+                                <span
+                                    className="font-normal flex-shrink-0 whitespace-nowrap"
+                                    style={{ fontFamily: 'DM Sans', fontSize: '16px', color: '#8A8A8A' }}
                                 >
                                     {news.time_ago}
                                 </span>
@@ -314,24 +313,24 @@ function NewsSection({ selectedKeyword, keywordData }) {
                             {/* 세로 레이아웃 */}
                             <div className="md:hidden py-4 px-4">
                                 <div className="flex justify-between items-start mb-2">
-                                    <span 
-                                        className="font-normal text-sm flex-shrink-0" 
+                                    <span
+                                        className="font-normal text-xs flex-shrink-0"
                                         style={{ fontFamily: 'DM Sans', color: '#8A8A8A' }}
                                     >
                                         {news.pub_date}
                                     </span>
-                                    <span 
-                                        className="font-normal text-sm flex-shrink-0 ml-2" 
+                                    <span
+                                        className="font-normal text-xs flex-shrink-0 ml-2"
                                         style={{ fontFamily: 'DM Sans', color: '#8A8A8A' }}
                                     >
                                         {news.time_ago}
                                     </span>
                                 </div>
                                 <div className="pr-2">
-                                    <span 
-                                        className="font-normal text-base leading-relaxed block"
-                                        style={{ 
-                                            fontFamily: 'DM Sans', 
+                                    <span
+                                        className="font-normal text-sm leading-relaxed block"
+                                        style={{
+                                            fontFamily: 'DM Sans',
                                             color: '#0F250B',
                                             display: '-webkit-box',
                                             WebkitLineClamp: '2',

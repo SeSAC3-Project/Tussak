@@ -76,7 +76,7 @@ export default function History() {
                 <h2 className="text-[20px] font-bold text-[#0F250B]">주식 거래 내역</h2>
               </div>
               <div className="flex justify-center items-center h-[250px]">
-                <span className="text-gray-500">로그인이 필요한 서비스입니다.</span>
+                <span className="text-sm text-gray-500">로그인이 필요한 서비스입니다.</span>
               </div>
             </div>
           </div>
@@ -97,27 +97,27 @@ export default function History() {
             {loading ? (
               <div className="flex justify-center items-center h-[250px]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                <span className="ml-2 text-gray-500">거래 내역을 불러오는 중...</span>
+                <span className="ml-2 text-sm text-gray-500">거래 내역을 불러오는 중...</span>
               </div>
             ) : error ? (
               <div className="flex justify-center items-center h-[250px]">
-                <span className="text-red-500">{error}</span>
+                <span className="text-sm text-red-500">{error}</span>
               </div>
             ) : transactions.length === 0 ? (
               <div className="flex justify-center items-center h-[250px]">
-                <span className="text-gray-500">거래 내역이 없습니다.</span>
+                <span className="text-sm text-gray-500">거래 내역이 없습니다.</span>
               </div>
             ) : (
               <ul className="space-y-0">
                 {transactions.map((item) => (
                   <li key={item.id} className="flex items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0 px-4">
                     <div className="w-[22%] min-w-0">
-                      <div className="text-sm lg:text-lg text-[#0F250B] font-normal truncate">{item.date} {item.time}</div>
+                      <div className="text-xs lg:text-base text-[#0F250B] font-normal truncate">{item.date} {item.time}</div>
                     </div>
                     <div className="w-[6%] flex justify-center">
-                      <span className={`text-sm lg:text-lg font-normal ${
-                        item.tradeType === '매수' 
-                          ? 'text-[#FF383C]' 
+                      <span className={`text-xs lg:text-base font-normal ${
+                        item.tradeType === '매수'
+                          ? 'text-[#FF383C]'
                           : 'text-[#0088FF]'
                       }`}>
                         {item.tradeType}
@@ -125,16 +125,16 @@ export default function History() {
                     </div>
                     <div className="w-[6%]"></div>
                     <div className="w-[14%] min-w-0">
-                      <span className="font-normal text-sm lg:text-lg text-[#0F250B] truncate block">{item.company}</span>
+                      <span className="font-normal text-xs lg:text-base text-[#0F250B] truncate block">{item.company}</span>
                     </div>
-                    <div className="w-[12%] text-sm lg:text-lg font-normal text-[#0F250B] text-center">
-                        <span className="truncate block">{item.quantity.toLocaleString()}주</span>              
+                    <div className="w-[12%] text-xs lg:text-base font-normal text-[#0F250B] text-center">
+                        <span className="truncate block">{item.quantity.toLocaleString()}주</span>
                         </div>
                       <div className="w-[20%] text-right min-w-0">
-                        <div className="text-sm lg:text-lg font-normal text-[#8A8A8A] truncate">거래단가&nbsp; <span className="text-[#0F250B]">{item.price.toLocaleString()}</span></div>
+                        <div className="text-xs lg:text-base font-normal text-[#8A8A8A] truncate">거래단가&nbsp; <span className="text-[#0F250B]">{item.price.toLocaleString()}</span></div>
                       </div>
                       <div className="w-[20%] text-right min-w-0">
-                        <div className="text-sm lg:text-lg font-normal text-[#8A8A8A] truncate">거래금액&nbsp; <span className="text-[#0F250B]">{item.totalAmount.toLocaleString()}</span></div>
+                        <div className="text-xs lg:text-base font-normal text-[#8A8A8A] truncate">거래금액&nbsp; <span className="text-[#0F250B]">{item.totalAmount.toLocaleString()}</span></div>
                       </div>
                   </li>
                 ))}
