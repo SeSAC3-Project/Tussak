@@ -54,7 +54,13 @@ export default function NavSidebar({ activeSection }) {
       alert('로그인이 필요한 서비스입니다');
       return;
     }
-    setActiveSection(item.name);
+    
+    // 각 페이지별 적절한 네비게이션 함수 호출
+    if (item.onClick) {
+      item.onClick(); // 해당 페이지의 네비게이션 함수 호출
+    } else {
+      setActiveSection(item.name);
+    }
     setIsSidebarOpen(false);
   };
 

@@ -1,11 +1,16 @@
 import { useApp } from '../AppContext'
 import StockList from './StockList';
 import SearchBar from '../components/SearchBar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Market({ initialSearchTerm = '' }) {
     const { navigateToStockDetail } = useApp();
-    const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // initialSearchTerm이 변경될 때마다 searchTerm 업데이트
+    useEffect(() => {
+        setSearchTerm(initialSearchTerm);
+    }, [initialSearchTerm]);
 
     const handleSearchChange = (value) => {
         setSearchTerm(value);

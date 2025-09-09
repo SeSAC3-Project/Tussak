@@ -27,9 +27,9 @@ export function AppProvider({ children }) {
         setSelectedStock(null);
     };
 
-    const navigateToMarket = (searchTerm) =>{
+    const navigateToMarket = (searchTerm = '') =>{
         setActiveSection('Market');
-        setInitialSearchTerm(searchTerm);
+        setInitialSearchTerm(searchTerm || ''); // 빈 문자열이면 빈 문자열로 설정
         setSelectedStock(null);
     };
 
