@@ -14,7 +14,7 @@ function LoginButton() {
       >
         <img src="/icon/login.png" alt="Logout icon" className="w-6 h-6 mr-[14px]" />
         <p className="font-normal" style={{fontFamily: 'DM Sans'}}>
-          {isLoading ? '로그아웃 중...' : 'Log Out'}
+          Log Out
         </p>
       </button>
     );
@@ -28,7 +28,7 @@ function LoginButton() {
     >
       <img src="/icon/login.png" alt="Login icon" className="w-6 h-6 mr-[14px]" />
       <p className="font-normal" style={{fontFamily: 'DM Sans'}}>
-        {isLoading ? '로그인 중...' : 'Log In'}
+        Log In
       </p>
     </button>
   );

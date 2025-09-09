@@ -181,6 +181,7 @@ export function AppProvider({ children }) {
             setAuthToken(null);
             setUser(null);
             setIsLoggedIn(false);
+            setIsLoading(false);
             console.log('로그아웃 완료');
             
         } catch (error) {
@@ -192,6 +193,7 @@ export function AppProvider({ children }) {
             setAuthToken(null);
             setUser(null);
             setIsLoggedIn(false);
+            setIsLoading(false);
         }
     };
 

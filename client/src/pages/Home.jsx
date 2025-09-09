@@ -166,9 +166,6 @@ function LoginCard() {
                 onClick={handleKakaoLogin}
                 style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
             />
-            {isLoading && (
-                <p className="text-sm text-gray-500 mt-2">로그인 중...</p>
-            )}
         </div>
     );
 }

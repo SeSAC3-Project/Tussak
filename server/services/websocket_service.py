@@ -274,7 +274,7 @@ class KisWebSocketService:
             
             # 실시간 데이터 처리
             if message[0] in ['0', '1']:
-                self.app.logger.debug(f"실시간 데이터: {message[:50]}...")
+                # self.app.logger.debug(f"실시간 데이터: {message[:50]}...")
                 self.process_realtime_data(message)
             else:
                 self.app.logger.debug(f"알 수 없는 메시지: {message[:50]}...")
@@ -339,7 +339,7 @@ class KisWebSocketService:
                 data_count = parts[2]
                 raw_data = parts[3]
 
-                self.app.logger.debug(f"📊 실시간 데이터: TR_ID={tr_id}, COUNT={data_count}")
+                # self.app.logger.debug(f"📊 실시간 데이터: TR_ID={tr_id}, COUNT={data_count}")
                 
                 if tr_id == "H0STCNT0":  # 주식 체결가
                     self.process_stock_price_data(raw_data)
