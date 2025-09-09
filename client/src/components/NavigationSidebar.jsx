@@ -9,12 +9,12 @@ function LoginButton() {
     return (
       <button
         onClick={handleLogout}
-        className="flex items-center text-sm text-gray-500 w-full justify-center p-[10px] cursor-pointer hover:bg-red-100 rounded-md transition-colors duration-200"
+        className="flex items-center text-base text-[#8A8A8A] w-full justify-center p-[10px] cursor-pointer hover:bg-gray-100 rounded-md transition-colors duration-200 focus:outline-none"
         disabled={isLoading}
       >
-        <img src="/icon/login.png" alt="Logout icon" className="w-6 h-6 mr-[14px]" />
-        <p className="font-normal" style={{fontFamily: 'DM Sans'}}>
-          {isLoading ? '로그아웃 중...' : 'Log Out'}
+        <img src="/icon/login.png" alt="Logout icon" className="w-6 h-6 mr-[14px]" style={{filter: 'brightness(0) saturate(100%) invert(55%) sepia(8%) saturate(313%) hue-rotate(314deg) brightness(90%) contrast(84%)'}} />
+        <p className="font-normal text-base" style={{fontFamily: 'DM Sans'}}>
+          Log Out
         </p>
       </button>
     );
@@ -23,12 +23,12 @@ function LoginButton() {
   return (
     <button
       onClick={handleKakaoLogin}
-      className="flex items-center text-sm text-gray-500 w-full justify-center p-[10px] cursor-pointer hover:bg-lime-100 rounded-md transition-colors duration-200"
+      className="flex items-center text-base text-[#8A8A8A] w-full justify-center p-[10px] cursor-pointer hover:bg-gray-100 rounded-md transition-colors duration-200 focus:outline-none"
       disabled={isLoading}
     >
-      <img src="/icon/login.png" alt="Login icon" className="w-6 h-6 mr-[14px]" />
-      <p className="font-normal" style={{fontFamily: 'DM Sans'}}>
-        {isLoading ? '로그인 중...' : 'Log In'}
+      <img src="/icon/login.png" alt="Login icon" className="w-6 h-6 mr-[14px]" style={{filter: 'brightness(0) saturate(100%) invert(55%) sepia(8%) saturate(313%) hue-rotate(314deg) brightness(90%) contrast(84%)'}} />
+      <p className="font-normal text-base" style={{fontFamily: 'DM Sans'}}>
+        Log In
       </p>
     </button>
   );
@@ -54,7 +54,13 @@ export default function NavSidebar({ activeSection }) {
       alert('로그인이 필요한 서비스입니다');
       return;
     }
-    setActiveSection(item.name);
+    
+    // 각 페이지별 적절한 네비게이션 함수 호출
+    if (item.onClick) {
+      item.onClick(); // 해당 페이지의 네비게이션 함수 호출
+    } else {
+      setActiveSection(item.name);
+    }
     setIsSidebarOpen(false);
   };
 

@@ -1,4 +1,4 @@
-import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Pagination({ currentPage, totalPages, onPageChange }) {
   const getVisiblePages = () => {
@@ -29,71 +29,41 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
   };
 
   return (
-    <div className="flex justify-center items-center mt-6 space-x-1">
-      {/* First 버튼 */}
-      <button
-        onClick={() => onPageChange(1)}
-        className={`w-8 px-1 py-1 rounded text-sm 
-          ${ 
-            currentPage === 1
-            ? "text-gray-300 cursor-not-allowed"
-            : "text-gray-400 hover:text-gray-800"}`}
-      >
-        <ChevronFirst />
-      </button>
-      
-      {/* Left 버튼 */}
-      <button
-        onClick={() => onPageChange(Math.min(totalPages, currentPage - 1))}
-        className={`w-8 px-1 py-1 rounded text-sm 
-          ${ 
-            currentPage === 1
-            ? "text-gray-300 cursor-not-allowed"
-            : "text-gray-400 hover:text-gray-800"}`}
-      >
-        <ChevronLeft />
-      </button>
+    <div className="flex justify-center items-center mb-4 space-x-2" style={{ fontFamily: 'DM Sans' }}>
+      {/* Left 화살표 */}
+      {currentPage > 1 && (
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          className="w-8 h-8 flex items-center justify-center text-[#8A8A8A] hover:text-[#89D67D]"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+      )}
 
       {/* 페이지 번호들 */}
       {getVisiblePages().map(page => (
         <button
           key={page}
           onClick={() => onPageChange(page)}
-          className={`w-8 h-8 flex items-center justify-center rounded text-sm ${
+          className={`w-8 h-8 flex items-center justify-center text-base font-normal ${
             page === currentPage
-              ? 'bg-green-500 text-white'
-              : 'text-gray-600 hover:text-gray-800'
+              ? 'text-[#89D67D]'
+              : 'text-[#8A8A8A] hover:text-[#89D67D]'
           }`}
         >
           {page}
         </button>
       ))}
 
-      {/* Right 버튼 */}
-      <button
-        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        className={`w-8 px-1 py-1 rounded text-sm 
-          ${ 
-            currentPage === totalPages
-            ? 'text-gray-300 cursor-not-allowed'
-            : 'text-gray-400 hover:text-gray-800' 
-          }`}
-      >
-        <ChevronRight />
-      </button>
-
-      {/* Last 버튼 */}
-      <button
-        onClick={() => onPageChange(totalPages)}
-        className={`w-8 px-1 py-1 rounded text-sm 
-          ${ 
-            currentPage === totalPages
-            ? 'text-gray-300 cursor-not-allowed'
-            : 'text-gray-400 hover:text-gray-800' 
-          }`}
-      >
-        <ChevronLast />
-      </button>
+      {/* Right 화살표 */}
+      {currentPage < totalPages && (
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          className="w-8 h-8 flex items-center justify-center text-[#8A8A8A] hover:text-[#89D67D]"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 };

@@ -65,6 +65,7 @@ class PortfolioService:
                     'total_current_value': float(total_current_value),
                     'total_profit_loss': float(total_profit_loss),
                     'total_profit_loss_rate': float(total_profit_loss_rate),
+                    'total_asset': float(user.current_balance + total_current_value),
                     'portfolio_count': len(portfolio_data)
                 },
                 'portfolios': portfolio_data
