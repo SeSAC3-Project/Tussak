@@ -71,7 +71,7 @@ export default function History() {
       <div className="min-h-screen">
         <div className="max-w-7xl mx-auto">
           <div className="pt-[15px] pb-[20px] mx-2">
-            <div className="bg-white rounded-[20px] py-[19px] px-[28px]" style={{ fontFamily: 'DM Sans' }}>
+            <div className="bg-white rounded-xl py-[19px] px-[28px]" style={{ fontFamily: 'DM Sans' }}>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-[20px] font-bold text-[#0F250B]">주식 거래 내역</h2>
               </div>
@@ -90,7 +90,7 @@ export default function History() {
       <div className="max-w-7xl mx-auto">
         <div className="pt-[15px] pb-[20px] mx-2">
           {/* 거래 내역 */}
-          <div className="bg-white rounded-[20px] py-[19px] px-[28px]" style={{ fontFamily: 'DM Sans' }}>
+          <div className="bg-white rounded-xl py-[19px] px-[28px]" style={{ fontFamily: 'DM Sans' }}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-[20px] font-bold text-[#0F250B]">주식 거래 내역</h2>
             </div>
@@ -110,12 +110,12 @@ export default function History() {
             ) : (
               <ul className="space-y-0">
                 {transactions.map((item) => (
-                  <li key={item.id} className="flex items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0">
-                    <div className="w-44 lg:w-52 flex-shrink-0 ml-4">
-                      <div className="text-base lg:text-[20px] text-[#0F250B] font-normal">{item.date} {item.time}</div>
+                  <li key={item.id} className="flex items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0 px-4">
+                    <div className="w-[22%] min-w-0">
+                      <div className="text-sm lg:text-lg text-[#0F250B] font-normal truncate">{item.date} {item.time}</div>
                     </div>
-                    <div className="w-6 lg:w-16 flex justify-center flex-shrink-0">
-                      <span className={`text-base lg:text-[20px] font-normal ${
+                    <div className="w-[6%] flex justify-center">
+                      <span className={`text-sm lg:text-lg font-normal ${
                         item.tradeType === '매수' 
                           ? 'text-[#FF383C]' 
                           : 'text-[#0088FF]'
@@ -123,17 +123,18 @@ export default function History() {
                         {item.tradeType}
                       </span>
                     </div>
-                    <div className="w-25 lg:w-32 ml-8 flex-shrink-0">
-                      <span className="font-normal text-base lg:text-[20px] text-[#0F250B] truncate block">{item.company}</span>
+                    <div className="w-[6%]"></div>
+                    <div className="w-[14%] min-w-0">
+                      <span className="font-normal text-sm lg:text-lg text-[#0F250B] truncate block">{item.company}</span>
                     </div>
-                    <div className="hidden lg:inline w-20 text-base lg:text-[20px] font-normal text-[#0F250B] flex-shrink-0 whitespace-nowrap ml-4">
-                        {item.quantity.toLocaleString()}주                  
+                    <div className="w-[12%] text-sm lg:text-lg font-normal text-[#0F250B] text-center">
+                        <span className="truncate block">{item.quantity.toLocaleString()}주</span>              
                         </div>
-                      <div className="hidden lg:inline flex-shrink-0 whitespace-nowrap ml-3">
-                        <div className="text-base lg:text-[20px] font-normal text-[#8A8A8A]">거래단가 <span className="text-[#0F250B] ml-2">{item.price.toLocaleString()}</span></div>
+                      <div className="w-[20%] text-right min-w-0">
+                        <div className="text-sm lg:text-lg font-normal text-[#8A8A8A] truncate">거래단가&nbsp; <span className="text-[#0F250B]">{item.price.toLocaleString()}</span></div>
                       </div>
-                      <div className="flex-shrink-0 whitespace-nowrap ml-8">
-                        <div className="text-base lg:text-[20px] font-normal text-[#8A8A8A]">거래금액 <span className="text-[#0F250B] ml-2">{item.totalAmount.toLocaleString()}</span></div>
+                      <div className="w-[20%] text-right min-w-0">
+                        <div className="text-sm lg:text-lg font-normal text-[#8A8A8A] truncate">거래금액&nbsp; <span className="text-[#0F250B]">{item.totalAmount.toLocaleString()}</span></div>
                       </div>
                   </li>
                 ))}
