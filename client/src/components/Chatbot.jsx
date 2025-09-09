@@ -180,42 +180,44 @@ const Chatbot = ({ isExpanded = false, onToggle = null, height = "h-96" }) => {
 
   // 플로팅 챗봇
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-7 right-8 z-50">
       {/* 채팅 창 */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-80 h-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col animate-in slide-in-from-bottom duration-300">
+        <div className="absolute bottom-16 right-0 w-96 h-96 bg-white rounded-[20px] p-4 flex flex-col animate-in slide-in-from-bottom duration-300" style={{boxShadow: '0px 0px 30px 5px rgba(0, 0, 0, 0.25)'}}>
           {/* 헤더 */}
-          <div className="bg-lime-500 text-white p-4 rounded-t-xl flex items-center justify-between">
-            <h3 className="font-semibold">투싹봇</h3>
+          <div className="flex justify-end mb-2">
             <button
               onClick={toggleChat}
-              className="text-white hover:bg-lime-700 rounded-full p-1 transition-colors duration-200"
+              className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
             >
               <X size={20} />
             </button>
           </div>
           
           {/* 메시지 영역 */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-lime-50" style={{ maxHeight: '300px' }}>
+          <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-2" style={{ maxHeight: 'calc(100% - 80px)' }}>
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`p-3 rounded-xl max-w-xs text-sm ${
+                  className={`p-3 rounded-xl max-w-xs sm:max-w-sm ${
                     message.sender === 'user'
-                      ? 'bg-white rounded-br-none text-gray-800'
-                      : 'bg-lime-200 rounded-bl-none text-gray-800'
+                      ? 'rounded-br-none text-gray-800 ml-auto'
+                      : 'rounded-bl-none text-gray-800'
                   }`}
+                  style={{
+                    backgroundColor: message.sender === 'user' ? '#EDEDED' : '#F2F8E9'
+                  }}
                 >
-                  <p>{message.text}</p>
+                  <p className="text-sm">{message.text}</p>
                 </div>
               </div>
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-lime-200 p-3 rounded-xl rounded-bl-none text-gray-800 max-w-xs">
+                <div className="p-3 rounded-xl rounded-bl-none text-gray-800 max-w-xs" style={{backgroundColor: '#F2F8E9'}}>
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
@@ -224,27 +226,28 @@ const Chatbot = ({ isExpanded = false, onToggle = null, height = "h-96" }) => {
                 </div>
               </div>
             )}
-            <div ref={messagesEndRef} className="h-0" />
+            <div ref={messagesEndRef} className="h-0"/>
           </div>
           
           {/* 입력 영역 */}
-          <div className="p-4 border-t border-gray-200 bg-white rounded-b-xl">
-            <div className="flex items-center">
+          <div className="pt-3 mb-0 w-full px-2">
+            <div className="relative">
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="메시지를 입력하세요"
-                className="flex-1 p-2 px-3 border border-gray-300 rounded-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-500 text-sm"
+                placeholder=""
+                className="w-full p-2 px-4 pr-12 rounded-full focus:outline-none"
+                style={{backgroundColor: '#EDEDED', borderRadius: '40px', color: '#0F250B'}}
                 disabled={isLoading}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={isLoading || !inputText.trim()}
-                className="bg-lime-500 text-white rounded-full p-2 ml-2 hover:bg-lime-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 disabled:cursor-not-allowed"
               >
-                <Send size={16} />
+                <img src="/icon/send.png" alt="Send" className="w-5 h-5"  />
               </button>
             </div>
           </div>
@@ -254,9 +257,15 @@ const Chatbot = ({ isExpanded = false, onToggle = null, height = "h-96" }) => {
       {/* 플로팅 버튼 */}
       <button
         onClick={toggleChat}
-        className="bg-lime-500 text-white rounded-full p-4 shadow-lg hover:bg-lime-600 transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2"
+        className="rounded-full shadow-2xl hover:scale-110 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
+        style={{
+          width: '70px',
+          height: '70px',
+          backgroundColor: '#89D67D',
+          boxShadow: '0px 4px 8px 0px rgba(0, 0, 0, 0.15)'
+        }}
       >
-        <MessageCircle size={24} />
+        <img src="/icon/chatbot.png" alt="chatbot" style={{ width: '25px', height: '25px' }} className="mx-auto" />
       </button>
     </div>
   );
