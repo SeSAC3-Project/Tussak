@@ -92,31 +92,31 @@ export default function Portfolio() {
 
             <div className="max-w-7xl mx-auto">
                 {/* 내 자산 현황 */}
-                <div className="mt-4 mx-2 mb-7 overflow-visible">
+                <div className="mt-4 mx-2 mb-4 overflow-visible">
 
-                    <div className="bg-white px-7 py-5 rounded-lg mb-7">
-                        <h1 className="font-bold mb-6" style={{ fontFamily: 'DM Sans', fontSize: '20px', color: 'rgb(15, 37, 11)' }}>내 자산 현황</h1>
+                    <div className="bg-white px-7 py-5 rounded-xl mb-4">
+                        <h1 className="font-bold mb-4" style={{ fontFamily: 'DM Sans', fontSize: '20px', color: 'rgb(15, 37, 11)' }}>내 자산 현황</h1>
                         <div className="bg-white-300 p-4 rounded-lg shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]">
-                            <div className="text-gray-600">
+                            <div className="mb-3" style={{ color: 'rgb(15, 37, 11)' }}>
                                 현금잔고: {formatKRW(portfolioData.user_info?.current_balance || 0)}
                             </div>
-                            <div className="text-gray-600">
+                            <div className="mb-3" style={{ color: 'rgb(15, 37, 11)' }}>
                                 투자금액: {formatKRW(portfolioData.portfolio_summary?.total_investment || 0)}
                             </div>
-                            <div className={`${portfolioData.portfolio_summary?.total_profit_loss >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
+                            <div className={`mb-3 ${portfolioData.portfolio_summary?.total_profit_loss >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
                                 투자손익: {formatKRW(portfolioData.portfolio_summary?.total_profit_loss || 0)} ({formatPercentage(portfolioData.portfolio_summary?.total_profit_loss_rate || 0)})
                             </div>
-                            <div className="text-gray-600">
+                            <div style={{ color: 'rgb(15, 37, 11)' }}>
                                 총 자산: {formatKRW(portfolioData.portfolio_summary?.total_asset || 0)}
                             </div>
-                            
+
                         </div>
                     </div>
                 </div>
                 {/* 보유 주식 */}
                 <div className="mx-2 mb-4">
                     <div className="bg-white p-4 lg:p-6 rounded-xl shadow-sm overflow-hidden" style={{ fontFamily: 'DM Sans' }}>
-                        <h2 className="text-[20px] font-bold text-[#0F250B] mb-6">보유 주식</h2>
+                        <h2 className="text-[20px] font-bold text-[#0F250B] mb-4">보유 주식</h2>
                         {/* 테이블 - lg 이상 */}
                         <div className="hidden lg:block overflow-x-auto">
                             <table className="w-full">

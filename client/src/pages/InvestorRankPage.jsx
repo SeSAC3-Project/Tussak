@@ -72,10 +72,10 @@ const InvestmentRanking = () => {
                                                 {investor.nickname ? investor.nickname.charAt(0) : '?'}
                                             </div>
                                         </div>
-                                        <span className="ml-4 font-normal flex-1 text-[20px] text-[#0F250B] truncate min-w-0 pr-2">{investor.nickname || '익명'}</span>
-                                        <span className={`text-sm lg:text-[20px] font-normal flex-shrink-0 whitespace-nowrap ${
-                                            investor.profit_amount > 0 ? 'text-[#FF383C]' : 
-                                            investor.profit_amount < 0 ? 'text-[#0088FF]' : 
+                                        <span className="ml-4 font-normal flex-1 text-lg text-[#0F250B] truncate min-w-0 pr-2">{investor.nickname || '익명'}</span>
+                                        <span className={`text-xs lg:text-lg font-normal flex-shrink-0 whitespace-nowrap ${
+                                            investor.profit_amount > 0 ? 'text-[#FF383C]' :
+                                            investor.profit_amount < 0 ? 'text-[#0088FF]' :
                                             'text-[#8A8A8A]'
                                         }`}>
                                             {investor.profit_amount > 0 ? '+' : ''}{(investor.profit_amount || 0).toLocaleString()}원

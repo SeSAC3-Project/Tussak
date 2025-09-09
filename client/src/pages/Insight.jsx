@@ -286,7 +286,7 @@ function NewsSection({ selectedKeyword, keywordData }) {
                     {newsData.map((news, index) => (
                         <div key={index}>
                             {/* md 이상 */}
-                            <div className="hidden md:flex items-center justify-between py-4 px-10">
+                            <div className="hidden md:flex items-center justify-between py-4 px-6">
                                 <div className="flex items-center space-x-4 flex-1 min-w-0">
                                     <span
                                         className="font-normal flex-shrink-0"
@@ -311,7 +311,7 @@ function NewsSection({ selectedKeyword, keywordData }) {
                             </div>
                             
                             {/* 세로 레이아웃 */}
-                            <div className="md:hidden py-4 px-4">
+                            <div className="md:hidden py-4 px-3">
                                 <div className="flex justify-between items-start mb-2">
                                     <span
                                         className="font-normal text-xs flex-shrink-0"

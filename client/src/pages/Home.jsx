@@ -167,12 +167,12 @@ function StockRank() {
                 <ul className="space-y-0">
                     {stockData.map((stock, index) => (
                         <li key={stock.stock_code || index} className="flex items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0">
-                            <span className="w-6 lg:w-8 text-center font-normal text-base lg:text-[20px] flex-shrink-0 text-[#8A8A8A]">{index + 1}</span>
-                            <span className="flex-1 font-normal lg: text-[20px] text-[#0F250B] min-w-0 ml-4 pr-2 truncate">{stock.stock_name}</span>
-                            <div className={`hidden lg:inline text-base md:text-[18px] font-normal text-[#0F250B] flex-shrink-0 whitespace-nowrap mr-4`}>
+                            <span className="w-6 lg:w-8 text-center font-normal text-base md:text-[18px] flex-shrink-0 text-[#8A8A8A]">{index + 1}</span>
+                            <span className="w-32 lg:w-40 font-normal text-base md:text-[18px] text-[#0F250B] min-w-0 ml-4 pr-2 truncate">{stock.stock_name}</span>
+                            <div className="hidden lg:block w-40 font-normal text-base md:text-[18px] text-[#0F250B] flex-shrink-0 whitespace-nowrap mr-4 text-right">
                                 {stock.current_price ? stock.current_price.toLocaleString() : '-'}원
                             </div>
-                            <div className={`text-base lg:text-[20px] font-normal ml-auto flex-shrink-0 whitespace-nowrap ${
+                            <div className={`ml-auto w-32 lg:w-60 font-normal text-base md:text-[18px] flex-shrink-0 whitespace-nowrap text-right ${
                                 stock.change_rate > 0 ? 'text-[#FF383C]' : stock.change_rate < 0 ? 'text-[#0088FF]' : 'text-[#8A8A8A]'
                             }`}>
                                 {`${stock.change_rate > 0 ? '+' : ''}${stock.change_amount?.toLocaleString() || 0}원 (${stock.change_rate?.toFixed(2) || '0.00'}%)`}
