@@ -97,9 +97,10 @@ def get_stocks_ranking_top28():
 @stock_bp.route('/realtime')
 def get_realtime_top28():
     try:
+        limit = request.args.get('limit', 28, type=int)
         
         websocket_service = get_websocket_service(current_app._get_current_object())
-        stocks = websocket_service.get_realtime_ranking(28)
+        stocks = websocket_service.get_realtime_ranking(limit)
         
         return jsonify({
             'success': True,

@@ -412,6 +412,88 @@ class StockService:
             raise e
 
     @staticmethod
+    def get_stock_by_code(stock_code):
+        """종목 코드로 단일 종목 조회"""
+        try:
+            # 각 종목의 최신 StockHistory를 선택하기 위한 서브쿼리
+            latest_history_subq = db.session.query(
+                StockHistory.stock_id.label('stock_id'),
+                func.max(StockHistory.updated_at).label('max_updated_at')
+            ).group_by(StockHistory.stock_id).subquery()
+
+            # Stock과 최신 StockHistory 조회
+            result = (
+                db.session.query(
+                    Stock.id,
+                    Stock.stock_code,
+                    Stock.stock_name,
+                    Stock.market,
+                    Stock.sector,
+                    Stock.sector_detail,
+                    Stock.company_info,
+                    Stock.shares_outstanding,
+                    Stock.updated_at,
+                    StockHistory.current_price,
+                    StockHistory.previous_close,
+                    StockHistory.change_rate,
+                    StockHistory.change_amount,
+                    StockHistory.day_open,
+                    StockHistory.day_high,
+                    StockHistory.day_low,
+                    StockHistory.daily_volume,
+                    StockHistory.market_cap,
+                    StockHistory.week52_high,
+                    StockHistory.week52_low,
+                    StockHistory.per,
+                    StockHistory.pbr,
+                    StockHistory.updated_at.label('history_updated_at')
+                )
+                .outerjoin(StockHistory, Stock.id == StockHistory.stock_id)
+                .outerjoin(
+                    latest_history_subq,
+                    and_(
+                        Stock.id == latest_history_subq.c.stock_id,
+                        StockHistory.updated_at == latest_history_subq.c.max_updated_at
+                    )
+                )
+                .filter(Stock.stock_code == stock_code)
+                .first()
+            )
+
+            if not result:
+                return None
+
+            return {
+                'id': result.id,
+                'stock_code': result.stock_code,
+                'stock_name': result.stock_name,
+                'market': result.market,
+                'sector': result.sector,
+                'sector_detail': result.sector_detail,
+                'company_info': result.company_info,
+                'shares_outstanding': int(result.shares_outstanding) if result.shares_outstanding else None,
+                'updated_at': result.updated_at.isoformat() if result.updated_at else None,
+                'current_price': float(result.current_price) if result.current_price else None,
+                'previous_close': float(result.previous_close) if result.previous_close else None,
+                'change_rate': float(result.change_rate) if result.change_rate else None,
+                'change_amount': float(result.change_amount) if result.change_amount else None,
+                'day_open': float(result.day_open) if result.day_open else None,
+                'day_high': float(result.day_high) if result.day_high else None,
+                'day_low': float(result.day_low) if result.day_low else None,
+                'daily_volume': int(result.daily_volume) if result.daily_volume else None,
+                'market_cap': int(result.market_cap) if result.market_cap else None,
+                'week52_high': float(result.week52_high) if result.week52_high else None,
+                'week52_low': float(result.week52_low) if result.week52_low else None,
+                'per': float(result.per) if result.per else None,
+                'pbr': float(result.pbr) if result.pbr else None,
+                'history_updated_at': result.history_updated_at.isoformat() if result.history_updated_at else None
+            }
+
+        except Exception as e:
+            current_app.logger.error(f"종목 코드 조회 중 오류: {e}")
+            raise e
+
+    @staticmethod
     def get_volume_ranking(limit=28):
         """거래대금 순위 조회 (캐시 우선, 없으면 DB에서 계산)"""
         try:

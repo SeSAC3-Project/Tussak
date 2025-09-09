@@ -8,7 +8,7 @@ class RankingService:
     def get_investment_ranking(limit=30):
         """
         투자 수익금 기준 랭킹 조회
-        total_asset을 기준으로 상위 사용자들을 반환 (최대 30위)
+        profit_amount(총 등락금액)을 기준으로 상위 사용자들을 반환 (최대 30위)
         """
         try:
             # 최대 30위로 제한
@@ -97,17 +97,28 @@ class RankingService:
     def calculate_and_update_rankings():
         """
         모든 사용자의 랭킹을 계산하고 업데이트
+        총 등락금액(profit_amount = total_asset - initial_balance) 기준으로 랭킹 계산
         스케줄러에서 호출되는 메서드
         """
         try:
             current_app.logger.info("랭킹 계산 시작...")
             
-            # total_asset 기준으로 내림차순 정렬하여 모든 사용자 조회
-            users = User.query.order_by(desc(User.total_asset)).all()
+            # 모든 사용자를 조회하고 profit_amount를 계산하여 정렬
+            users = User.query.all()
+            
+            # 각 사용자의 profit_amount 계산 후 정렬
+            users_with_profit = []
+            for user in users:
+                profit_amount = float(user.total_asset - user.initial_balance)
+                users_with_profit.append((user, profit_amount))
+            
+            # profit_amount 기준으로 내림차순 정렬 (수익이 높은 순)
+            users_with_profit.sort(key=lambda x: x[1], reverse=True)
             
             # 각 사용자에게 순위 부여
-            for rank, user in enumerate(users, 1):
+            for rank, (user, profit_amount) in enumerate(users_with_profit, 1):
                 user.ranking = rank
+                current_app.logger.debug(f"사용자 {user.nickname}: 순위 {rank}, 등락금액 {profit_amount:,.0f}원")
             
             # 데이터베이스에 저장
             db.session.commit()

@@ -51,12 +51,12 @@ class BookmarkService:
                     'code': 'ALREADY_BOOKMARKED'
                 }
             
-            # 사용자의 현재 즐겨찾기 개수 확인 (최대 10개 제한)
+            # 사용자의 현재 즐겨찾기 개수 확인 (최대 4개 제한)
             current_bookmark_count = Bookmark.query.filter_by(user_id=user_id).count()
-            if current_bookmark_count >= 10:
+            if current_bookmark_count >= 4:
                 return {
                     'success': False,
-                    'message': '즐겨찾기는 최대 10개까지 등록할 수 있습니다.',
+                    'message': '관심종목은 최대 4개까지 등록할 수 있습니다.',
                     'code': 'BOOKMARK_LIMIT_EXCEEDED'
                 }
             

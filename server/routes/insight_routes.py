@@ -47,8 +47,11 @@ def refresh_keywords():
 
 
 # 뉴스 관련 ===================================================
-@insight_bp.route('/news')
+@insight_bp.route('/news', methods=['GET', 'OPTIONS'])
 def get_news():
+    # Preflight 대응
+    if request.method == 'OPTIONS':
+        return '', 204
     try:
         keyword = request.args.get('keyword', '').strip()
         display = min(int(request.args.get('display', 5)), 10)

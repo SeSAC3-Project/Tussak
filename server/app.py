@@ -100,19 +100,19 @@ def create_app():
         #     app.logger.error(f"❌ 앱 시작 시 주식 종목 데이터 동기화 실패: {e}")
 
         # WebSocket 서비스 시작 (앱 시작 후 3초 지연)
-        # try:
-        #     def delayed_websocket_start():
-        #         time.sleep(3)  # 앱 완전 시작 후 3초 대기
-        #         start_websocket_service(app)
+        try:
+            def delayed_websocket_start():
+                time.sleep(3)  # 앱 완전 시작 후 3초 대기
+                start_websocket_service(app)
             
-        #     ws_thread = threading.Thread(target=delayed_websocket_start)
-        #     ws_thread.daemon = True
-        #     ws_thread.start()
+            ws_thread = threading.Thread(target=delayed_websocket_start)
+            ws_thread.daemon = True
+            ws_thread.start()
             
-        #     app.logger.info("✅ WebSocket 서비스 시작 스레드 생성 완료")
+            app.logger.info("✅ WebSocket 서비스 시작 스레드 생성 완료")
             
-        # except Exception as e:
-        #     app.logger.error(f"❌ WebSocket 서비스 시작 실패: {e}")
+        except Exception as e:
+            app.logger.error(f"❌ WebSocket 서비스 시작 실패: {e}")
 
     return app
 
@@ -280,7 +280,7 @@ def register_blueprints(app):
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
 
 # 로그 사용 방법
 # from flask import current_app
