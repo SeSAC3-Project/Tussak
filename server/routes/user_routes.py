@@ -14,7 +14,7 @@ def create_transaction(current_user):
         data = request.get_json()
         
         # 필수 파라미터 검증
-        required_fields = ['stock_code', 'stock_name', 'type', 'quantity', 'price']
+        required_fields = ['stock_code', 'type', 'quantity', 'price']
         if not all(field in data for field in required_fields):
             return jsonify({'error': '필수 파라미터가 누락되었습니다'}), 400
         
@@ -30,7 +30,6 @@ def create_transaction(current_user):
         result = TransactionService.create_transaction(
             user_id=current_user.id,
             stock_code=data['stock_code'],
-            stock_name=data['stock_name'],
             transaction_type=data['type'],
             quantity=data['quantity'],
             price=data['price']
