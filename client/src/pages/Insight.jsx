@@ -3,8 +3,12 @@ import React, { useState, useEffect } from 'react';
 export default function Insight() {
     return (
         <div className="max-w-7xl mx-auto">
-            <div className="mt-4 mx-2 mb-7"><HotKeywordSection /></div>
-            <div className="mx-2 mb-4"><NewsSection /></div>
+            <div className="mt-4 mx-2 mb-7 overflow-visible">
+                <HotKeywordSection />
+            </div>
+            <div className="mx-2 mb-4">
+                <NewsSection />
+            </div>
         </div>
     );
 }
@@ -23,8 +27,8 @@ function HotKeywordSection() {
     }, []);
 
     return (
-        <div className="bg-white rounded-xl py-5 px-7" style={{height: '450px'}}>
-            <h2 className="font-bold mb-6" style={{fontFamily: 'DM Sans', fontSize: '20px', color: '#0F250B'}}>HOT 키워드</h2>
+        <div className="bg-white rounded-xl py-5 px-7" style={{ height: '450px' }}>
+            <h2 className="font-bold mb-6" style={{ fontFamily: 'DM Sans', fontSize: '20px', color: '#0F250B' }}>HOT 키워드</h2>
             <WordCloud data={keywordData} />
         </div>
     );
@@ -34,25 +38,25 @@ function WordCloud({ data }) {
     const [visibleCircles, setVisibleCircles] = useState([]);
     const [circleOpacities, setCircleOpacities] = useState([]);
     const sortedData = [...data].sort((a, b) => b.frequency - a.frequency);
-    
+
     const circles = [
-        { size: 150, x: 536, y: 173 },  
-        { size: 100, x: 460, y: 57 },  
-        { size: 120, x: 386, y: 165 }, 
-        { size: 70, x: 440, y: 257 }, 
-        { size: 70, x: 512, y: 294 },  
-        { size: 40, x: 574, y: 274 },   
-        { size: 120, x: 665, y: 260 },  
-        { size: 40, x: 644, y: 170 },  
+        { size: 150, x: 536, y: 173 },
+        { size: 100, x: 460, y: 57 },
+        { size: 120, x: 386, y: 165 },
+        { size: 70, x: 440, y: 257 },
+        { size: 70, x: 512, y: 294 },
+        { size: 40, x: 574, y: 274 },
+        { size: 120, x: 665, y: 260 },
+        { size: 40, x: 644, y: 170 },
         { size: 100, x: 645, y: 88 },
-        { size: 70, x: 555, y: 52 },  
+        { size: 70, x: 555, y: 52 },
     ];
 
     const opacityLevels = [0.3, 0.7];
 
     useEffect(() => {
         if (data.length > 0 && circleOpacities.length === 0) {
-            const opacities = circles.map(() => 
+            const opacities = circles.map(() =>
                 opacityLevels[Math.floor(Math.random() * opacityLevels.length)]
             );
             setCircleOpacities(opacities);
@@ -62,12 +66,12 @@ function WordCloud({ data }) {
     // circles 애니메이션
     useEffect(() => {
         if (data.length === 0) return;
-        
+
         setVisibleCircles([]); // 초기화
-        
+
         const timers = [];
         const maxCircles = Math.min(data.length, circles.length);
-        
+
         for (let index = 0; index < maxCircles; index++) {
             const timer = setTimeout(() => {
                 setVisibleCircles(prev => [...prev, index]);
@@ -81,17 +85,24 @@ function WordCloud({ data }) {
     }, [data.length]);
 
     return (
-        <div className="relative w-full bg-white rounded-lg overflow-hidden" style={{height: '370px'}}>
-            <svg width="100%" height="100%" viewBox="0 0 1072 370" className="absolute inset-0">
+        <div
+            className="relative"
+            style={{
+                height: '370px',
+                transformOrigin: 'center center',
+                transform: 'scale(clamp(1., 1.5, 2.0))'
+            }}
+        >
+            <svg width="100%" height="100%" viewBox="0 0 1072 370" className="absolute inset-0" preserveAspectRatio="xMidYMid meet">
                 {sortedData.map((item, index) => {
                     if (index >= circles.length || circleOpacities.length === 0) return null;
-                    
+
                     const circle = circles[index];
                     const opacity = circleOpacities[index];
                     const isVisible = visibleCircles.includes(index);
-                    
+
                     return (
-                        <g 
+                        <g
                             key={item.keyword}
                             style={{
                                 opacity: isVisible ? 1 : 0,
@@ -131,7 +142,7 @@ function WordCloud({ data }) {
                                 className="font-medium pointer-events-none select-none"
                                 fontSize={Math.max(circle.size / 5, 12)}
                                 fill="#4a4a4a"
-                                style={{fontFamily: 'DM Sans'}}
+                                style={{ fontFamily: 'DM Sans' }}
                             >
                                 {item.keyword}
                             </text>
@@ -146,18 +157,18 @@ function WordCloud({ data }) {
 function NewsSection() {
     const newsData = [
         {
-            date: '2025-08-13',
-            title: '대한전선 베트남 생산법인 대한비나, 초고압 케이블 공장 잇는다',
+            date: '2025-09-06',
+            title: '서울 동작구 거주 20대 여성, 기절한 채 발견 ... 원인은 워드클라우드 비율 설정이 가한 극심한 피로',
             timeAgo: '1시간 전'
         },
         {
-            date: '2025-08-13', 
-            title: '삼성전자, 차세대 반도체 기술 공개... 글로벌 시장 선점 나서',
+            date: '2025-09-06',
+            title: '상지전자, 금 팔아 부자되는 망상 ... ',
             timeAgo: '2시간 전'
         },
         {
             date: '2025-08-13',
-            title: 'LG화학 2차전지 사업 확장, 유럽 공장 신규 투자 발표',
+            title: '전문가 의견은 "그것도 시드가 있어야지," ',
             timeAgo: '3시간 전'
         },
         {
@@ -167,36 +178,84 @@ function NewsSection() {
         },
         {
             date: '2025-08-12',
-            title: '한국항공우주산업, 차세대 전투기 KF-21 양산 일정 발표',
+            title: '배고픔,  허기짐,  달디단 닭강정 :D',
             timeAgo: '7시간 전'
         }
     ];
 
     return (
         <div className="bg-white rounded-xl py-5 px-7">
-            <h2 className="font-bold mb-6" style={{fontFamily: 'DM Sans', fontSize: '20px', color: '#0F250B'}}>뉴스</h2>
-            <div>
-                {newsData.map((news, index) => (
-                    <div key={index}>
-                        <div className="flex items-center justify-between py-4 px-10">
-                            <div className="flex items-center space-x-4 flex-1">
-                                <span className="font-normal min-w-[80px]" style={{fontFamily: 'DM Sans', fontSize: '19px', color: '#8A8A8A'}}>
-                                    {news.date}
-                                </span>
-                                <span className="font-normal flex-1" style={{fontFamily: 'DM Sans', fontSize: '19px', color: '#0F250B'}}>
-                                    {news.title}
-                                </span>
-                            </div>
-                            <span className="font-normal ml-4" style={{fontFamily: 'DM Sans', fontSize: '19px', color: '#8A8A8A'}}>
+            <h2 className="font-bold mb-6" style={{ fontFamily: 'DM Sans', fontSize: '20px', color: 'rgb(15, 37, 11)' }}>
+                뉴스
+            </h2>
+        <div>
+            {newsData.map((news, index) => (
+                <div key={index}>
+                    {/* md 이상 */}
+                    <div className="hidden md:flex items-center justify-between py-4 px-10">
+                        <div className="flex items-center space-x-4 flex-1 min-w-0">
+                            <span 
+                                className="font-normal flex-shrink-0" 
+                                style={{ fontFamily: 'DM Sans', fontSize: '19px', color: '#8A8A8A', minWidth: '80px' }}
+                            >
+                                {news.date}
+                            </span>
+                            <span 
+                                className="font-normal flex-1 truncate pr-4" 
+                                style={{ fontFamily: 'DM Sans', fontSize: '19px', color: '#0F250B' }}
+                                title={news.title} // hover시 전체 제목 표시
+                            >
+                                {news.title}
+                            </span>
+                        </div>
+                        <span 
+                            className="font-normal flex-shrink-0 whitespace-nowrap" 
+                            style={{ fontFamily: 'DM Sans', fontSize: '19px', color: '#8A8A8A' }}
+                        >
+                            {news.timeAgo}
+                        </span>
+                    </div>
+                    
+                    {/* 세로 레이아웃 */}
+                    <div className="md:hidden py-4 px-4">
+                        <div className="flex justify-between items-start mb-2">
+                            <span 
+                                className="font-normal text-sm flex-shrink-0" 
+                                style={{ fontFamily: 'DM Sans', color: '#8A8A8A' }}
+                            >
+                                {news.date}
+                            </span>
+                            <span 
+                                className="font-normal text-sm flex-shrink-0 ml-2" 
+                                style={{ fontFamily: 'DM Sans', color: '#8A8A8A' }}
+                            >
                                 {news.timeAgo}
                             </span>
                         </div>
-                        {index < newsData.length - 1 && (
-                            <div className="border-b border-gray-100 mx-1.5"></div>
-                        )}
+                        <div className="pr-2">
+                            <span 
+                                className="font-normal text-base leading-relaxed block"
+                                style={{ 
+                                    fontFamily: 'DM Sans', 
+                                    color: '#0F250B',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: '2',
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden'
+                                }}
+                                title={news.title}
+                            >
+                                {news.title}
+                            </span>
+                        </div>
                     </div>
-                ))}
-            </div>
+                    
+                    {index < newsData.length - 1 && (
+                        <div className="border-b border-gray-100 mx-1.5"></div>
+                    )}
+                </div>
+            ))}
         </div>
+    </div>
     );
 }
