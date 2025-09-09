@@ -68,7 +68,7 @@ export const bookmarkApi = {
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.message || '즐겨찾기 추가에 실패했습니다');
+                throw new Error(data.message || '관심종목 추가에 실패했습니다');
             }
 
             return data;
@@ -92,7 +92,7 @@ export const bookmarkApi = {
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.message || '즐겨찾기 삭제에 실패했습니다');
+                throw new Error(data.message || '관심종목 삭제에 실패했습니다');
             }
 
             return data;
@@ -116,7 +116,7 @@ export const bookmarkApi = {
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.message || '즐겨찾기 상세 정보 조회에 실패했습니다');
+                throw new Error(data.message || '관심종목 상세 정보 조회에 실패했습니다');
             }
 
             return data;

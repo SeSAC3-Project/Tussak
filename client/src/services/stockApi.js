@@ -1,5 +1,7 @@
 import { generatePeriodData, getPriceRange, formatDate } from '../utils/stockDataGenerator';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
+
 // stockApi 객체 내부에 추가하는 더미 데이터 생성 합본 함수
 const generateMockStockData = (symbol, period) => {
     console.log('🎲 generateMockStockData 호출:', symbol, period);
@@ -96,6 +98,41 @@ const stockApi = {
             const basePrice = 235000;
             const variation = (Math.random() - 0.5) * 5000;
             return Math.round(basePrice + variation);
+        }
+    },
+
+    // 거래량 순위 조회
+    fetchVolumeRanking: async (limit = 4) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/stock/ranking?limit=${limit}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.data) {
+                return {
+                    success: true,
+                    data: data.data
+                };
+            } else {
+                throw new Error(data.message || '거래량 순위 조회에 실패했습니다');
+            }
+        } catch (error) {
+            console.error('거래량 순위 조회 API 오류:', error);
+            // 실패 시 빈 배열 반환
+            return {
+                success: false,
+                data: [],
+                error: error.message
+            };
         }
     }
 };

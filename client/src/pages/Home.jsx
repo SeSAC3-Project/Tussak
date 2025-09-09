@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../AppContext.js';
 import { FaChevronRight } from 'react-icons/fa';
 import InvestorRank from './InvestorRank.jsx';
@@ -6,6 +6,7 @@ import Chatbot from '../components/Chatbot.jsx'
 import StockCard from '../components/StockCard.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import EmptyStockCard from '../components/EmptyStockCard.jsx'
+import { stockApi } from '../services/stockApi.js'
 
 
 export default function Home() {
@@ -91,11 +92,6 @@ function WatchList() {
                             />
                         ))}
                     </div>
-                    {watchlistData.length >= 4 && (
-                        <div className="text-center text-sm text-gray-500 mt-4">
-                            관심종목이 최대 개수(4개)에 도달했습니다.
-                        </div>
-                    )}
                 </div>
             )}
         </div>
@@ -105,13 +101,32 @@ function WatchList() {
 
 function StockRank() {
     const { navigateToMarket } = useApp();
+    const [stockData, setStockData] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const stockData = [
-        { name: '대한전선', volume: 13120, change: +0.54, amount: 10000, up: true },
-        { name: '삼성전자', volume: 64200, change: +0.54, amount: 10000, up: true },
-        { name: '현대자동차', volume: 121000, change: -0.54, amount: 10000, up: false },
-        { name: 'SK텔레콤', volume: 121000, change: -0.54, amount: 10000, up: false },
-    ];
+    // 거래량 순위 데이터 로드
+    useEffect(() => {
+        const fetchVolumeRanking = async () => {
+            try {
+                setIsLoading(true);
+                const response = await stockApi.fetchVolumeRanking(4); // 상위 4개만
+                
+                if (response.success && response.data) {
+                    setStockData(response.data);
+                } else {
+                    console.error('거래량 순위 조회 실패:', response.error);
+                    setStockData([]);
+                }
+            } catch (error) {
+                console.error('거래량 순위 로드 오류:', error);
+                setStockData([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchVolumeRanking();
+    }, []);
 
     return (
         <div className="bg-white rounded-[20px] h-[345px] py-[19px] px-[28px]" style={{ fontFamily: 'DM Sans' }}>
@@ -124,22 +139,35 @@ function StockRank() {
                     <FaChevronRight className="ml-1 w-3 h-3" />
                 </button>
             </div>
-            <ul className="space-y-0">
-                {stockData.map((stock, index) => (
-                    <li key={index} className="flex items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0">
-
-                        <span className="w-6 lg:w-8 text-center font-normal text-base lg:text-[20px] flex-shrink-0 text-[#8A8A8A]">{index + 1}</span>
-                        <span className="flex-1 font-normal lg: text-[20px] text-[#0F250B] min-w-0 ml-4 pr-2 truncate">{stock.name}</span>
-                        <span className={`hidden lg:inline text-base md:text-[18px] font-normal text-[#0F250B] flex-shrink-0 whitespace-nowrap mr-4`}>{stock.volume.toLocaleString()}원</span>
-                        <span className={`text-base lg:text-[20px] font-normal ml-auto flex-shrink-0 whitespace-nowrap ${stock.up ? 'text-[#FF383C]' : 'text-[#0088FF]'}`}>
-                            {stock.up ? '+' : '-'}{stock.amount.toLocaleString()}원 ({Math.abs(stock.change).toFixed(2)}%)
-                        </span>
-
-
-                    </li>
-                ))}
-            </ul>
-        </div >
+            
+            {isLoading ? (
+                <div className="flex justify-center items-center h-[250px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <span className="ml-2 text-gray-500">거래량 순위를 불러오는 중...</span>
+                </div>
+            ) : stockData.length === 0 ? (
+                <div className="flex justify-center items-center h-[250px]">
+                    <span className="text-gray-500">거래량 순위 데이터를 불러올 수 없습니다</span>
+                </div>
+            ) : (
+                <ul className="space-y-0">
+                    {stockData.map((stock, index) => (
+                        <li key={stock.stock_code || index} className="flex items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0">
+                            <span className="w-6 lg:w-8 text-center font-normal text-base lg:text-[20px] flex-shrink-0 text-[#8A8A8A]">{index + 1}</span>
+                            <span className="flex-1 font-normal lg: text-[20px] text-[#0F250B] min-w-0 ml-4 pr-2 truncate">{stock.stock_name}</span>
+                            <span className={`hidden lg:inline text-base md:text-[18px] font-normal text-[#0F250B] flex-shrink-0 whitespace-nowrap mr-4`}>
+                                {stock.current_price ? stock.current_price.toLocaleString() + '원' : '-'}
+                            </span>
+                            <span className={`text-base lg:text-[20px] font-normal ml-auto flex-shrink-0 whitespace-nowrap ${
+                                stock.change_rate > 0 ? 'text-[#FF383C]' : stock.change_rate < 0 ? 'text-[#0088FF]' : 'text-[#8A8A8A]'
+                            }`}>
+                                {stock.change_rate > 0 ? '+' : ''}{stock.change_amount?.toLocaleString() || 0}원 ({stock.change_rate?.toFixed(2) || '0.00'}%)
+                            </span>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
     )
 };
 

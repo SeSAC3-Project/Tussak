@@ -56,7 +56,7 @@ class BookmarkService:
             if current_bookmark_count >= 4:
                 return {
                     'success': False,
-                    'message': '즐겨찾기는 최대 4개까지 등록할 수 있습니다.',
+                    'message': '관심종목은 최대 4개까지 등록할 수 있습니다.',
                     'code': 'BOOKMARK_LIMIT_EXCEEDED'
                 }
             
