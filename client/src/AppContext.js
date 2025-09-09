@@ -196,7 +196,10 @@ export function AppProvider({ children }) {
             setIsLoading(false);
             setUserBookmarks(new Set()); // 관심종목 상태 초기화
             setBookmarkDetails([]); // 관심종목 상세 정보 초기화
-            console.log('로그아웃 완료');
+            
+            // 5단계: 홈화면으로 이동
+            navigateToHome();
+            console.log('로그아웃 완료 - 홈화면으로 이동');
             
         } catch (error) {
             console.error('로그아웃 실패:', error);
@@ -210,6 +213,9 @@ export function AppProvider({ children }) {
             setIsLoading(false);
             setUserBookmarks(new Set()); // 관심종목 상태 초기화
             setBookmarkDetails([]); // 관심종목 상세 정보 초기화
+            
+            // 에러 발생 시에도 홈화면으로 이동
+            navigateToHome();
         }
     };
 
