@@ -49,9 +49,9 @@ def create_app():
     CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000'])
 
     init_db(app)
-    # init_redis(app)
+    init_redis(app)
     register_blueprints(app)
-    # setup_scheduler(app)
+    setup_scheduler(app)
 
     # DB
     with app.app_context():
@@ -68,21 +68,21 @@ def create_app():
             app.logger.error(f"❌ 데이터베이스 연결 실패: {e}")
             raise
 
-    #     # KIS Token
-    #     try:
-    #         kis_access_token()  # 앱 시작 시 토큰 발급
-    #         app.logger.info("✅ 앱 시작 시 KIS Access Token 생성 완료")
+        # KIS Token
+        try:
+            kis_access_token()  # 앱 시작 시 토큰 발급
+            app.logger.info("✅ 앱 시작 시 KIS Access Token 생성 완료")
 
-    #     except Exception as e:
-    #         app.logger.error(f"❌ 앱 시작 시 KIS Token 생성 실패: {e}")
+        except Exception as e:
+            app.logger.error(f"❌ 앱 시작 시 KIS Token 생성 실패: {e}")
 
-    #     # KIS WebSocket Token
-    #     try:
-    #         kis_websocket_access_token()  # 앱 시작 시 토큰 발급
-    #         app.logger.info("✅ 앱 시작 시 KIS WebSocket Access Token 생성 완료")
+        # KIS WebSocket Token
+        try:
+            kis_websocket_access_token()  # 앱 시작 시 토큰 발급
+            app.logger.info("✅ 앱 시작 시 KIS WebSocket Access Token 생성 완료")
 
-    #     except Exception as e:
-    #         app.logger.error(f"❌ 앱 시작 시 KIS WebSocket Token 생성 실패: {e}")
+        except Exception as e:
+            app.logger.error(f"❌ 앱 시작 시 KIS WebSocket Token 생성 실패: {e}")
 
         # Stock and StockHistory Data Sync
         # 코드 수정하면 app reload 발생 
