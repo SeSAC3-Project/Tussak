@@ -99,33 +99,45 @@ function WatchList() {
 }
 
 
+
 function StockRank() {
     const { navigateToMarket } = useApp();
     const [stockData, setStockData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // 거래량 순위 데이터 로드
-    useEffect(() => {
-        const fetchVolumeRanking = async () => {
-            try {
-                setIsLoading(true);
-                const response = await stockApi.fetchVolumeRanking(4); // 상위 4개만
-                
-                if (response.success && response.data) {
-                    setStockData(response.data);
-                } else {
-                    console.error('거래량 순위 조회 실패:', response.error);
-                    setStockData([]);
-                }
-            } catch (error) {
-                console.error('거래량 순위 로드 오류:', error);
+    // 거래량 순위 데이터 로드 (실시간 데이터 포함)
+    const fetchVolumeRanking = async () => {
+        try {
+            const response = await stockApi.fetchVolumeRanking(4); // 상위 4개만
+            
+            if (response.success && response.data) {
+                setStockData(response.data);
+            } else {
+                console.error('거래량 순위 조회 실패:', response.error);
                 setStockData([]);
-            } finally {
-                setIsLoading(false);
             }
+        } catch (error) {
+            console.error('거래량 순위 로드 오류:', error);
+            setStockData([]);
+        }
+    };
+
+    useEffect(() => {
+        // 초기 로드
+        const initialLoad = async () => {
+            setIsLoading(true);
+            await fetchVolumeRanking();
+            setIsLoading(false);
         };
 
-        fetchVolumeRanking();
+        initialLoad();
+
+        // 2초마다 업데이트 (로딩 표시 없이)
+        const interval = setInterval(() => {
+            fetchVolumeRanking();
+        }, 2000);
+
+        return () => clearInterval(interval);
     }, []);
 
     return (
@@ -155,14 +167,14 @@ function StockRank() {
                         <li key={stock.stock_code || index} className="flex items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0">
                             <span className="w-6 lg:w-8 text-center font-normal text-base lg:text-[20px] flex-shrink-0 text-[#8A8A8A]">{index + 1}</span>
                             <span className="flex-1 font-normal lg: text-[20px] text-[#0F250B] min-w-0 ml-4 pr-2 truncate">{stock.stock_name}</span>
-                            <span className={`hidden lg:inline text-base md:text-[18px] font-normal text-[#0F250B] flex-shrink-0 whitespace-nowrap mr-4`}>
-                                {stock.current_price ? stock.current_price.toLocaleString() + '원' : '-'}
-                            </span>
-                            <span className={`text-base lg:text-[20px] font-normal ml-auto flex-shrink-0 whitespace-nowrap ${
+                            <div className={`hidden lg:inline text-base md:text-[18px] font-normal text-[#0F250B] flex-shrink-0 whitespace-nowrap mr-4`}>
+                                {stock.current_price ? stock.current_price.toLocaleString() : '-'}원
+                            </div>
+                            <div className={`text-base lg:text-[20px] font-normal ml-auto flex-shrink-0 whitespace-nowrap ${
                                 stock.change_rate > 0 ? 'text-[#FF383C]' : stock.change_rate < 0 ? 'text-[#0088FF]' : 'text-[#8A8A8A]'
                             }`}>
-                                {stock.change_rate > 0 ? '+' : ''}{stock.change_amount?.toLocaleString() || 0}원 ({stock.change_rate?.toFixed(2) || '0.00'}%)
-                            </span>
+                                {`${stock.change_rate > 0 ? '+' : ''}${stock.change_amount?.toLocaleString() || 0}원 (${stock.change_rate?.toFixed(2) || '0.00'}%)`}
+                            </div>
                         </li>
                     ))}
                 </ul>

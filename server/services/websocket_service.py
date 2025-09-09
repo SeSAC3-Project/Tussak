@@ -274,7 +274,7 @@ class KisWebSocketService:
             
             # 실시간 데이터 처리
             if message[0] in ['0', '1']:
-                # self.app.logger.debug(f"실시간 데이터: {message[:50]}...")
+                self.app.logger.info(f"📊 실시간 데이터 수신: {message[:100]}...")
                 self.process_realtime_data(message)
             else:
                 self.app.logger.debug(f"알 수 없는 메시지: {message[:50]}...")
@@ -339,7 +339,7 @@ class KisWebSocketService:
                 data_count = parts[2]
                 raw_data = parts[3]
 
-                # self.app.logger.debug(f"📊 실시간 데이터: TR_ID={tr_id}, COUNT={data_count}")
+                self.app.logger.info(f"📊 실시간 데이터 파싱: TR_ID={tr_id}, COUNT={data_count}")
                 
                 if tr_id == "H0STCNT0":  # 주식 체결가
                     self.process_stock_price_data(raw_data)
@@ -395,10 +395,10 @@ class KisWebSocketService:
                 sign_map = {'1': '↑', '2': '▲', '3': '=', '4': '↓', '5': '▼'}
                 sign_symbol = sign_map.get(change_sign, '')
                 
-                # self.app.logger.debug(
-                #     f"📊 실시간: {stock_code} {current_price_float:,.0f}원 "
-                #     f"{sign_symbol} {change_rate_float:+.2f}%"
-                # )
+                self.app.logger.info(
+                    f"📊 실시간 저장: {stock_code} {current_price_float:,.0f}원 "
+                    f"{sign_symbol} {change_rate_float:+.2f}%"
+                )
                     
         except Exception as e:
             self.app.logger.error(f"❌ 주식 체결가 데이터 처리 실패: {e}")

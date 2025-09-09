@@ -1,6 +1,7 @@
 // API에서 받아온 데이터 구조에 맞게 stock 필드명 설정하기
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../AppContext'
+
 
 const HeartIcon = ({ active }) => (
     <img 
@@ -12,6 +13,7 @@ const HeartIcon = ({ active }) => (
 
 const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
     const { isLoggedIn, toggleBookmark, isBookmarked } = useApp();
+    const [currentRealtimeData, setCurrentRealtimeData] = useState(null);
 
     // StockCard에서 home, market에서 필드 차이 발생 (home 더미데이터 market에 맞게 ... 수정해야겠다 )
     const stockCode = stock.stock_code || '000000'; 
@@ -21,6 +23,31 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
     const price = stock.current_price || '';
     const changeAmount = stock.change_amount || '';
     const changeRate = stock.change_rate || '';
+
+    // 실시간 데이터 업데이트 (2초마다)
+    useEffect(() => {
+        const fetchRealtimeData = async () => {
+            try {
+                const response = await fetch(`/api/stock/realtime/${stockCode}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data) {
+                        setCurrentRealtimeData(data.data);
+                    }
+                }
+            } catch (error) {
+                console.log('실시간 데이터 업데이트 실패:', error);
+            }
+        };
+
+        // 초기 로드
+        fetchRealtimeData();
+
+        // 2초마다 실시간 데이터 가져오기
+        const interval = setInterval(fetchRealtimeData, 2000);
+
+        return () => clearInterval(interval);
+    }, [stockCode]);
 
     // const sector = stock.sector || '';
     // const per = stock.per || null;
@@ -33,15 +60,14 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
     // const changeAmount = stock.change || '';
     // const changeRate = stock.changePercent || '';
 
-    // 실시간 데이터 (없으면 기본 정보만)
-    const hasRealtimeData = realtimeData && realtimeData.current_price;
-    const currentPrice = realtimeData?.current_price || 0;
-    const priceChange = realtimeData?.price_change || 0;
-    const changePercent = realtimeData?.change_percent || 0;
+    // 실시간 데이터 우선 사용 (없으면 기본 정보 사용)
+    const displayPrice = currentRealtimeData?.current_price || price;
+    const displayChangeAmount = currentRealtimeData?.change_amount || changeAmount;
+    const displayChangeRate = currentRealtimeData?.change_rate || changeRate;
     
     // 가격 변동에 따라 화살표, 색상 결정
-    const isUp = priceChange > 0;
-    const isDown = priceChange < 0;
+    const isUp = displayChangeAmount > 0;
+    const isDown = displayChangeAmount < 0;
     const textColor = isUp ? 'text-red-500' : isDown ? 'text-blue-500' : 'text-gray-600';
     const changeIcon = isUp ? '▲' : isDown ? '▼' : '';
     
@@ -82,31 +108,19 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
                 <h3 className="text-xl font-normal text-[#0F250B] truncate" style={{letterSpacing: '0.02em'}}>{stockName}</h3>
             </div>
 
-            {/* 하단 요소들: 현재가, 변동(화살표, 1주당얼마, 비율) -> 없으면 PER/PBR */}
+            {/* 하단 요소들: 현재가, 변동(화살표, 1주당얼마, 비율) */}
             <div className="mt-auto">
-                {hasRealtimeData ? (
-                    // 실시간 가격 데이터 표시
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-1">
-                        <div className="text-[18px] font-regular text-[#0F250B] mb-1">
-                            {currentPrice.toLocaleString()}원
-                        </div>
-                        <div className={`flex items-center justify-between gap-1 text-sm sm:text-base font-medium ${textColor}`}>
-                            <span className="text-xs sm:text-sm">{changeIcon}</span>
-                            <span>({changePercent > 0 ? '+' : ''}{changePercent.toFixed(2)}%)</span>
-                        </div>
+                <div className={`flex items-center justify-between text-[18px] font-regular ${textColor}`} style={{letterSpacing: '0.02em'}}>
+                    <div>
+                        {typeof displayPrice === 'number' ? displayPrice.toLocaleString() : (parseFloat(displayPrice) || 0).toLocaleString()}원
                     </div>
-                ) : (
-                    // 기본 정보 표시 (가격, 변동액, 변동률)
-                    <div className={`flex items-center justify-between text-[18px] font-regular ${changeAmount >= 0 ? 'text-[#FF383C]' : 'text-[#0088FF]'}`} style={{letterSpacing: '0.02em'}}>
-                        <div >
-                            {typeof price === 'number' ? price.toLocaleString() : price}원
-                        </div>
-                        <div className="flex items-center">
-                            <span className="text-xs sm:text-sm">{changeAmount >= 0 ? '▲' : '▼'}</span>
-                            <span className="sm:ml-1">{Math.abs(parseFloat(changeRate)).toFixed(2)}%</span>
-                        </div>
+                    <div className="flex items-center">
+                        <span className="text-xs sm:text-sm">{changeIcon}</span>
+                        <span className="sm:ml-1">
+                            {Math.abs(parseFloat(displayChangeRate) || 0).toFixed(2)}%
+                        </span>
                     </div>
-                )}
+                </div>
             </div>
         </div>
     )

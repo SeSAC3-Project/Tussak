@@ -101,10 +101,10 @@ const stockApi = {
         }
     },
 
-    // 거래량 순위 조회
+    // 거래량 순위 조회 (실시간 데이터 포함)
     fetchVolumeRanking: async (limit = 4) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/stock/ranking?limit=${limit}`, {
+            const response = await fetch(`${API_BASE_URL}/api/stock/realtime?limit=${limit}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
