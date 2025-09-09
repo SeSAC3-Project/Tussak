@@ -9,11 +9,11 @@ function LoginButton() {
     return (
       <button
         onClick={handleLogout}
-        className="flex items-center text-sm text-gray-500 w-full justify-center p-[10px] cursor-pointer hover:bg-red-100 rounded-md transition-colors duration-200"
+        className="flex items-center text-base text-[#8A8A8A] w-full justify-center p-[10px] cursor-pointer hover:bg-gray-100 rounded-md transition-colors duration-200 focus:outline-none"
         disabled={isLoading}
       >
-        <img src="/icon/login.png" alt="Logout icon" className="w-6 h-6 mr-[14px]" />
-        <p className="font-normal" style={{fontFamily: 'DM Sans'}}>
+        <img src="/icon/login.png" alt="Logout icon" className="w-6 h-6 mr-[14px]" style={{filter: 'brightness(0) saturate(100%) invert(55%) sepia(8%) saturate(313%) hue-rotate(314deg) brightness(90%) contrast(84%)'}} />
+        <p className="font-normal text-base" style={{fontFamily: 'DM Sans'}}>
           Log Out
         </p>
       </button>
@@ -23,11 +23,11 @@ function LoginButton() {
   return (
     <button
       onClick={handleKakaoLogin}
-      className="flex items-center text-sm text-gray-500 w-full justify-center p-[10px] cursor-pointer hover:bg-lime-100 rounded-md transition-colors duration-200"
+      className="flex items-center text-base text-[#8A8A8A] w-full justify-center p-[10px] cursor-pointer hover:bg-gray-100 rounded-md transition-colors duration-200 focus:outline-none"
       disabled={isLoading}
     >
-      <img src="/icon/login.png" alt="Login icon" className="w-6 h-6 mr-[14px]" />
-      <p className="font-normal" style={{fontFamily: 'DM Sans'}}>
+      <img src="/icon/login.png" alt="Login icon" className="w-6 h-6 mr-[14px]" style={{filter: 'brightness(0) saturate(100%) invert(55%) sepia(8%) saturate(313%) hue-rotate(314deg) brightness(90%) contrast(84%)'}} />
+      <p className="font-normal text-base" style={{fontFamily: 'DM Sans'}}>
         Log In
       </p>
     </button>

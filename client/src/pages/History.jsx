@@ -68,11 +68,17 @@ export default function History() {
   // 로그인하지 않은 경우
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">거래 내역</h1>
-            <p className="text-gray-600">로그인이 필요한 서비스입니다.</p>
+      <div className="min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          <div className="pt-[15px] pb-[20px] mx-2">
+            <div className="bg-white rounded-[20px] py-[19px] px-[28px]" style={{ fontFamily: 'DM Sans' }}>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-[20px] font-bold text-[#0F250B]">주식 거래 내역</h2>
+              </div>
+              <div className="flex justify-center items-center h-[250px]">
+                <span className="text-gray-500">로그인이 필요한 서비스입니다.</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -80,117 +86,71 @@ export default function History() {
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* 헤더 */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">거래 내역</h1>
-          <p className="text-gray-600">전체 거래 내역을 최신순으로 확인하실 수 있습니다.</p>
-        </div>
-
-        {/* 거래 내역 테이블 */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          {loading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-gray-500">거래 내역을 불러오는 중...</div>
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="pt-[15px] pb-[20px] mx-2">
+          {/* 거래 내역 */}
+          <div className="bg-white rounded-[20px] py-[19px] px-[28px]" style={{ fontFamily: 'DM Sans' }}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-[20px] font-bold text-[#0F250B]">주식 거래 내역</h2>
             </div>
-          )}
-          
-          {error && (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-red-500">{error}</div>
-            </div>
-          )}
-
-          {!loading && !error && transactions.length === 0 && (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-gray-500">거래 내역이 없습니다.</div>
-            </div>
-          )}
-
-          {!loading && !error && transactions.length > 0 && (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        거래 일시
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        구분
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        종목명
-                      </th>
-                      <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        수량(주)
-                      </th>
-                      <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        거래단가
-                      </th>
-                      <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        거래금액
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {transactions.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{item.date}</div>
-                      <div className="text-sm text-gray-500">{item.time}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+            {loading ? (
+              <div className="flex justify-center items-center h-[250px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <span className="ml-2 text-gray-500">거래 내역을 불러오는 중...</span>
+              </div>
+            ) : error ? (
+              <div className="flex justify-center items-center h-[250px]">
+                <span className="text-red-500">{error}</span>
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="flex justify-center items-center h-[250px]">
+                <span className="text-gray-500">거래 내역이 없습니다.</span>
+              </div>
+            ) : (
+              <ul className="space-y-0">
+                {transactions.map((item) => (
+                  <li key={item.id} className="flex items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0">
+                    <div className="w-44 lg:w-52 flex-shrink-0 ml-4">
+                      <div className="text-base lg:text-[20px] text-[#0F250B] font-normal">{item.date} {item.time}</div>
+                    </div>
+                    <div className="w-6 lg:w-16 flex justify-center flex-shrink-0">
+                      <span className={`text-base lg:text-[20px] font-normal ${
                         item.tradeType === '매수' 
-                          ? 'bg-red-100 text-red-800' 
-                          : 'bg-blue-100 text-blue-800'
+                          ? 'text-[#FF383C]' 
+                          : 'text-[#0088FF]'
                       }`}>
                         {item.tradeType}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{item.company}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="text-sm text-gray-900">{item.quantity.toLocaleString()}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="text-sm text-gray-900">{item.price.toLocaleString()}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="text-sm font-medium text-gray-900">
-                        {item.totalAmount.toLocaleString()}
+                    </div>
+                    <div className="w-25 lg:w-32 ml-8 flex-shrink-0">
+                      <span className="font-normal text-base lg:text-[20px] text-[#0F250B] truncate block">{item.company}</span>
+                    </div>
+                    <div className="hidden lg:inline w-20 text-base lg:text-[20px] font-normal text-[#0F250B] flex-shrink-0 whitespace-nowrap ml-4">
+                        {item.quantity.toLocaleString()}주                  
+                        </div>
+                      <div className="hidden lg:inline flex-shrink-0 whitespace-nowrap ml-3">
+                        <div className="text-base lg:text-[20px] font-normal text-[#8A8A8A]">거래단가 <span className="text-[#0F250B] ml-2">{item.price.toLocaleString()}</span></div>
                       </div>
-                    </td>
-                  </tr>
+                      <div className="flex-shrink-0 whitespace-nowrap ml-8">
+                        <div className="text-base lg:text-[20px] font-normal text-[#8A8A8A]">거래금액 <span className="text-[#0F250B] ml-2">{item.totalAmount.toLocaleString()}</span></div>
+                      </div>
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          </div>
-          
-              {/* 페이지 정보 및 페이지네이션 */}
-              <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
-                <div className="flex items-center">
-                  <div className="flex-1 text-sm text-gray-700">
-                    전체 <span className="font-medium">{totalCount}</span>건 중{' '}
-                    <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span>-
-                    <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalCount)}</span>건 표시
-                  </div>
-                </div>
-                <div>
-                  <div className="flex-1 flex justify-center">
-                    <Pagination 
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={handlePageChange}
-                    />
-                  </div>
-                </div>
+              </ul>
+            )}
+            
+            {/* 페이지네이션 */}
+            {!loading && !error && transactions.length > 0 && (
+              <div className="mt-6 flex justify-center">
+                <Pagination 
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

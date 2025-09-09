@@ -254,7 +254,7 @@ function NewsSection({ selectedKeyword, keywordData }) {
                     뉴스
                 </h2>
                 {currentKeyword && (
-                    <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                    <span className="px-3 py-1 bg-gray-100 text-black rounded-full text-sm font-medium">
                         {currentKeyword}
                     </span>
                 )}
