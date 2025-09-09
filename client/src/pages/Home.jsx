@@ -7,6 +7,8 @@ import StockCard from '../components/StockCard.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import EmptyStockCard from '../components/EmptyStockCard.jsx'
 import { stockApi } from '../services/stockApi.js'
+import { rankingApi } from '../services/rankingApi.js'
+import portfolioApi from '../services/portfolioApi.js'
 
 
 export default function Home() {
@@ -185,38 +187,117 @@ function StockRank() {
 
 
 function LoginCard() {
-    const { isLoggedIn, user, handleKakaoLogin, handleLogout, isLoading } = useApp();
+    const { isLoggedIn, user, authToken, handleKakaoLogin, handleLogout, isLoading } = useApp();
+    const [userRanking, setUserRanking] = useState(null);
+    const [portfolioData, setPortfolioData] = useState(null);
+    const [dataLoading, setDataLoading] = useState(true);
 
-    if (isLoggedIn) {
+    // 사용자 랭킹과 포트폴리오 데이터 로드
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (!isLoggedIn || !authToken) {
+                setDataLoading(false);
+                return;
+            }
+
+            try {
+                setDataLoading(true);
+                
+                // 랭킹과 포트폴리오 데이터를 병렬로 가져오기
+                const [rankingResponse, portfolioResponse] = await Promise.all([
+                    rankingApi.getMyRanking(authToken),
+                    portfolioApi.getPortfolio(authToken)
+                ]);
+
+                if (rankingResponse.success) {
+                    setUserRanking(rankingResponse.data);
+                }
+
+                if (portfolioResponse) {
+                    setPortfolioData(portfolioResponse);
+                }
+            } catch (error) {
+                console.error('사용자 데이터 로드 오류:', error);
+            } finally {
+                setDataLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [isLoggedIn, authToken]);
+
+    if (!isLoggedIn) {
         return (
             <div
-                className="rounded-[20px] h-[345px] p-6 flex flex-col items-center justify-center space-y-4 bg-cover bg-bottom"
+                className="rounded-[20px] h-[345px] p-6 flex flex-col items-center justify-start pt-14 space-y-1 bg-cover bg-bottom"
                 style={{ backgroundImage: "url('/icon/blurred.png')" }}
             >
-                <div className="text-center">
-                    <p className="text-sm text-white font-medium mb-2">안녕하세요!</p>
-                    <p className="text-lg text-white font-bold">{user?.nickname || '사용자'}님</p>
-                    <p className="text-sm text-white mt-2">
-                        보유 현금: {user?.current_balance?.toLocaleString() || '0'}원
-                    </p>
-                </div>
+                <p className="text-sm text-gray-500 text-center" alt="카카오 로그인">모의 투자를 진행하려면<br />로그인이 필요합니다</p>
+                <img 
+                    className="cursor-pointer w-64 hover:opacity-80 transition-opacity" 
+                    src="/icon/kakao_login.png" 
+                    alt="카카오 로그인"
+                    onClick={handleKakaoLogin}
+                    style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
+                />
             </div>
         );
     }
 
+    // 로그인된 상태 - 프로필 카드 표시
+    const currentBalance = user?.current_balance || 0;
+    const totalInvestment = portfolioData?.portfolio_summary?.total_investment || 0;
+    const totalAssets = currentBalance + (portfolioData?.portfolio_summary?.total_current_value || 0);
+    const rankDisplay = userRanking?.rank ? `랭킹 ${userRanking.rank}위` : '랭킹 정보 없음';
+
     return (
-        <div
-            className="rounded-[20px] h-[345px] p-6 flex flex-col items-center justify-start pt-14 space-y-1 bg-cover bg-bottom"
-            style={{ backgroundImage: "url('/icon/blurred.png')" }}
-        >
-            <p className="text-sm text-gray-500 text-center" alt="카카오 로그인">모의 투자를 진행하려면<br />로그인이 필요합니다</p>
-            <img 
-                className="cursor-pointer w-64 hover:opacity-80 transition-opacity" 
-                src="/icon/kakao_login.png" 
-                alt="카카오 로그인"
-                onClick={handleKakaoLogin}
-                style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
-            />
+        <div className="bg-white rounded-[20px] h-[345px] p-6 flex flex-col" style={{ fontFamily: 'DM Sans' }}>
+            {/* 랭킹 표시 */}
+            <div className="text-[#0F250B] mb-1 font-semibold" style={{ fontFamily: 'DM Sans', fontSize: '15px' }}>
+                {dataLoading ? '로딩 중...' : rankDisplay}
+            </div>
+
+            {/* 프로필 이미지와 이름 */}
+            <div className="flex flex-col items-center mb-1">
+                <div className="w-24 h-24 rounded-full mb-3 flex items-center justify-center overflow-hidden">
+                    {user?.profile_image_url ? (
+                        <img 
+                            src={user.profile_image_url} 
+                            alt={user.nickname}
+                            className="w-full h-full object-cover rounded-full"
+                            onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                            }}
+                        />
+                    ) : null}
+                    <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center text-gray-600 text-2xl" style={{display: user?.profile_image_url ? 'none' : 'flex', fontFamily: 'DM Sans'}}>
+                        {user?.nickname ? user.nickname.charAt(0) : '?'}
+                    </div>
+                </div>
+                <h3 className="font-bold text-[#0F250B] mb-2" style={{ fontFamily: 'DM Sans', fontSize: '25px' }}>
+                    {user?.nickname || '사용자'}님
+                </h3>
+            </div>
+
+            {/* 구분선 */}
+            <hr className="w-full border-[#F2F8E9]" style={{ borderWidth: '1px 0 0 0', margin: '0 0 25px 0' }} />
+
+            {/* 자산 정보 */}
+            <div className="flex-1 space-y-1 px-2">
+                <div className="flex justify-between items-center">
+                    <span className="font-regular text-[#7F867E]" style={{ fontFamily: 'DM Sans', fontSize: '13px' }}>현금잔고</span>
+                    <span className="font-semibold text-[#0F250B]" style={{ fontFamily: 'DM Sans', fontSize: '15px' }}>{currentBalance.toLocaleString()}원</span>
+                </div>
+                <div className="flex justify-between items-center">
+                    <span className="font-regular text-[#7F867E]" style={{ fontFamily: 'DM Sans', fontSize: '13px' }}>평가금액</span>
+                    <span className="font-semibold text-[#0F250B]" style={{ fontFamily: 'DM Sans', fontSize: '15px' }}>{totalInvestment.toLocaleString()}원</span>
+                </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-[#7F867E] font-regular" style={{ fontFamily: 'DM Sans', fontSize: '13px' }}>총 자산</span>
+                        <span className="font-bold text-[#0F250B]" style={{ fontFamily: 'DM Sans', fontSize: '18px' }}>{totalAssets.toLocaleString()}원</span>
+                    </div>
+            </div>
         </div>
     );
 }
