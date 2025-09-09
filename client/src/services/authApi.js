@@ -1,6 +1,7 @@
 // 카카오 로그인 관련 API 서비스 - 기존 서버 API 활용
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:5000';
+// 프로덕션에서는 환경변수 사용, 개발환경에서는 프록시 사용
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 export const authApi = {
     // 카카오 로그인 - 서버의 /api/auth/kakao/login 사용

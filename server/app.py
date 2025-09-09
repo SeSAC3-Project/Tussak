@@ -280,7 +280,7 @@ def register_blueprints(app):
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
 
 # 로그 사용 방법
 # from flask import current_app

@@ -56,20 +56,20 @@ export default function Home() {
 
 
 function WatchList() {
-    const { isLoggedIn } = useApp();
-    // 관심종목 데이터 - 기본값은 빈 배열
-    const watchlistData = [];
-
-    const mockData = [
-        { stock_code: '001201', market: '코스피', stock_name: '상지전자', current_price: 81300, change_amount: 1200, changePercent: 1.50 },
-        { stock_code: '001202', market: '코스피', stock_name: '지니생명', current_price: 45750, change_amount: -50, change_rate: -0.11 },
-        { stock_code: '001203', market: '코스피', stock_name: 'Calia솔루션', current_price: 350000, change_amount: 2000, change_rate: 0.57 },
-        { stock_code: '001204', market: '코스피', stock_name: 'HM캐피털', current_price: 224000, change_amount: -1500, change_rate: -0.67 }
-    ];
+    const { isLoggedIn, bookmarkDetails, bookmarksLoading, navigateToStockDetail } = useApp();
+    
+    // 사용자의 실제 관심종목 데이터 사용
+    const watchlistData = bookmarkDetails || [];
 
     return (
         <div>
-            {!isLoggedIn || watchlistData.length === 0 ? (
+            {bookmarksLoading ? (
+                // 로딩 중
+                <div className="w-full flex justify-center items-center p-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <span className="ml-2 text-gray-500">관심종목 목록을 불러오는 중...</span>
+                </div>
+            ) : !isLoggedIn || watchlistData.length === 0 ? (
                 // 로그인 안했거나 관심종목이 없는 경우 - 전체 너비 사용
                 <div className="w-full">
                     <EmptyStockCard 
@@ -81,10 +81,21 @@ function WatchList() {
                 </div>
             ) : (
                 // 관심종목이 있는 경우 - 그리드 레이아웃 사용
-                <div className="grid lg:grid-cols-2 xl:grid-cols-4 gap-3">
-                    {watchlistData.map((stock, index) => (
-                        <StockCard key={index} stock={stock} />
-                    ))}
+                <div>
+                    <div className="grid lg:grid-cols-2 xl:grid-cols-4 gap-3">
+                        {watchlistData.map((stock, index) => (
+                            <StockCard 
+                                key={stock.stock_code || index} 
+                                stock={stock} 
+                                navigateToStockDetail={() => navigateToStockDetail(stock)}
+                            />
+                        ))}
+                    </div>
+                    {watchlistData.length >= 4 && (
+                        <div className="text-center text-sm text-gray-500 mt-4">
+                            관심종목이 최대 개수(4개)에 도달했습니다.
+                        </div>
+                    )}
                 </div>
             )}
         </div>

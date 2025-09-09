@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authApi, kakaoAuth } from './services/authApi';
+import { bookmarkApi } from './services/bookmarkApi';
 
 const AppContext = createContext();
 
@@ -14,6 +15,11 @@ export function AppProvider({ children }) {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [authToken, setAuthToken] = useState(localStorage.getItem('authToken'));
     const [isLoading, setIsLoading] = useState(true);
+    
+    // 관심종목 관련 상태
+    const [userBookmarks, setUserBookmarks] = useState(new Set());
+    const [bookmarksLoading, setBookmarksLoading] = useState(false);
+    const [bookmarkDetails, setBookmarkDetails] = useState([]);
 
     const navigateToHome = () => {
         setActiveSection('Home');
@@ -63,6 +69,9 @@ export function AppProvider({ children }) {
                     if (response.success) {
                         setUser(response.user);
                         setIsLoggedIn(true);
+                        
+                        // 관심종목 목록 로드
+                        await loadUserBookmarks(authToken);
                     } else {
                         localStorage.removeItem('authToken');
                         setAuthToken(null);
@@ -101,6 +110,9 @@ export function AppProvider({ children }) {
                 if (userResponse.success) {
                     setUser(userResponse.user);
                     setIsLoggedIn(true);
+                    
+                    // 관심종목 목록 로드
+                    await loadUserBookmarks(jwtToken);
                 }
             }
         } catch (error) {
@@ -182,6 +194,8 @@ export function AppProvider({ children }) {
             setUser(null);
             setIsLoggedIn(false);
             setIsLoading(false);
+            setUserBookmarks(new Set()); // 관심종목 상태 초기화
+            setBookmarkDetails([]); // 관심종목 상세 정보 초기화
             console.log('로그아웃 완료');
             
         } catch (error) {
@@ -194,7 +208,93 @@ export function AppProvider({ children }) {
             setUser(null);
             setIsLoggedIn(false);
             setIsLoading(false);
+            setUserBookmarks(new Set()); // 관심종목 상태 초기화
+            setBookmarkDetails([]); // 관심종목 상세 정보 초기화
         }
+    };
+
+    // 사용자 관심종목 목록 로드
+    const loadUserBookmarks = async (token) => {
+        if (!token) return;
+        
+        try {
+            setBookmarksLoading(true);
+            
+            // 관심종목 상세 정보 로드
+            const detailsResponse = await bookmarkApi.getUserBookmarksWithDetails(token);
+            
+            if (detailsResponse.success && detailsResponse.data) {
+                // 종목 코드들을 Set으로 저장
+                const bookmarkCodes = new Set(
+                    detailsResponse.data.map(stock => stock.stock_code)
+                );
+                setUserBookmarks(bookmarkCodes);
+                setBookmarkDetails(detailsResponse.data);
+            } else {
+                setUserBookmarks(new Set());
+                setBookmarkDetails([]);
+            }
+        } catch (error) {
+            console.error('관심종목 목록 로드 실패:', error);
+            setUserBookmarks(new Set());
+            setBookmarkDetails([]);
+        } finally {
+            setBookmarksLoading(false);
+        }
+    };
+
+    // 관심종목 토글 (추가/삭제)
+    const toggleBookmark = async (stockCode) => {
+        if (!isLoggedIn || !authToken) {
+            alert('로그인이 필요한 서비스입니다');
+            return false;
+        }
+
+        try {
+            const isCurrentlyBookmarked = userBookmarks.has(stockCode);
+            
+            if (isCurrentlyBookmarked) {
+                // 관심종목 삭제
+                await bookmarkApi.removeBookmark(stockCode, authToken);
+                setUserBookmarks(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(stockCode);
+                    return newSet;
+                });
+                // 상세 정보에서도 제거
+                setBookmarkDetails(prev => prev.filter(stock => stock.stock_code !== stockCode));
+            } else {
+                // 관심종목 추가 전 개수 확인
+                if (userBookmarks.size >= 4) {
+                    alert('관심종목은 최대 4개까지만 등록할 수 있습니다.');
+                    return false;
+                }
+                
+                // 관심종목 추가
+                await bookmarkApi.addBookmark(stockCode, authToken);
+                setUserBookmarks(prev => new Set([...prev, stockCode]));
+                
+                // 상세 정보 다시 로드 (새로 추가된 종목 정보 포함)
+                await loadUserBookmarks(authToken);
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('관심종목 토글 실패:', error);
+            
+            // 서버에서 제한 에러가 온 경우 더 친화적인 메시지 표시
+            if (error.message && error.message.includes('최대 4개')) {
+                alert('관심종목는 최대 4개까지만 등록할 수 있습니다.');
+            } else {
+                alert(error.message || '관심종목 처리에 실패했습니다');
+            }
+            return false;
+        }
+    };
+
+    // 특정 종목의 관심종목 상태 확인
+    const isBookmarked = (stockCode) => {
+        return userBookmarks.has(stockCode);
     };
 
     const contextValue = {
@@ -208,6 +308,10 @@ export function AppProvider({ children }) {
         isLoggedIn,
         authToken,
         isLoading,
+        // 관심종목 관련 상태값들
+        userBookmarks,
+        bookmarksLoading,
+        bookmarkDetails,
         // 기존 동작함수들
         navigateToHome,
         navigateToMarket,
@@ -219,7 +323,11 @@ export function AppProvider({ children }) {
         setActiveSection,
         // 로그인 관련 함수들
         handleKakaoLogin,
-        handleLogout
+        handleLogout,
+        // 관심종목 관련 함수들
+        toggleBookmark,
+        isBookmarked,
+        loadUserBookmarks
     };
 
     return (

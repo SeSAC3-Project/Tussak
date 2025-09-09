@@ -11,8 +11,7 @@ const HeartIcon = ({ active }) => (
 );
 
 const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
-    const { isLoggedIn } = useApp();
-    const [active, setActive] = useState(true);
+    const { isLoggedIn, toggleBookmark, isBookmarked } = useApp();
 
     // StockCard에서 home, market에서 필드 차이 발생 (home 더미데이터 market에 맞게 ... 수정해야겠다 )
     const stockCode = stock.stock_code || '000000'; 
@@ -45,6 +44,9 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
     const isDown = priceChange < 0;
     const textColor = isUp ? 'text-red-500' : isDown ? 'text-blue-500' : 'text-gray-600';
     const changeIcon = isUp ? '▲' : isDown ? '▼' : '';
+    
+    // 관심종목 상태 확인 (로그인 안 했으면 false)
+    const bookmarkStatus = isLoggedIn ? isBookmarked(stockCode) : false;
 
 
     return (
@@ -60,16 +62,18 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
                 </div>
                 <button 
                     className="hover:text-red-500" 
-                    onClick={(e) => {
+                    onClick={async (e) => {
                         e.stopPropagation();
                         if (!isLoggedIn) {
                             alert('로그인이 필요한 서비스입니다');
                             return;
                         }
-                        setActive(!active)
+                        
+                        // 관심종목 토글 실행
+                        await toggleBookmark(stockCode);
                     }}
                 >
-                    <HeartIcon active={active} />
+                    <HeartIcon active={bookmarkStatus} />
                 </button>
             </div>
 
