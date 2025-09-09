@@ -38,7 +38,7 @@ export default function Home() {
 
                 <WatchList />
 
-                <div className="flex flex-col lg:flex-row gap-3">
+                <div className="flex flex-col lg:flex-row gap-[16px]">
 
                     <div className="flex-1 flex flex-col gap-[16px]">
                         <StockRank />

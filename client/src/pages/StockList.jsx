@@ -125,7 +125,7 @@ export default function StockList({ onSelectStock, searchTerm }) {
     }
 
     return (
-        <div className="p-4 sm:p-6 lg:p-8 max-w-full mx-auto">            
+        <div>            
             {/* 상태 표시 */}
             {isLoading && (
                 <div className="flex justify-center p-8">
@@ -141,7 +141,7 @@ export default function StockList({ onSelectStock, searchTerm }) {
 
             {/* 검색 결과 정보 */}
             {showingSearchResults && (
-                <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded">
+                <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded mb-4">
                     "{searchTerm}"에 대한 검색 결과 {searchResults.length}개
                 </div>
             )}
@@ -155,7 +155,7 @@ export default function StockList({ onSelectStock, searchTerm }) {
 
             {/* 검색 중 발생한 에러에 대한 메시지 */}
             {error && searchTerm && (
-                <div className="text-red-500 text-center p-4 bg-red-50 rounded">
+                <div className="text-red-500 text-center p-4 bg-red-50 rounded mb-4">
                     {error}
                 </div>
             )}
@@ -163,7 +163,7 @@ export default function StockList({ onSelectStock, searchTerm }) {
             {/* 종목 그리드 */}
             {!isLoading && displayStocks.length > 0 && (
                 <>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 overflow-y-autoscrollbar-thin scrollbar-thumb-gray-400 mt-8">
+                    <div className="grid lg:grid-cols-2 xl:grid-cols-4 gap-3">
                         {displayStocks.map((stock, index) => (
                             <StockCard
                                 key={stock.stock_code || stock.id || `stock-${index}`}
@@ -175,8 +175,8 @@ export default function StockList({ onSelectStock, searchTerm }) {
                     
                     {/* 기본 28개 종목 표시 안내 */}
                     {!searchTerm && stocks.length === 28 && (
-                        <div className="text-center text-sm text-gray-500 mt-4">
-                            28개 종목만을 표시하고 있습니다. 
+                        <div className="text-center text-sm text-gray-500 mt-8">
+                            거래대금 상위 28개 종목을 표시하고 있습니다. 
                             다른 종목을 찾으시려면 검색을 이용해주세요.
                         </div>
                     )}
