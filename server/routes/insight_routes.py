@@ -47,14 +47,17 @@ def refresh_keywords():
 
 
 # 뉴스 관련 ===================================================
-@insight_bp.route('x')
+@insight_bp.route('/news', methods=['GET', 'OPTIONS'])
 def get_news():
+    # Preflight 대응
+    if request.method == 'OPTIONS':
+        return '', 204
     try:
         keyword = request.args.get('keyword', '').strip()
-        display = min(int(request.args.get('dxisplay', 5)), 10)
+        display = min(int(request.args.get('display', 5)), 10)
         
         if keyword:
-            news_data = NewsService.get_keywxord_news(keyword, display)
+            news_data = NewsService.get_keyword_news(keyword, display)
             message = f'"{keyword}" 키워드 뉴스 조회 성공'
         else:
             news_data = NewsService.get_default_news()
