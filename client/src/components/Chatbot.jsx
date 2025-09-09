@@ -5,7 +5,7 @@ const Chatbot = ({ isExpanded = false, onToggle = null, height = "h-96" }) => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "안녕하세요! 부자될 준비 되셨나요?",
+      text: "안녕하세요! 무엇을 알려드릴까요?",
       sender: 'bot',
       timestamp: new Date()
     }

@@ -281,7 +281,7 @@ function LoginCard() {
             </div>
 
             {/* 구분선 */}
-            <hr className="w-full border-[#F2F8E9]" style={{ borderWidth: '1px 0 0 0', margin: '0 0 25px 0' }} />
+            <hr className="w-full border-[#E9E9E9]" style={{ borderWidth: '1px 0 0 0', margin: '0 0 25px 0' }} />
 
             {/* 자산 정보 */}
             <div className="flex-1 space-y-1 px-2">

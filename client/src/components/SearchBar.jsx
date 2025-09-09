@@ -39,7 +39,7 @@ export default function SearchBar({
     return (
         <div className={`relative ${className}`}>
             <div className="flex items-center bg-white rounded-[10px] h-[46px] px-5 focus-within:shadow-lg transition-shadow duration-200">
-                <img src="/icon/search.png" alt="Search icon" className="w-3 h-3 mr-3"/>
+                <img src="/icon/search.png" alt="Search icon" className="w-3 h-3 mr-3" style={{filter: 'brightness(0) saturate(100%) invert(54%) sepia(0%) saturate(0%) hue-rotate(225deg) brightness(94%) contrast(87%)'}}/>
                 <input 
                     type="text" 
                     value={value}

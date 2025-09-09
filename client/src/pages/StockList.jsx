@@ -141,7 +141,7 @@ export default function StockList({ onSelectStock, searchTerm }) {
 
             {/* 검색 결과 정보 */}
             {showingSearchResults && (
-                <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded mb-4">
+                <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded mb-4">
                     "{searchTerm}"에 대한 검색 결과 {searchResults.length}개
                 </div>
             )}
