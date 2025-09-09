@@ -1,105 +1,24 @@
 import { useState, useEffect } from 'react';
+import { useApp } from '../AppContext';
+import portfolioApi from '../services/portfolioApi';
 
-const dummyData = {
-    userId: 'asdf',
-    assets: {
-        totalValue: 0,
-        totalInvestment: 0,
-        totalPL: 0,
-        totalReturnRate: 0
-    },
-    stocks: [
-        {
-            id: 1,
-            name: 'SJ텔레콤',
-            quantity: 5,
-            averageCost: 56400,
-            currentPrice: 52254
-        },
-        {
-            id: 2,
-            name: 'SJ텔레콤',
-            quantity: 10,
-            averageCost: 57000,
-            currentPrice: 52254
-        },
-        {
-            id: 3,
-            name: 'SJ텔레콤',
-            quantity: 15,
-            averageCost: 60000,
-            currentPrice: 52254
-        },
-        {
-            id: 4,
-            name: '상지전자',
-            quantity: 10,
-            averageCost: 8500,
-            currentPrice: 9200
-        },
-        {
-            id: 5,
-            name: '상지전자',
-            quantity: 5,
-            averageCost: 8800,
-            currentPrice: 52254
-        },
-        {
-            id: 6,
-            name: '선상지퍼시픽',
-            quantity: 20,
-            averageCost: 15000,
-            currentPrice: 13500
-        },
-        {
-            id: 7,
-            name: '선상지퍼시픽',
-            quantity: 8,
-            averageCost: 14200,
-            currentPrice: 13500
-        },
-    ]
-};
+// API 데이터를 화면에 맞게 변환하는 함수
+const transformPortfolioData = (apiData) => {
+    if (!apiData || !apiData.portfolios) {
+        return [];
+    }
 
-// 종목별로 모으기
-const aggregateStocks = (stocks) => {
-    const stockMap = new Map();
-
-    stocks.forEach(stock => {
-        if (stockMap.has(stock.name)) {
-            const existing = stockMap.get(stock.name);
-            const totalQuantity = existing.quantity + stock.quantity;
-            const totalInvestment = (existing.quantity * existing.averageCost) + (stock.quantity * stock.averageCost);
-            const newAverageCost = totalInvestment / totalQuantity;
-
-            stockMap.set(stock.name, {
-                ...existing,
-                quantity: totalQuantity,
-                averageCost: Math.round(newAverageCost),
-                currentPrice: stock.currentPrice
-            });
-        } else {
-            stockMap.set(stock.name, { ...stock });
-        }
-    });
-
-    return Array.from(stockMap.values());
-};
-
-// 종목 지표들 계산
-const calculateStockMetrics = (stock) => {
-    const evaluationAmount = stock.quantity * stock.currentPrice;
-    const totalInvestment = stock.quantity * stock.averageCost;
-    const unrealizedPL = evaluationAmount - totalInvestment;
-    const returnRate = ((unrealizedPL / totalInvestment) * 100);
-
-    return {
-        ...stock,
-        evaluationAmount,
-        totalInvestment,
-        unrealizedPL,
-        returnRate
-    };
+    return apiData.portfolios.map(portfolio => ({
+        stock_code: portfolio.stock_code,
+        name: portfolio.stock_name,
+        quantity: portfolio.quantity,
+        averageCost: portfolio.average_price,
+        currentPrice: portfolio.current_price,
+        evaluationAmount: portfolio.current_value,
+        totalInvestment: portfolio.investment_amount,
+        unrealizedPL: portfolio.profit_loss,
+        returnRate: portfolio.profit_loss_rate
+    }));
 };
 
 const formatKRW = (amount) => {
@@ -112,43 +31,56 @@ const formatPercentage = (rate) => {
 };
 
 export default function Portfolio() {
-    const [userData, setUserData] = useState(null);
-    const [aggregatedStocks, setAggregatedStocks] = useState([]);
+    const { authToken, isLoggedIn } = useApp();
+    const [portfolioData, setPortfolioData] = useState(null);
+    const [portfolioStocks, setPortfolioStocks] = useState([]);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        // API 호출 파트 
-        // 현 더미데이터
-        const fetchUserData = async () => {
+        const fetchPortfolioData = async () => {
+            if (!isLoggedIn || !authToken) {
+                setError('로그인이 필요합니다.');
+                return;
+            }
+
             try {
-                const data = { ...dummyData };
-
-                const aggregated = aggregateStocks(data.stocks);
-
-                const stocksWithMetrics = aggregated.map(calculateStockMetrics);
-
-                const totalEvaluationAmount = stocksWithMetrics.reduce((sum, stock) => sum + stock.evaluationAmount, 0);
-                const totalInvestment = stocksWithMetrics.reduce((sum, stock) => sum + stock.totalInvestment, 0);
-                const totalUnrealizedPL = totalEvaluationAmount - totalInvestment;
-                const totalReturnRate = totalInvestment > 0 ? (totalUnrealizedPL / totalInvestment) * 100 : 0;
-
-                data.assets = {
-                    totalValue: totalEvaluationAmount,
-                    totalInvestment,
-                    totalPL: totalUnrealizedPL,
-                    totalReturnRate
-                };
-
-                setUserData(data);
-                setAggregatedStocks(stocksWithMetrics);
+                setError(null);
+                const data = await portfolioApi.getPortfolio(authToken);
+                
+                if (data) {
+                    setPortfolioData(data);
+                    const transformedStocks = transformPortfolioData(data);
+                    setPortfolioStocks(transformedStocks);
+                }
             } catch (error) {
-                console.error('사용자 정보를 가져오는 데 실패했습니다:', error);
+                console.error('포트폴리오 데이터 로드 실패:', error);
+                setError(error.message || '포트폴리오 조회에 실패했습니다.');
             }
         };
 
-        fetchUserData();
-    }, []);
+        fetchPortfolioData();
+    }, [authToken, isLoggedIn]);
 
-    if (!userData) {
+    // 로그인하지 않은 경우
+    if (!isLoggedIn) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-gray-500">로그인 후 포트폴리오를 확인하실 수 있습니다.</div>
+            </div>
+        );
+    }
+
+    // 에러가 있는 경우
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-red-500">{error}</div>
+            </div>
+        );
+    }
+
+    // 로딩 중인 경우
+    if (!portfolioData) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="text-gray-500">포트폴리오를 불러오는 중입니다 ...</div>
@@ -166,13 +98,16 @@ export default function Portfolio() {
                         <h1 className="font-bold mb-6" style={{ fontFamily: 'DM Sans', fontSize: '20px', color: 'rgb(15, 37, 11)' }}>내 자산 현황</h1>
                         <div className="bg-white-300 p-4 rounded-lg shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]">
                             <div className="text-gray-600">
-                                총 자산: {formatKRW(userData.assets.totalValue)}
+                                현재 잔고: {formatKRW(portfolioData.user_info?.current_balance || 0)}
                             </div>
                             <div className="text-gray-600">
-                                총 투자금: {formatKRW(userData.assets.totalInvestment)}
+                                총 투자금: {formatKRW(portfolioData.portfolio_summary?.total_investment || 0)}
                             </div>
-                            <div className={`${userData.assets.totalPL >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
-                                평가손익: {formatKRW(userData.assets.totalPL)} ({formatPercentage(userData.assets.totalReturnRate)})
+                            <div className="text-gray-600">
+                                총 평가금액: {formatKRW(portfolioData.portfolio_summary?.total_current_value || 0)}
+                            </div>
+                            <div className={`${portfolioData.portfolio_summary?.total_profit_loss >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
+                                평가손익: {formatKRW(portfolioData.portfolio_summary?.total_profit_loss || 0)} ({formatPercentage(portfolioData.portfolio_summary?.total_profit_loss_rate || 0)})
                             </div>
                         </div>
                     </div>
@@ -196,8 +131,8 @@ export default function Portfolio() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {aggregatedStocks.map((stock, index) => (
-                                        <tr key={`${stock.name}-${index}`} className="border-b border-gray-100 hover:bg-gray-50">
+                                    {portfolioStocks.map((stock, index) => (
+                                        <tr key={`${stock.stock_code}-${index}`} className="border-b border-gray-100 hover:bg-gray-50">
                                             <td className="py-4 px-4 text-gray-800 font-medium">{stock.name}</td>
                                             <td className="py-4 px-2 text-gray-700">{stock.quantity}주</td>
                                             <td className="py-4 px-2 text-gray-800 font-medium">{formatKRW(stock.evaluationAmount)}</td>
@@ -221,8 +156,8 @@ export default function Portfolio() {
 
                         {/* 카드 형태 - lg 미만 */}
                         <div className="block lg:hidden space-y-3">
-                            {aggregatedStocks.map((stock, index) => (
-                                <div key={`${stock.name}-${index}`} className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            {portfolioStocks.map((stock, index) => (
+                                <div key={`${stock.stock_code}-${index}`} className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
                                     {/* 주식명과 보유수량 */}
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
@@ -255,7 +190,7 @@ export default function Portfolio() {
 
 
 
-                    {aggregatedStocks.length === 0 && (
+                    {portfolioStocks.length === 0 && (
                         <div className="text-center py-8 text-gray-500">
                             보유 주식이 없습니다.
                         </div>

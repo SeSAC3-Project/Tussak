@@ -1,5 +1,7 @@
 from models.portfolio import Portfolio
 from models.user import User
+from models.stock import Stock
+from models.transaction import Transaction
 from models import db
 from flask import current_app
 from decimal import Decimal
@@ -14,8 +16,10 @@ class PortfolioService:
             if not user:
                 raise ValueError("사용자를 찾을 수 없습니다")
             
-            # 포트폴리오 조회 (수량이 0보다 큰 것만)
-            portfolios = Portfolio.query.filter_by(user_id=user_id)\
+            # 포트폴리오 조회 (수량이 0보다 큰 것만) - Stock 테이블과 JOIN
+            portfolios = db.session.query(Portfolio, Stock)\
+                .join(Stock, Portfolio.stock_code == Stock.stock_code)\
+                .filter(Portfolio.user_id == user_id)\
                 .filter(Portfolio.quantity > 0)\
                 .all()
             
@@ -23,22 +27,25 @@ class PortfolioService:
             total_investment = Decimal('0')  # 총 투자금액
             total_current_value = Decimal('0')  # 총 평가금액
             
-            for portfolio in portfolios:
+            for portfolio, stock in portfolios:
+                # 평균단가 계산 (거래 내역에서 계산)
+                average_price = PortfolioService._calculate_average_price(portfolio.user_id, portfolio.stock_code)
+                
                 # 현재가 조회 (임시로 평균단가 기준 ±5% 랜덤 설정)
                 # 실제 환경에서는 실시간 주식 API에서 가져와야 함
                 current_price = PortfolioService._get_current_price(portfolio.stock_code)
                 
                 # 계산
-                investment_amount = portfolio.average_price * portfolio.quantity  # 투자금액
+                investment_amount = average_price * portfolio.quantity  # 투자금액
                 current_value = current_price * portfolio.quantity  # 현재 평가금액
                 profit_loss = current_value - investment_amount  # 손익금액
                 profit_loss_rate = (profit_loss / investment_amount * 100) if investment_amount > 0 else 0  # 손익률
                 
                 portfolio_item = {
                     'stock_code': portfolio.stock_code,
-                    'stock_name': portfolio.stock_name,
+                    'stock_name': stock.stock_name,  # Stock 테이블에서 가져오기
                     'quantity': portfolio.quantity,
-                    'average_price': float(portfolio.average_price),
+                    'average_price': float(average_price),
                     'current_price': float(current_price),
                     'investment_amount': float(investment_amount),
                     'current_value': float(current_value),
@@ -74,6 +81,37 @@ class PortfolioService:
             current_app.logger.error(f"포트폴리오 조회 실패: {str(e)}")
             current_app.logger.error(traceback.format_exc())
             raise e
+    
+    @staticmethod
+    def _calculate_average_price(user_id, stock_code):
+        """사용자의 특정 주식에 대한 평균단가를 계산"""
+        try:
+            # 해당 주식의 매수 거래들을 조회
+            buy_transactions = Transaction.query.filter_by(
+                user_id=user_id, 
+                stock_code=stock_code, 
+                type='BUY'
+            ).all()
+            
+            if not buy_transactions:
+                return Decimal('0')
+            
+            total_cost = Decimal('0')
+            total_quantity = 0
+            
+            for transaction in buy_transactions:
+                total_cost += transaction.total_amount
+                total_quantity += transaction.quantity
+            
+            if total_quantity == 0:
+                return Decimal('0')
+            
+            average_price = total_cost / total_quantity
+            return average_price.quantize(Decimal('0.01'))  # 소수점 2자리까지
+            
+        except Exception as e:
+            current_app.logger.error(f"평균단가 계산 실패: {str(e)}")
+            return Decimal('50000')  # 기본값
     
     @staticmethod
     def _get_current_price(stock_code):
