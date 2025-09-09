@@ -5,12 +5,9 @@ import time
 from datetime import datetime
 from config.redis import get_redis
 import os
-from dotenv import load_dotenv
 
 from services.stock_service import StockService
 from utils.kis_websocket import get_websocket_token, invalidate_websocket_token, _is_token_format_valid
-
-load_dotenv()
 
 KIS_CLIENT_ID=os.getenv("KIS_API_KEY")
 KIS_CLIENT_SECRET=os.getenv("KIS_SECRET_KEY")

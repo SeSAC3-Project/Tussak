@@ -4,6 +4,8 @@ import os
 from dotenv import load_dotenv
 import threading
 
+load_dotenv()
+
 # scheduler
 from utils.kis_api import kis_access_token
 from utils.kis_websocket import kis_websocket_access_token, scheduled_refresh_websocket_token
@@ -37,8 +39,6 @@ from routes.ranking_routes import ranking_bp
 from routes.stock_routes import stock_bp
 from routes.bookmark_routes import bookmark_bp
 
-load_dotenv()
-
 def create_app(): 
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -51,7 +51,7 @@ def create_app():
     init_db(app)
     # init_redis(app)
     register_blueprints(app)
-    # setup_scheduler(app)
+    setup_scheduler(app)
 
     # DB
     with app.app_context():

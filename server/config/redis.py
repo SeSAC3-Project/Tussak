@@ -1,9 +1,5 @@
 import redis
 import os
-from flask import current_app
-from dotenv import load_dotenv
-
-load_dotenv()
 
 class RedisConfig:
     
