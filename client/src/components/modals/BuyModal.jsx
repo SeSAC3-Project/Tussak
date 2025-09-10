@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../../AppContext';
 import transactionApi from '../../services/transactionApi';
-import portfolioApi from '../../services/portfolioApi';
 
 const BuyModal = ({
     isOpen,
@@ -16,7 +15,6 @@ const BuyModal = ({
     const [quantity, setQuantity] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
-    const [portfolioData, setPortfolioData] = useState(null);
 
     // 초기 가격 설정
     useEffect(() => {
@@ -25,23 +23,6 @@ const BuyModal = ({
         }
     }, [initialPrice]);
 
-    // 포트폴리오 데이터 로드 (모달이 열릴 때)
-    useEffect(() => {
-        if (isOpen && authToken) {
-            const fetchPortfolioData = async () => {
-                try {
-                    const response = await portfolioApi.getPortfolio(authToken);
-                    if (response) {
-                        setPortfolioData(response);
-                    }
-                } catch (error) {
-                    console.error('포트폴리오 데이터 로드 실패:', error);
-                }
-            };
-
-            fetchPortfolioData();
-        }
-    }, [isOpen, authToken]);
 
     // 모달 기본 세팅
     useEffect(() => {
@@ -213,7 +194,7 @@ const BuyModal = ({
                     {/* Total Amount */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            주문 총액
+                            주문총액
                         </label>
                         <div className="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg text-right">
                             <span className="text-xl font-black text-[#FF383C]">

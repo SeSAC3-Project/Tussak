@@ -18,11 +18,12 @@ import SellModal from '../components/modals/SellModal';
 import OrderConfirmedModal from '../components/modals/OrderConfirmedModal';
 import SellConfirmedModal from '../components/modals/SellConfirmedModal';
 import { stockApi } from '../services/stockApi';
+import portfolioApi from '../services/portfolioApi';
 
 
 export default function StockDetail() {
 
-    const { selectedStock, isLoggedIn } = useApp();
+    const { selectedStock, isLoggedIn, authToken } = useApp();
     const { goBack } = useApp();
 
     console.log('StockDetail시작 -- selectedStock:', selectedStock)
@@ -140,7 +141,9 @@ export default function StockDetail() {
 
     const [realTimePrice, setRealTimePrice] = useState(null);
     const [buyModalPrice, setBuyModalPrice] = useState(null);
+    const [sellModalPrice, setSellModalPrice] = useState(null);
     const [currentRealtimeData, setCurrentRealtimeData] = useState(null);
+    const [portfolioData, setPortfolioData] = useState(null);
 
     useEffect(() => {
         if (!selectedStock?.stock_code) return;
@@ -195,6 +198,26 @@ export default function StockDetail() {
         return () => clearInterval(interval);
     }, [selectedStock]);
 
+    // 포트폴리오 데이터 로드
+    useEffect(() => {
+        const fetchPortfolioData = async () => {
+            if (!isLoggedIn || !authToken) {
+                return;
+            }
+
+            try {
+                const response = await portfolioApi.getPortfolio(authToken);
+                if (response) {
+                    setPortfolioData(response);
+                }
+            } catch (error) {
+                console.error('포트폴리오 데이터 로드 실패:', error);
+            }
+        };
+
+        fetchPortfolioData();
+    }, [isLoggedIn, authToken]);
+
     const handleBuyClick = () => {
         if (!isLoggedIn) {
             alert('로그인이 필요한 서비스입니다');
@@ -226,11 +249,30 @@ export default function StockDetail() {
             alert('로그인이 필요한 서비스입니다');
             return;
         }
+        // 매도 버튼 클릭 시점의 가격을 고정
+        const price = currentRealtimeData?.current_price || realTimePrice || currentPrice || 0;
+        setSellModalPrice(price);
         setIsSellModalOpen(true);
     };
 
     const handleSellModalClose = () => {
         setIsSellModalOpen(false);
+    };
+
+    // 해당 종목의 보유 수량을 포트폴리오 데이터에서 가져오기
+    const getHoldingQuantity = (stockCode) => {
+        console.log('getHoldingQuantity Debug:', { stockCode, portfolioData });
+
+        if (!portfolioData?.portfolios || !stockCode) {
+            console.log('No portfolio data or stock code:', { portfolioData, stockCode });
+            return 0;
+        }
+
+        // 포트폴리오에서 해당 종목 찾기 (Portfolio.jsx와 동일한 구조 사용)
+        const holding = portfolioData.portfolios.find(item => item.stock_code === stockCode);
+        console.log('Found holding:', holding);
+
+        return holding ? holding.quantity : 0;
     };
 
     const handleSellComplete = (orderDetails) => {
@@ -363,9 +405,8 @@ export default function StockDetail() {
                 onSellComplete={handleSellComplete}
                 stockCode={selectedStock?.stock_code || ''}
                 stockName={selectedStock?.stock_name || ''}
-                // 필드명 고민 initialPrice VS currentPrice
-                initialPrice={displayPrice} 
-                holdingQuantity={100}
+                initialPrice={sellModalPrice}
+                holdingQuantity={getHoldingQuantity(selectedStock?.stock_code)}
             />
 
             <SellConfirmedModal

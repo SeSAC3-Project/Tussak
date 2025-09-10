@@ -112,10 +112,6 @@ const SellConfirmedModal = ({
                         확인
                     </button>
 
-                    {/* Auto-close notice */}
-                    <p className="text-xs text-gray-400 mt-3">
-                        5초 후 자동으로 닫힙니다
-                    </p>
                 </div>
             </div>
         </div>
