@@ -25,6 +25,17 @@ const formatKRW = (amount) => {
     return new Intl.NumberFormat('ko-KR').format(Math.round(amount)) + '원';
 };
 
+const formatSignedKRW = (amount) => {
+    const n = Number(amount) || 0;
+    if (n > 0) {
+        return '+' + new Intl.NumberFormat('ko-KR').format(Math.round(n)) + '원';
+    }
+    if (n < 0) {
+        return '-' + new Intl.NumberFormat('ko-KR').format(Math.round(Math.abs(n))) + '원';
+    }
+    return new Intl.NumberFormat('ko-KR').format(0) + '원';
+};
+
 const formatPercentage = (rate) => {
     const sign = rate >= 0 ? '+' : '';
     return `${sign}${rate.toFixed(2)}%`;
@@ -51,6 +62,44 @@ export default function Portfolio() {
                     setPortfolioData(data);
                     const transformedStocks = transformPortfolioData(data);
                     setPortfolioStocks(transformedStocks);
+
+                    // Try to enrich with realtime prices from server (if available)
+                    try {
+                        const fetchRealtime = async () => {
+                            const requests = transformedStocks.map(s =>
+                                fetch(`/api/stock/realtime/${s.stock_code}`).then(r => r.json()).catch(() => null)
+                            );
+
+                            const results = await Promise.all(requests);
+                            const merged = transformedStocks.map((s, i) => {
+                                const res = results[i];
+                                if (res && res.success && res.data && res.data.current_price != null) {
+                                    const realtimePrice = Number(res.data.current_price) || 0;
+                                    const quantity = Number(s.quantity) || 0;
+                                    const averageCost = Number(s.averageCost || s.average_price) || 0;
+
+                                    const newEvaluation = realtimePrice * quantity; // 현재가 기반 평가금액
+                                    const investmentAmount = averageCost * quantity; // 투자원금(평균단가 * 수량)
+                                    const profitLoss = newEvaluation - investmentAmount;
+                                    const profitLossRate = investmentAmount > 0 ? (profitLoss / investmentAmount) * 100 : 0;
+
+                                    return {
+                                        ...s,
+                                        currentPrice: realtimePrice,
+                                        evaluationAmount: newEvaluation,
+                                        unrealizedPL: profitLoss,
+                                        returnRate: profitLossRate
+                                    };
+                                }
+                                return s;
+                            });
+                            setPortfolioStocks(merged);
+                        };
+                        fetchRealtime();
+                    } catch (e) {
+                        // ignore realtime enrichment failures
+                        console.warn('Realtime enrichment failed', e);
+                    }
                 }
             } catch (error) {
                 console.error('포트폴리오 데이터 로드 실패:', error);
@@ -162,8 +211,8 @@ export default function Portfolio() {
                                             <td className="py-4 px-4 text-gray-800 font-normal text-base">{stock.name}</td>
                                             <td className="py-4 px-2 text-gray-700 font-normal text-base">{stock.quantity}주</td>
                                             <td className="py-4 px-2 text-gray-800 font-normal text-base">{formatKRW(stock.evaluationAmount)}</td>
-                                            <td className={`py-4 px-2 font-normal text-base ${stock.unrealizedPL >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
-                                                {formatKRW(stock.unrealizedPL)}
+                                            <td className={`py-4 px-2 font-normal text-base ${stock.unrealizedPL > 0 ? 'text-red-500' : stock.unrealizedPL < 0 ? 'text-blue-500' : 'text-gray-700'}`}>
+                                                {formatSignedKRW(stock.unrealizedPL)}
                                             </td>
                                             <td className={`py-4 px-2 font-normal text-base ${stock.returnRate >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
                                                 {formatPercentage(stock.returnRate)}
@@ -215,8 +264,8 @@ export default function Portfolio() {
                                         </div>
                                         <div className="text-right">
                                             <p className="text-lg font-normal text-gray-800">{formatKRW(stock.evaluationAmount)}</p>
-                                            <p className={`text-base font-normal ${stock.unrealizedPL >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
-                                                {formatKRW(stock.unrealizedPL)} ({formatPercentage(stock.returnRate)})
+                                            <p className={`text-base font-normal ${stock.unrealizedPL > 0 ? 'text-red-500' : stock.unrealizedPL < 0 ? 'text-blue-500' : 'text-gray-600'}`}>
+                                                {formatSignedKRW(stock.unrealizedPL)} ({formatPercentage(stock.returnRate)})
                                             </p>
                                         </div>
                                     </div>
