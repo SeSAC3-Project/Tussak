@@ -151,13 +151,16 @@ export default function StockDetail() {
                 console.warn('실시간 데이터 불러오는데 실패하였습니다:', error)
                 // setRealTimePrice 더미 vs 여기서 또 더미
                 // 그냥 임의로
-                setRealTimePrice(20000); 
+                setRealTimePrice(20000);
             }
         };
 
         fetchRealTimePrice();
 
-        // 여기서 fetch 간격 5초 주기 vs stockApi 에서 이미 5초 설정
+        // 3초마다 실시간 가격 업데이트
+        const interval = setInterval(fetchRealTimePrice, 3000);
+
+        return () => clearInterval(interval);
 
     }, [selectedStock?.stock_code]);
 
@@ -253,6 +256,7 @@ export default function StockDetail() {
                 <StockHeader
                     selectedStock={selectedStock}
                     currentPrice={displayPrice}
+                    realTimePrice={realTimePrice}
                     onBuyClick={handleBuyClick}
                     onSellClick={handleSellClick}
                 />
