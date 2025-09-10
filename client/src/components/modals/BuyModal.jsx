@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../../AppContext';
 import transactionApi from '../../services/transactionApi';
+import portfolioApi from '../../services/portfolioApi';
 
 const BuyModal = ({
     isOpen,
@@ -10,18 +11,37 @@ const BuyModal = ({
     stockCode,
     initialPrice
 }) => {
-    const { authToken } = useApp();
+    const { authToken, user } = useApp();
     const [orderPrice, setOrderPrice] = useState(initialPrice || 0)
     const [quantity, setQuantity] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [portfolioData, setPortfolioData] = useState(null);
 
-    // 시세 변할 때 orderPrice update
+    // 초기 가격 설정
     useEffect(() => {
-        if (initialPrice) {
+        if (initialPrice !== undefined && initialPrice !== null) {
             setOrderPrice(initialPrice);
         }
     }, [initialPrice]);
+
+    // 포트폴리오 데이터 로드 (모달이 열릴 때)
+    useEffect(() => {
+        if (isOpen && authToken) {
+            const fetchPortfolioData = async () => {
+                try {
+                    const response = await portfolioApi.getPortfolio(authToken);
+                    if (response) {
+                        setPortfolioData(response);
+                    }
+                } catch (error) {
+                    console.error('포트폴리오 데이터 로드 실패:', error);
+                }
+            };
+
+            fetchPortfolioData();
+        }
+    }, [isOpen, authToken]);
 
     // 모달 기본 세팅
     useEffect(() => {
@@ -33,25 +53,51 @@ const BuyModal = ({
         }
     }, [isOpen, initialPrice]);
 
-    const totalAmount = orderPrice * quantity;
-    const maxQuantity = 100;
-    // 주문 가능 수량 : 사용자 자금에 따라 설정 (지금은 하드코딩)
+    // 프로필카드와 동일한 방식으로 잔고 계산
+    const currentBalance = user?.current_balance || 0;
+    console.log('BuyModal 잔고 정보:', { user, currentBalance, orderPrice });
 
-    const handlePriceChange = (e) => {
-        const value = parseFloat(e.target.value) || 0;
-        if (value >= 0) {
-            setOrderPrice(value);
-        }
-    };
+    const maxQuantity = orderPrice > 0 ? Math.floor(currentBalance / orderPrice) : 100;
+    console.log('BuyModal 최대 수량 계산:', { currentBalance, orderPrice, maxQuantity });
+    const totalAmount = (quantity === '' || quantity === 0) ? 0 : orderPrice * quantity;
 
     const handleQuantityChange = (e) => {
-        const value = parseInt(e.target.value) || 0;
-        if (value >= 0 && value <= maxQuantity) {
+        const inputValue = e.target.value;
+        console.log('Input value:', inputValue);
+
+        // 빈 문자열인 경우 그대로 유지 (사용자가 지우고 있는 중일 수 있음)
+        if (inputValue === '') {
+            setQuantity('');
+            return;
+        }
+
+        // 숫자가 아닌 문자가 포함된 경우 무시
+        if (isNaN(inputValue) || inputValue.includes('.') || inputValue.includes('-')) {
+            return;
+        }
+
+        const value = parseInt(inputValue);
+        
+        // 범위 체크 후 설정
+        if (value < 1) {
+            setQuantity(1);
+        } else if (value > maxQuantity && maxQuantity > 0) {
+            // 최대 수량을 초과하는 경우 자동으로 최대값으로 설정
+            console.log(`수량이 최대값(${maxQuantity})을 초과하여 자동 조정`);
+            setQuantity(maxQuantity);
+        } else {
             setQuantity(value);
         }
     };
 
-    const isValidOrder = orderPrice > 0 && quantity > 0 && quantity <= maxQuantity;
+    // 포커스를 잃었을 때 빈 값 처리
+    const handleQuantityBlur = () => {
+        if (quantity === '' || quantity === 0) {
+            setQuantity(1);
+        }
+    };
+
+    const isValidOrder = quantity !== '' && Number(quantity) > 0 && Number(quantity) <= maxQuantity;
 
     const handleBuy = async () => {
         if (!isValidOrder) return;
@@ -107,6 +153,7 @@ const BuyModal = ({
             {/* Modal */}
             <div
                 className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6"
+                style={{ fontFamily: 'DM Sans, sans-serif' }}
                 role="dialog"
                 aria-labelledby="buy-modal-title"
                 aria-modal="true"
@@ -131,7 +178,7 @@ const BuyModal = ({
                     {/* Quantity */}
                     <div>
                         <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
-                            수량 <span className="text-xs text-gray-500">(최대 {maxQuantity}주)</span>
+                            수량 <span className="text-xs text-gray-500">(최대 {maxQuantity.toLocaleString()}주)</span>
                         </label>
                         <div className="flex items-center space-x-2">
                             <input
@@ -139,33 +186,20 @@ const BuyModal = ({
                                 type="number"
                                 value={quantity}
                                 onChange={handleQuantityChange}
-                                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-center"
+                                onBlur={handleQuantityBlur}
+                                className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-0 focus:ring-red-500 focus:border-red-500 text-right text-gray-900"
                                 placeholder="1"
-                                min="1"
-                                max={maxQuantity}
                             />
                         </div>
                     </div>
 
-                    {/* Order Price */}
+                    {/* Order Price - Fixed */}
                     <div>
-                        <label htmlFor="order-price" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                             주문가격
                         </label>
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none">
-                            {/* <input
-                                id="order-price"
-                                type="number"
-                                value={orderPrice}
-                                onChange={handlePriceChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-red-500 text-right mr-8 text-gray-800"
-                                placeholder="0"
-                                min="0"
-                                step="100"
-                            /> */}
-                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none">
-                                {orderPrice}원
-                            </span>
+                        <div className="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg text-right text-gray-800">
+                            {formatNumber(orderPrice)}원
                         </div>
                     </div>
 
@@ -177,15 +211,14 @@ const BuyModal = ({
                     )}
 
                     {/* Total Amount */}
-                    <div className="mt-8 bg-red-50 p-4 rounded-lg">
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-gray-700">주문 총액</span>
-                            <span className="text-xl font-bold text-red-600">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            주문 총액
+                        </label>
+                        <div className="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg text-right">
+                            <span className="text-xl font-black text-[#FF383C]">
                                 {formatNumber(totalAmount)}원
                             </span>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                            {formatNumber(orderPrice)}원 × {quantity}주
                         </div>
                     </div>
 
@@ -201,7 +234,7 @@ const BuyModal = ({
                         <button
                             onClick={handleBuy}
                             disabled={!isValidOrder || isSubmitting}
-                            className="flex-1 py-3 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                            className="flex-1 py-3 px-4 bg-[#FF383C] text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                         >
                             {isSubmitting ? '처리중...' : '매수'}
                         </button>

@@ -139,6 +139,8 @@ export default function StockDetail() {
     const [orderDetails, setOrderDetails] = useState(null);
 
     const [realTimePrice, setRealTimePrice] = useState(null);
+    const [buyModalPrice, setBuyModalPrice] = useState(null);
+    const [currentRealtimeData, setCurrentRealtimeData] = useState(null);
 
     useEffect(() => {
         if (!selectedStock?.stock_code) return;
@@ -164,11 +166,43 @@ export default function StockDetail() {
 
     }, [selectedStock?.stock_code]);
 
+    // StockHeader와 동일한 실시간 데이터 로직
+    useEffect(() => {
+        if (!selectedStock || !selectedStock.stock_code || selectedStock.stock_code === '000000') {
+            return;
+        }
+
+        const fetchRealtimeData = async () => {
+            try {
+                const response = await fetch(`/api/stock/realtime/${selectedStock.stock_code}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data) {
+                        setCurrentRealtimeData(data.data);
+                    }
+                }
+            } catch (error) {
+                console.log('실시간 데이터 업데이트 실패:', error);
+            }
+        };
+
+        // 초기 로드
+        fetchRealtimeData();
+
+        // 2초마다 실시간 데이터 가져오기
+        const interval = setInterval(fetchRealtimeData, 2000);
+
+        return () => clearInterval(interval);
+    }, [selectedStock]);
+
     const handleBuyClick = () => {
         if (!isLoggedIn) {
             alert('로그인이 필요한 서비스입니다');
             return;
         }
+        // 모달이 열릴 때의 현재 가격을 고정 (StockHeader와 동일한 우선순위)
+        const price = currentRealtimeData?.current_price || realTimePrice || currentPrice || 0;
+        setBuyModalPrice(price);
         setIsBuyModalOpen(true);
     };
 
@@ -313,7 +347,7 @@ export default function StockDetail() {
                 onBuyComplete={handleBuyComplete}
                 stockCode={selectedStock?.stock_code || ''}
                 stockName={selectedStock?.stock_name || ''}
-                initialPrice={displayPrice}
+                initialPrice={buyModalPrice}
             />
 
             <OrderConfirmedModal
