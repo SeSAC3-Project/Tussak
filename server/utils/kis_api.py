@@ -419,11 +419,12 @@ class KisAPI:
             }
 
         candleData = []
-        
-        # 날짜 오름차순으로 정렬
-        sorted_output = sorted(kis_output, key=lambda x: x['stck_bsop_date'])
 
-        for i, item in enumerate(reversed(kis_output)):  # 날짜 오름차순으로 정렬
+        # 날짜 오름차순으로 정렬
+        sorted_output = sorted(kis_output, key=lambda x: x.get('stck_bsop_date', ''))
+
+        # sorted_output을 사용하여 오래된 항목부터 처리 (오래된 -> 최신)
+        for i, item in enumerate(sorted_output):
             try:
                 open_price = float(item.get('stck_oprc', 0) or 0)
                 high = float(item.get('stck_hgpr', 0) or 0)
@@ -452,9 +453,23 @@ class KisAPI:
                             ma20_values.append(close)
                     ma20 = sum(ma20_values) / len(ma20_values)
 
+                # 날짜 문자열 -> datetime 및 epoch(ms) 변환
+                date_obj = None
+                ts_ms = None
+                if item.get('stck_bsop_date'):
+                    try:
+                        date_obj = datetime.strptime(item.get('stck_bsop_date'), '%Y%m%d')
+                        ts_ms = int(date_obj.timestamp() * 1000)
+                    except Exception:
+                        date_obj = datetime.now()
+                        ts_ms = int(date_obj.timestamp() * 1000)
+                else:
+                    date_obj = datetime.now()
+                    ts_ms = int(date_obj.timestamp() * 1000)
+
                 candle_data = {
-                    'timestamp': item.get('stck_bsop_date', ''),
-                    'date': datetime.strptime(item.get('stck_bsop_date', ''), '%Y%m%d') if item.get('stck_bsop_date') else datetime.now(),
+                    'timestamp': ts_ms,
+                    'date': date_obj.isoformat(),
                     'open': open_price,
                     'high': high,
                     'low': low,

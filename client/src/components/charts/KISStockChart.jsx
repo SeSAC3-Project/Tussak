@@ -69,8 +69,52 @@ const KISStockChart = ({ stockCode }) => {
           return null;
         }
 
+        // 날짜 -> 타임스탬프 생성: 다양한 포맷 대응
+        let timestamp = null;
+        // 1) server가 YYYYMMDD 형태의 문자열을 'timestamp' 필드로 보낼 수 있음
+        if (item.timestamp && typeof item.timestamp === 'string' && /^\d{8}$/.test(item.timestamp)) {
+          const ds = item.timestamp;
+          const y = parseInt(ds.slice(0, 4), 10);
+          const m = parseInt(ds.slice(4, 6), 10) - 1;
+          const d = parseInt(ds.slice(6, 8), 10);
+          timestamp = new Date(y, m, d).getTime();
+        }
+
+        // 2) dateStr가 ISO 문자열(e.g. 2025-09-10T00:00:00)인 경우 파싱
+        if (!timestamp && dateStr && typeof dateStr === 'string') {
+          // YYYYMMDD 형식인지 확인
+          if (/^\d{8}$/.test(dateStr)) {
+            const y = parseInt(dateStr.slice(0, 4), 10);
+            const m = parseInt(dateStr.slice(4, 6), 10) - 1;
+            const d = parseInt(dateStr.slice(6, 8), 10);
+            timestamp = new Date(y, m, d).getTime();
+          } else {
+            // ISO 형식 또는 기타 JS Date로 파싱 가능한 형식
+            const parsed = new Date(dateStr);
+            if (!isNaN(parsed.getTime())) {
+              timestamp = parsed.getTime();
+            }
+          }
+        }
+
+        // 3) 마지막 수단: 숫자형 timestamp가 있으면 사용
+        if (!timestamp && item.timestamp && !isNaN(Number(item.timestamp))) {
+          // but if value looks like YYYYMMDD as number (e.g. 20250910), treat accordingly
+          const num = Number(item.timestamp);
+          if (num > 19700101 && num < 99991231) {
+            const ds = String(item.timestamp).padStart(8, '0');
+            const y = parseInt(ds.slice(0, 4), 10);
+            const m = parseInt(ds.slice(4, 6), 10) - 1;
+            const d = parseInt(ds.slice(6, 8), 10);
+            timestamp = new Date(y, m, d).getTime();
+          } else {
+            timestamp = Number(item.timestamp);
+          }
+        }
+
         return {
           date: dateStr,
+          timestamp,
           open,
           high,
           low,
@@ -79,7 +123,11 @@ const KISStockChart = ({ stockCode }) => {
         };
       })
       .filter(item => item !== null) // null 항목 제거
-      .reverse(); // 날짜순 정렬 (오래된 것부터)
+      .sort((a, b) => {
+        const ta = a.timestamp || 0;
+        const tb = b.timestamp || 0;
+        return ta - tb; // 오름차순: 오래된 -> 최신
+      });
 
     if (candleData.length === 0) {
       console.error('No valid candle data after processing');
@@ -154,16 +202,16 @@ const KISStockChart = ({ stockCode }) => {
   
   // 기간 변경 핸들러
   const handlePeriodChange = (period) => {
-    setSelectedPeriod(period);
-    loadChartData(period);
+  // selectedPeriod 상태만 변경하면 useEffect가 실질적인 데이터 로드를 담당합니다.
+  setSelectedPeriod(period);
   };
 
   // stockCode가 변경될 때마다 차트 데이터 로드
   useEffect(() => {
     if (stockCode) {
-    loadChartData(selectedPeriod, stockCode);
+      loadChartData(selectedPeriod, stockCode);
     }
-  }, [stockCode, loadChartData]);
+  }, [stockCode, loadChartData, selectedPeriod]);
 
   // 간단한 캔들차트 컴포넌트
   const SimpleCandlestickChart = ({ stockData }) => {
@@ -189,7 +237,7 @@ const KISStockChart = ({ stockCode }) => {
       return <div className="text-center py-8 text-gray-500">차트 데이터가 없습니다.</div>;
     }
 
-    const { candleData, priceRange } = stockData;
+  const { candleData, priceRange } = stockData;
     
     const margin = { left: 60, right: 40, top: 20, bottom: 60 };
     const chartAreaWidth = chartSize.width - margin.left - margin.right;
@@ -208,13 +256,15 @@ const KISStockChart = ({ stockCode }) => {
       return margin.top + ((priceRange.max - price) / denom) * chartAreaHeight;
     };
 
-    const scaleX = (index) => {
+    // 균일한 간격으로 그리기: 인덱스 기반 X 스케일 사용
+    // (주말/공휴일에 데이터가 없더라도 캔들 사이에 공백이 생기지 않음)
+    const scaleX = (_value, index) => {
       return margin.left + (index + 0.5) * candleSpacing;
     };
 
     return (
-  <div ref={containerRef} className="w-full h-[300px] overflow-hidden">
-  <svg width={chartSize.width} height={chartSize.height} className="bg-white rounded">
+  <div ref={containerRef} className="w-full h-[300px] overflow-hidden flex justify-center">
+  <svg width={Math.min(chartSize.width, 1200)} height={chartSize.height} className="bg-white rounded mx-auto max-w-full">
           {/* 배경 그리드 */}
           <defs>
             <pattern id="grid" width="50" height="25" patternUnits="userSpaceOnUse">
@@ -259,7 +309,7 @@ const KISStockChart = ({ stockCode }) => {
 
           {/* 캔들스틱 */}
           {candleData.map((candle, index) => {
-            const x = scaleX(index);
+            const x = scaleX(candle.timestamp, index);
             const isGreen = candle.isUp;
             
             const openY = scaleY(candle.open);
@@ -321,14 +371,44 @@ const KISStockChart = ({ stockCode }) => {
 
           {/* 날짜 레이블 */}
           {candleData.map((candle, index) => {
-            // 날짜를 적당히 간격을 두고 표시
+            // 날짜를 적당히 간격을 두고 표시 (index 기반 샘플링)
             if (index % Math.max(1, Math.floor(candleData.length / 8)) === 0) {
-              const x = scaleX(index);
-              const dateStr = (candle.date || '').toString();
-              let formattedDate = dateStr;
-              if (dateStr.length >= 8) {
-                formattedDate = `${dateStr.slice(4, 6)}.${dateStr.slice(6, 8)}`;
+              const x = scaleX(candle.timestamp, index);
+              // 포맷: timestamp(ms) 우선, ISO 문자열, YYYYMMDD 문자열 순으로 처리하여 MM.DD 반환
+              let formattedDate = '';
+              if (candle.timestamp && typeof candle.timestamp === 'number' && !isNaN(candle.timestamp)) {
+                const d = new Date(candle.timestamp);
+                if (selectedPeriod === '년') {
+                  formattedDate = String(d.getFullYear());
+                } else {
+                  const mm = String(d.getMonth() + 1).padStart(2, '0');
+                  const dd = String(d.getDate()).padStart(2, '0');
+                  formattedDate = `${mm}.${dd}`;
+                }
+              } else if (candle.date && typeof candle.date === 'string') {
+                // ISO 형식인지 확인
+                const isoCheck = /\d{4}-\d{2}-\d{2}/.test(candle.date);
+                if (isoCheck) {
+                  const d = new Date(candle.date);
+                  if (!isNaN(d.getTime())) {
+                    if (selectedPeriod === '년') {
+                      formattedDate = String(d.getFullYear());
+                    } else {
+                      const mm = String(d.getMonth() + 1).padStart(2, '0');
+                      const dd = String(d.getDate()).padStart(2, '0');
+                      formattedDate = `${mm}.${dd}`;
+                    }
+                  }
+                } else if (/^\d{8}$/.test(candle.date)) {
+                  // YYYYMMDD
+                  if (selectedPeriod === '년') {
+                    formattedDate = `${candle.date.slice(0,4)}`;
+                  } else {
+                    formattedDate = `${candle.date.slice(4, 6)}.${candle.date.slice(6, 8)}`;
+                  }
+                }
               }
+
               return (
                 <text
                   key={`date-${index}`}
@@ -354,7 +434,7 @@ const KISStockChart = ({ stockCode }) => {
   return (
     <div className="w-full">
       {/* 기간 선택 버튼 */}
-      <div className="flex justify-end gap-2 mb-4">
+      <div className="flex justify-end gap-2 mt-2 mb-4">
         {['일', '주', '월', '년'].map(period => (
           <button
             key={period}
@@ -392,7 +472,7 @@ const KISStockChart = ({ stockCode }) => {
 
       {/* 차트 */}
       {stockData && !loading && (
-        <div className="rounded-lg p-4">
+        <div className="rounded-lg p-4 flex justify-center">
           <SimpleCandlestickChart stockData={stockData} />
         </div>
       )}
