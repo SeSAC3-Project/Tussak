@@ -221,7 +221,7 @@ class KisAPI:
             current_app.logger.warning(f"KIS API 호출 실패 {stock_code}: {e}")
             return None
 
-    def fetch_minute_data_raw(self, stock_code, target_date=None):
+    # def fetch_minute_data_raw(self, stock_code, target_date=None):
         """
         주식당일분봉조회 API - 순수 API 호출만
         target_date: datetime 객체 (None이면 오늘)
@@ -271,7 +271,7 @@ class KisAPI:
                 'raw_response': {}
             }
 
-    def fetch_weekly_minute_data_raw(self, stock_code, start_date, end_date):
+    # def fetch_weekly_minute_data_raw(self, stock_code, start_date, end_date):
         """
         주식일별분봉조회 API - 순수 API 호출만
         start_date, end_date: datetime 객체
@@ -336,7 +336,7 @@ class KisAPI:
                 'raw_response': {}
             }
 
-    def fetch_daily_data_raw(self, stock_code, start_date, end_date):
+    # def fetch_daily_data_raw(self, stock_code, start_date, end_date):
         """
         국내주식기간별시세 API - 순수 API 호출만
         start_date, end_date: datetime 객체
