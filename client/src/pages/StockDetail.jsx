@@ -359,7 +359,7 @@ export default function StockDetail() {
                     
 
                     {/* 캔들스틱 차트 */}
-                    <div className="min-h-screen bg-gray-100">
+                    <div className="w-full h-full overflow-hidden">
                         <KISStockChart stockCode={selectedStock?.stock_code} />
                     </div>
 
