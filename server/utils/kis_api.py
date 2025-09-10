@@ -100,6 +100,9 @@ class KisAPI:
 
     def __init__(self):
         self.kis_token = get_kis_token()
+        if not self.kis_token:
+            current_app.logger.error("KIS API 토큰이 없습니다")
+            raise Exception("KIS API 토큰이 발급되지 않았습니다")
 
     def fetch_stock_basic_info(self, stock_code):
         try:
@@ -336,6 +339,163 @@ class KisAPI:
                 'raw_response': {}
             }
 
+    def fetch_daily_chart_data(self, stock_code, period='D'):
+        """
+        국내주식기간별시세 API - 차트용 데이터 조회
+        period: D(일), W(주), M(월), Y(년)
+        """
+        try:
+            url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-daily-price"
+
+            headers = {
+                "Content-Type": "application/json",
+                "authorization": f"Bearer {self.kis_token}",
+                "appkey": KIS_CLIENT_ID,
+                "appsecret": KIS_CLIENT_SECRET,
+                "tr_id": "FHKST01010400",  # 국내주식기간별시세(일/주/월/년)
+                "custtype": "P"
+            }
+
+            params = {
+                "FID_COND_MRKT_DIV_CODE": "J",
+                "FID_INPUT_ISCD": stock_code,
+                "FID_PERIOD_DIV_CODE": period,
+                "FID_ORG_ADJ_PRC": "1",
+                "FID_INPUT_DATE_1": "",  # 조회시작일자
+                "FID_INPUT_DATE_2": "",  # 조회종료일자
+                "FID_DAY_COUNT": "100"   # 기간 조회 시 카운트
+            }
+
+            response = requests.get(url, headers=headers, params=params)
+            data = response.json()
+
+            current_app.logger.info(f"차트 데이터 API 호출: {stock_code}, period={period}")
+            current_app.logger.debug(f"KIS API 응답: {data}")
+
+            if not data:
+                raise Exception("KIS API 응답이 비어있습니다")
+
+            if data.get('rt_cd') != '0':
+                error_msg = f"KIS API 에러: {data.get('msg1', '알 수 없는 오류')}"
+                current_app.logger.error(error_msg)
+                raise Exception(error_msg)
+
+            if not data.get('output') or not isinstance(data.get('output'), list):
+                raise Exception("KIS API 응답에 유효한 output 데이터가 없습니다")
+
+            if data.get('rt_cd') == '0' and data.get('output'):
+                transformed_data = self.transform_chart_data(data.get('output', []))
+                return {
+                    'success': True,
+                    'data': transformed_data,
+                    'message': '차트 데이터 조회 성공'
+                }
+            else:
+                return {
+                    'success': False,
+                    'data': [],
+                    'message': data.get('msg1', '차트 데이터 조회 실패'),
+                    'raw_response': data
+                }
+
+        except Exception as e:
+            current_app.logger.error(f"차트 데이터 API 호출 실패: {e}")
+            return {
+                'success': False,
+                'data': [],
+                'message': str(e),
+                'raw_response': {}
+            }
+
+    def transform_chart_data(self, kis_output):
+        """
+        KIS API 응답을 차트 컴포넌트용 데이터로 변환
+        """
+        if not kis_output or len(kis_output) == 0:
+            return {
+                'candleData': [],
+                'priceRange': {'min': 0, 'max': 0},
+                'maxVolume': 0
+            }
+
+        candleData = []
+        
+        # 날짜 오름차순으로 정렬
+        sorted_output = sorted(kis_output, key=lambda x: x['stck_bsop_date'])
+
+        for i, item in enumerate(reversed(kis_output)):  # 날짜 오름차순으로 정렬
+            try:
+                open_price = float(item.get('stck_oprc', 0) or 0)
+                high = float(item.get('stck_hgpr', 0) or 0)
+                low = float(item.get('stck_lwpr', 0) or 0)
+                close = float(item.get('stck_clpr', 0) or 0)
+                volume = int(item.get('acml_vol', 0) or 0)
+
+                # 이동평균 계산 (간단히 구현)
+                ma5 = close
+                if i >= 4:
+                    ma5_values = []
+                    for j in range(max(0, i-4), i+1):
+                        if j < len(candleData):
+                            ma5_values.append(candleData[j]['close'])
+                        else:
+                            ma5_values.append(close)
+                    ma5 = sum(ma5_values) / len(ma5_values)
+
+                ma20 = close
+                if i >= 19:
+                    ma20_values = []
+                    for j in range(max(0, i-19), i+1):
+                        if j < len(candleData):
+                            ma20_values.append(candleData[j]['close'])
+                        else:
+                            ma20_values.append(close)
+                    ma20 = sum(ma20_values) / len(ma20_values)
+
+                candle_data = {
+                    'timestamp': item.get('stck_bsop_date', ''),
+                    'date': datetime.strptime(item.get('stck_bsop_date', ''), '%Y%m%d') if item.get('stck_bsop_date') else datetime.now(),
+                    'open': open_price,
+                    'high': high,
+                    'low': low,
+                    'close': close,
+                    'volume': volume,
+                    'ma5': ma5,
+                    'ma20': ma20,
+                    'changeAmount': int(item.get('prdy_vrss', 0) or 0),
+                    'changeRate': float(item.get('prdy_ctrt', 0) or 0),
+                    'isUp': item.get('prdy_vrss_sign') in ['1', '2']
+                }
+
+                candleData.append(candle_data)
+
+            except (ValueError, TypeError) as e:
+                current_app.logger.warning(f"차트 데이터 변환 중 오류: {e}, item: {item}")
+                continue
+
+        # 가격 범위 계산
+        if candleData:
+            all_prices = []
+            for d in candleData:
+                all_prices.extend([d['high'], d['low']])
+
+            priceRange = {
+                'min': min(all_prices) * 0.98,
+                'max': max(all_prices) * 1.02
+            }
+
+            # 거래량 범위 계산
+            maxVolume = max([d['volume'] for d in candleData]) if candleData else 0
+        else:
+            priceRange = {'min': 0, 'max': 0}
+            maxVolume = 0
+
+        return {
+            'candleData': candleData,
+            'priceRange': priceRange,
+            'maxVolume': maxVolume
+        }
+
     # def fetch_daily_data_raw(self, stock_code, start_date, end_date):
         """
         국내주식기간별시세 API - 순수 API 호출만
@@ -343,7 +503,7 @@ class KisAPI:
         """
         try:
             url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
-            
+
             headers = {
                 "Content-Type": "application/json",
                 "authorization": f"Bearer {self.kis_token}",
@@ -351,7 +511,7 @@ class KisAPI:
                 "appsecret": KIS_CLIENT_SECRET,
                 "tr_id": "FHKST03010100"
             }
-            
+
             params = {
                 "fid_cond_mrkt_div_code": "J",
                 "fid_input_iscd": stock_code,
@@ -360,19 +520,19 @@ class KisAPI:
                 "fid_period_div_code": "D",  # D:일봉
                 "fid_org_adj_prc": "1"
             }
-            
+
             response = requests.get(url, headers=headers, params=params)
             data = response.json()
 
             current_app.logger.info(f"일봉 API 호출: {stock_code}, rt_cd={data.get('rt_cd')}")
-            
+
             return {
                 'success': data.get('rt_cd') == '0',
                 'data': data.get('output2', []) if data.get('rt_cd') == '0' else [],
                 'message': data.get('msg1', ''),
                 'raw_response': data
             }
-                
+
         except Exception as e:
             current_app.logger.error(f"국내주식기간별시세 API 호출 실패: {e}")
             return {

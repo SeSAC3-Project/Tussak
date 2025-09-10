@@ -4,12 +4,10 @@ import { useChartState } from '../hooks/useChartState';
 import { useStockData } from '../hooks/useStockData';
 import { useChartInteraction } from '../hooks/useChartInteraction';
 import { getPriceRange } from '../utils/stockDataGenerator';
-import CandlestickChart from '../components/charts/CandlestickChart';
-import VolumeChart from '../components/charts/VolumeChart';
-import ChartControls from '../components/charts/ChartControls';
 import StockHeader from '../components/stock/StockHeader';
 import StockInfo from '../components/stock/StockInfo';
 import CompanyOverview from '../components/stock/CompanyOverview';
+import KISStockChart from '../components/charts/KISStockChart';
 
 // 모달 구현용 
 import { useState, useEffect } from 'react';
@@ -145,10 +143,24 @@ export default function StockDetail() {
     const [currentRealtimeData, setCurrentRealtimeData] = useState(null);
     const [portfolioData, setPortfolioData] = useState(null);
 
+    // 장 시간 체크 함수
+    const isMarketOpen = () => {
+        const now = new Date();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const currentTime = hour * 100 + minute;
+        return currentTime >= 900 && currentTime <= 1530;
+    };
+
     useEffect(() => {
         if (!selectedStock?.stock_code) return;
 
         const fetchRealTimePrice = async () => {
+            if (!isMarketOpen()) {
+                // console.log('장 시간이 아닙니다.');
+                return;
+            }
+
             try {
                 const price = await stockApi.fetchRealTimePrice(selectedStock.stock_code);
                 setRealTimePrice(price);
@@ -176,6 +188,11 @@ export default function StockDetail() {
         }
 
         const fetchRealtimeData = async () => {
+            if (!isMarketOpen()) {
+                // console.log('장 시간이 아닙니다.');
+                return;
+            }
+
             try {
                 const response = await fetch(`/api/stock/realtime/${selectedStock.stock_code}`);
                 if (response.ok) {
@@ -339,40 +356,13 @@ export default function StockDetail() {
 
                 {/* 차트 섹션 */}
                 <div className="bg-white rounded-[20px] h-[400px] py-[19px] px-[28px]" style={{fontFamily: 'DM Sans'}}>
-                    <ChartControls
-                        chartState={chartState}
-                        onPeriodChange={handlePeriodChange}
-                    />
+                    
 
                     {/* 캔들스틱 차트 */}
-                    {/* <CandlestickChart
-                        stockData={{
-                            candleData: visibleData,
-                            priceRange: priceRange
-                        }}
-                        chartState={chartState}
-                        currentPrice={currentPrice}
-                        chartRef={chartRef}
-                    // handleWheel={handleWheel}
-                    // handleMouseDown={handleMouseDown}
-                    // handleMouseMoveChart={handleMouseMoveChart}
-                    // handleMouseLeaveChart={handleMouseLeaveChart}
-                    /> */}
-
-                    {/* 거래량 차트 */}
-                    <div className="mt-4 border-t border-gray-100 pt-2">
-                        <div className="flex items-center mb-2">
-                            <span className="text-xs text-gray-500 ml-10">거래량</span>
-                        </div>
-                        <VolumeChart
-                            stockData={{
-                                candleData: visibleData,
-                                priceRange: priceRange,
-                                timeData: timeData
-                            }}
-                            chartState={chartState}
-                        />
+                    <div className="min-h-screen bg-gray-100">
+                        <KISStockChart stockCode={selectedStock?.stock_code} />
                     </div>
+
                 </div>
 
                 {/* 하단 정보 섹션 */}

@@ -88,16 +88,15 @@ const stockApi = {
     // 실시간 현재가 업데이트
     fetchRealTimePrice: async (symbol) => {
         try {
-            const response = await fetch('#');
+            const response = await fetch(`${API_BASE_URL}/api/stock/realtime/${symbol}`);
             const data = await response.json();
+            if (!response.ok) {
+                throw new Error('실시간 데이터 조회 실패');
+            }
             return data.currentPrice;
-
         } catch (error) {
             console.error('실시간 가격 조회에 실패하였습니다: ', error);
-            // 더미용 랜덤 변동
-            const basePrice = 235000;
-            const variation = (Math.random() - 0.5) * 5000;
-            return Math.round(basePrice + variation);
+            return null; // 목데이터 대신 null 반환
         }
     },
 

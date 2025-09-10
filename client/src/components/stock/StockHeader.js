@@ -7,6 +7,22 @@ const StockHeader = ({ selectedStock, currentPrice, realTimePrice, onBuyClick, o
     const stockCode = selectedStock?.stock_code || '000000';
     const market = selectedStock?.market || '';
 
+    // 거래시간 체크 함수
+    const isMarketOpen = () => {
+        const now = new Date();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const currentTime = hour * 100 + minute; // 1530 형식으로 변환
+
+        // 주말 체크
+        if (now.getDay() === 0 || now.getDay() === 6) {
+            return false;
+        }
+
+        // 거래 시간 체크 (9:00 - 15:30)
+        return currentTime >= 900 && currentTime <= 1530;
+    };
+
     // 실시간 데이터 업데이트 (2초마다)
     useEffect(() => {
         // selectedStock이 없거나 stockCode가 유효하지 않으면 실행하지 않음
@@ -15,6 +31,12 @@ const StockHeader = ({ selectedStock, currentPrice, realTimePrice, onBuyClick, o
         }
 
         const fetchRealtimeData = async () => {
+            // 장 시간이 아니면 실시간 데이터를 조회하지 않음
+            if (!isMarketOpen()) {
+                // console.log('장 시간이 아닙니다.');
+                return;
+            }
+
             try {
                 const response = await fetch(`/api/stock/realtime/${stockCode}`);
                 if (response.ok) {
