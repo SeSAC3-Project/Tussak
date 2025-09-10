@@ -9,32 +9,32 @@ const StockHeader = ({ selectedStock, currentPrice, onBuyClick, onSellClick }) =
     const changePercent = selectedStock.change_rate || 0;
 
     const direction = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
-    const textColor = direction === 'up' ? 'text-red-500' : direction === 'down' ? 'text-blue-500' : 'text-gray-600';
+    const textColor = direction === 'up' ? 'text-[#FF383C]' : direction === 'down' ? 'text-[#0088FF]' : 'text-[#8A8A8A]';
     const changeIcon = direction === 'up' ? '▲' : direction === 'down' ? '▼' : '';
 
     return (
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-white rounded-[20px] py-[19px] px-[28px]" style={{fontFamily: 'DM Sans'}}>
             <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                    <h1 className="text-2xl font-bold text-gray-800">{stockName}</h1>
-                    <span className="text-sm text-gray-500">{stockCode} {market}</span>
-                    <span className="text-2xl font-bold text-gray-800">{price.toLocaleString()}</span>
-                    <div className="flex items-center space-x-2">
-                        <span className={`font-semibold ${textColor}`}>
-                            {changeIcon} {change.toLocaleString()} ({changePercent.toFixed(2)}%)
+                <div className="flex items-center space-x-2">
+                    <h1 className="text-[20px] font-bold text-[#0F250B]">{stockName}</h1>
+                    <span className="text-[16px] font-light text-[#8A8A8A]">{stockCode} {market}</span>
+                    <span className="text-lg font-normal text-[#0F250B] pl-4">{price.toLocaleString()}</span>
+                    <div className="flex items-center pl-1">
+                        <span className={`font-normal text-base ${textColor}`}>
+                            {changeIcon} {Math.abs(change).toLocaleString()} ({Math.abs(changePercent).toFixed(2)}%)
                         </span>
                     </div>
                 </div>
-                <div className="flex space-x-2">
-                    <button 
+                <div className="flex space-x-3">
+                    <button
                         onClick={onBuyClick}
-                        className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors font-medium">
+                        className="bg-[#FF383C] text-white px-5 py-2 rounded-lg hover:bg-red-600 transition-colors font-normal">
                         매수
                     </button>
                     <button
-                        onClick={onSellClick} 
+                        onClick={onSellClick}
                         disabled={!currentPrice}
-                        className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                        className="bg-[#0088FF] text-white px-5 py-2 rounded-lg hover:bg-blue-600 transition-colors font-normal">
                         매도
                     </button>
                 </div>

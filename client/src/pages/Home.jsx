@@ -145,7 +145,7 @@ function StockRank() {
     return (
         <div className="bg-white rounded-[20px] h-[345px] py-[19px] px-[28px]" style={{ fontFamily: 'DM Sans' }}>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-[20px] font-bold text-[#0F250B]">거래량 순위</h2>
+                <h2 className="text-[20px] font-bold text-[#0F250B]">거래대금 순위</h2>
                 <button
                     onClick={() => navigateToMarket('')}
                     className="flex items-center text-[16px] text-[#8A8A8A] font-regular">

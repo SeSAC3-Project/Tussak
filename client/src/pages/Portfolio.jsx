@@ -97,13 +97,13 @@ export default function Portfolio() {
                     <div className="bg-white px-7 py-5 rounded-xl mb-4">
                         <h1 className="font-bold mb-4" style={{ fontFamily: 'DM Sans', fontSize: '20px', color: 'rgb(15, 37, 11)' }}>내 자산 현황</h1>
                         <div className="bg-white-300 p-4 rounded-lg shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]">
-                            <div className="mb-3" style={{ color: 'rgb(15, 37, 11)' }}>
+                            <div className="mb-2" style={{ color: 'rgb(15, 37, 11)' }}>
                                 현금잔고: {formatKRW(portfolioData.user_info?.current_balance || 0)}
                             </div>
-                            <div className="mb-3" style={{ color: 'rgb(15, 37, 11)' }}>
+                            <div className="mb-2" style={{ color: 'rgb(15, 37, 11)' }}>
                                 투자금액: {formatKRW(portfolioData.portfolio_summary?.total_investment || 0)}
                             </div>
-                            <div className={`mb-3 ${portfolioData.portfolio_summary?.total_profit_loss >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
+                            <div className={`mb-2 ${portfolioData.portfolio_summary?.total_profit_loss >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
                                 투자손익: {formatKRW(portfolioData.portfolio_summary?.total_profit_loss || 0)} ({formatPercentage(portfolioData.portfolio_summary?.total_profit_loss_rate || 0)})
                             </div>
                             <div style={{ color: 'rgb(15, 37, 11)' }}>

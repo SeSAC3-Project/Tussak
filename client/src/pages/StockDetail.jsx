@@ -247,11 +247,8 @@ export default function StockDetail() {
     }
 
     return (
-        <div>
-            <div className="max-w-7xl mx-auto space-y-6">
-                {/* 뒤로 가기 */}
-                <button onClick={goBack}>뒤로 가기</button>
-                
+        <div className="max-w-7xl mx-auto">
+            <div className="pt-[15px] pb-[20px] mx-2 flex flex-col gap-[16px]">
                 {/* 주식 헤더 */}
                 <StockHeader
                     selectedStock={selectedStock}
@@ -261,14 +258,14 @@ export default function StockDetail() {
                 />
 
                 {/* 차트 섹션 */}
-                <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="bg-white rounded-[20px] h-[400px] py-[19px] px-[28px]" style={{fontFamily: 'DM Sans'}}>
                     <ChartControls
                         chartState={chartState}
                         onPeriodChange={handlePeriodChange}
                     />
 
                     {/* 캔들스틱 차트 */}
-                    <CandlestickChart
+                    {/* <CandlestickChart
                         stockData={{
                             candleData: visibleData,
                             priceRange: priceRange
@@ -280,7 +277,7 @@ export default function StockDetail() {
                     // handleMouseDown={handleMouseDown}
                     // handleMouseMoveChart={handleMouseMoveChart}
                     // handleMouseLeaveChart={handleMouseLeaveChart}
-                    />
+                    /> */}
 
                     {/* 거래량 차트 */}
                     <div className="mt-4 border-t border-gray-100 pt-2">
@@ -299,9 +296,9 @@ export default function StockDetail() {
                 </div>
 
                 {/* 하단 정보 섹션 */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <StockInfo />
-                    <CompanyOverview />
+                <div className="flex flex-col lg:flex-row gap-[16px]">
+                    <StockInfo stockData={selectedStock} />
+                    <CompanyOverview companyInfo={selectedStock?.company_info} />
                 </div>
             </div>
 

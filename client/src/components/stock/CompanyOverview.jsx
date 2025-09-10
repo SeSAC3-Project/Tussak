@@ -1,15 +1,13 @@
-const CompanyOverview = () => {
+const CompanyOverview = ({ companyInfo }) => {
 
     return (
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">기업개요</h2>
-            <p className="text-gray-600 leading-relaxed text-sm mb-6">
-                대한전선 베트남 생산법인 대한비나, 초고압 케이블 공장 짓는다. 
-                대한전선 베트남 생산법인 대한비나, 초고압 케이블 공장 짓는다. 
-                대한전선 베트남 생산법인 대한비나, 초고압 케이블 공장 짓는다. 
-                대한전선 베트남 생산법인 대한비나, 초고압 케이블 공장 짓는다. 
-                대한전선 베트남 생산법인 대한비나, 초고압 케이블 공장 짓는다.
-            </p>
+        <div className="bg-white rounded-[20px] h-[425px] w-full lg:w-1/2 py-[19px] px-[28px]" style={{fontFamily: 'DM Sans'}}>
+            <h2 className="text-[20px] font-bold text-[#0F250B] mb-3">기업개요</h2>
+            <div className="h-[340px] overflow-y-auto">
+                <p className="text-[#8A8A8A] leading-relaxed text-sm lg:text-base">
+                    {companyInfo || "기업 개요 정보를 불러오는 중입니다..."}
+                </p>
+            </div>
         </div>
     );
 };
