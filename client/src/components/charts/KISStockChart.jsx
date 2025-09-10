@@ -5,8 +5,14 @@ const KISStockChart = ({ stockCode }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState('일');
+  // simple in-memory cache per component instance: key = `${stockCode}:${period}`
+  const cacheRef = useRef(new Map());
+  // in-flight requests to dedupe simultaneous fetches: key -> Promise
+  const inflightRef = useRef(new Map());
   
   const containerRef = useRef(null);
+  // animation trigger when stockData updates
+  const [shouldAnimate, setShouldAnimate] = useState(false);
 
   // KIS API 응답 데이터를 차트 데이터로 변환 (단순화)
   const transformApiData = (apiData) => {
@@ -163,42 +169,74 @@ const KISStockChart = ({ stockCode }) => {
   };
 
   // 차트 데이터 로드 (useCallback으로 감싸서 useEffect 의존성 경고 방지)
-  const loadChartData = useCallback(async (period = selectedPeriod, code = stockCode) => {
-    setLoading(true);
+  // stable loader that accepts explicit params to avoid identity changes
+  const loadChartData = useCallback(async (period, code) => {
     setError(null);
 
-    try {
-      const periodCode = { '일': 'D', '주': 'W', '월': 'M', '년': 'Y' };
-      const url = `/api/stock/kis-chart/${code}?period=${periodCode[period] || 'D'}`;
-      console.log('차트 데이터 API 호출:', url);
+    const periodCode = { '일': 'D', '주': 'W', '월': 'M', '년': 'Y' };
+    const codeParam = periodCode[period] || 'D';
+    const cacheKey = `${code}:${codeParam}`;
 
-      const response = await fetch(url);
-      const data = await response.json();
+    // return cached immediately if exists
+    const cached = cacheRef.current.get(cacheKey);
+    if (cached) {
+      setStockData(cached);
+      return cached;
+    }
 
-      console.log('API Response (loadChartData):', data);
-
-      // 서버에서 래핑한 구조일 수 있으니 transformApiData에 통째로 전달
-      if (response.ok && data && (data.success || data.data || data.output)) {
-        const payload = data.data || data.output || data;
-        const transformedData = transformApiData(payload);
-        if (transformedData) {
-          setStockData(transformedData);
-        } else {
-          setStockData(null);
-          setError('차트 데이터 변환에 실패했습니다.');
-        }
-      } else {
-        setStockData(null);
-        setError((data && data.message) || '차트 데이터를 불러오는데 실패했습니다.');
+    // If there's an in-flight request for the same key, await it (dedupe)
+    const inflight = inflightRef.current.get(cacheKey);
+    if (inflight) {
+      try {
+        const result = await inflight;
+        if (result) setStockData(result);
+        return result;
+      } catch (err) {
+        // fallthrough to try fetching again
+        console.warn('In-flight request failed, refetching:', err);
       }
+    }
+
+    // create fetch promise and store in inflight map
+    const fetchPromise = (async () => {
+      try {
+        const url = `/api/stock/kis-chart/${code}?period=${codeParam}`;
+        console.log('차트 데이터 API 호출:', url);
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log('API Response (loadChartData):', data);
+
+        if (response.ok && data && (data.success || data.data || data.output)) {
+          const payload = data.data || data.output || data;
+          const transformedData = transformApiData(payload);
+          if (transformedData) {
+            try { cacheRef.current.set(cacheKey, transformedData); } catch (e) { console.warn('캐시 저장 실패:', e); }
+            return transformedData;
+          } else {
+            throw new Error('차트 데이터 변환에 실패했습니다.');
+          }
+        } else {
+          throw new Error((data && data.message) || '차트 데이터를 불러오는데 실패했습니다.');
+        }
+      } finally {
+        // cleanup inflight later in finally of caller
+      }
+    })();
+
+    inflightRef.current.set(cacheKey, fetchPromise);
+
+    try {
+      const result = await fetchPromise;
+      if (result) setStockData(result);
+      return result;
     } catch (err) {
       console.error('데이터 로드 오류:', err);
-      setStockData(null);
-      setError(`데이터 로드 실패: ${err.message}`);
+      setError(err.message || `데이터 로드 실패`);
+      return null;
     } finally {
-      setLoading(false);
+      inflightRef.current.delete(cacheKey);
     }
-  }, [selectedPeriod, stockCode]);
+  }, []);
   
   // 기간 변경 핸들러
   const handlePeriodChange = (period) => {
@@ -206,12 +244,21 @@ const KISStockChart = ({ stockCode }) => {
   setSelectedPeriod(period);
   };
 
-  // stockCode가 변경될 때마다 차트 데이터 로드
+  // stockCode 또는 선택 기간이 변경될 때마다 차트 데이터 로드
   useEffect(() => {
     if (stockCode) {
+      // call stable loader with explicit params
       loadChartData(selectedPeriod, stockCode);
     }
-  }, [stockCode, loadChartData, selectedPeriod]);
+  }, [stockCode, selectedPeriod, loadChartData]);
+
+  // trigger a brief animation when stockData updates
+  useEffect(() => {
+    if (!stockData) return;
+    setShouldAnimate(true);
+    const t = setTimeout(() => setShouldAnimate(false), 420); // matches dur below
+    return () => clearTimeout(t);
+  }, [stockData]);
 
   // 간단한 캔들차트 컴포넌트
   const SimpleCandlestickChart = ({ stockData }) => {
@@ -344,7 +391,27 @@ const KISStockChart = ({ stockCode }) => {
                   fill={isGreen ? "#22c55e" : "#ef4444"}
                   stroke={isGreen ? "#22c55e" : "#ef4444"}
                   strokeWidth="1"
-                />
+                >
+                  {shouldAnimate && (
+                    <>
+                      {/* grow height from 1px to full height, and adjust y from bottom to bodyTop */}
+                      <animate
+                        attributeName="height"
+                        from="1"
+                        to={Math.max(bodyHeight, 1)}
+                        dur="350ms"
+                        fill="freeze"
+                      />
+                      <animate
+                        attributeName="y"
+                        from={bodyTop + Math.max(bodyHeight, 1) - 1}
+                        to={bodyTop}
+                        dur="350ms"
+                        fill="freeze"
+                      />
+                    </>
+                  )}
+                </rect>
               </g>
             );
           })}
@@ -450,32 +517,26 @@ const KISStockChart = ({ stockCode }) => {
         ))}
       </div>
 
-      {/* 로딩 및 에러 표시 */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className="ml-2">데이터 로딩 중...</span>
-        </div>
-      )}
+      // 로딩 및 에러 표시 (UI 로더는 제거됨; 기존 차트는 계속 표시됩니다)
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 rounded-md">
-          <p className="text-red-800">{error}</p>
-          <button 
-            onClick={() => loadChartData()}
-            className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
-          >
-            다시 시도
-          </button>
-        </div>
-      )}
+          {error && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 rounded-md">
+              <p className="text-red-800">{error}</p>
+              <button 
+                onClick={() => loadChartData()}
+                className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
 
-      {/* 차트 */}
-      {stockData && !loading && (
-        <div className="rounded-lg p-4 flex justify-center">
-          <SimpleCandlestickChart stockData={stockData} />
-        </div>
-      )}
+          {/* 차트 */}
+          {stockData && (
+            <div className="rounded-lg p-4 flex justify-center">
+              <SimpleCandlestickChart stockData={stockData} />
+            </div>
+          )}
     </div>
   );
 };

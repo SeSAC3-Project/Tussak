@@ -10,6 +10,7 @@ from sqlalchemy import text, func, and_
 
 from datetime import datetime, date, timedelta
 import time
+from services.cache_service import CacheService
 
 class StockService:
 
@@ -600,15 +601,39 @@ class StockService:
         """
         try:
             current_app.logger.info(f"차트 데이터 조회 시작: {stock_code}, {timeframe}")
-            
+
+            # 캐시 키 구성
+            cache_key = f"chart:{stock_code}:{timeframe}:{period_days}"
+
+            # 캐시 확인
+            try:
+                cached = CacheService.get(cache_key)
+                if cached is not None:
+                    current_app.logger.debug(f"차트 데이터 캐시 히트: {cache_key}")
+                    return cached
+            except Exception as e:
+                current_app.logger.warning(f"캐시 조회 중 오류: {e}")
+
+            # 캐시 미스일 경우 실제 생성
             if timeframe == '5m':
-                return StockService._get_5min_chart(stock_code)
+                result = StockService._get_5min_chart(stock_code)
+                expire_seconds = 30  # 분봉은 짧게 캐시 (30초)
             elif timeframe == '1h':
-                return StockService._get_1hour_chart(stock_code)
+                result = StockService._get_1hour_chart(stock_code)
+                expire_seconds = 60  # 시간봉은 짧게 캐시 (1분)
             elif timeframe == '1d':
-                return StockService._get_daily_chart(stock_code, period_days)
+                result = StockService._get_daily_chart(stock_code, period_days)
+                expire_seconds = 3600  # 일봉은 길게 캐시 (1시간)
             else:
                 raise ValueError(f"지원하지 않는 차트 타입: {timeframe}")
+
+            # 결과 캐시 저장 (실패해도 로직에는 영향 없음)
+            try:
+                CacheService.set_with_ttl(cache_key, result, expire_seconds)
+            except Exception as e:
+                current_app.logger.warning(f"차트 데이터 캐시 저장 실패: {e}")
+
+            return result
                 
         except Exception as e:
             current_app.logger.error(f"차트 데이터 조회 실패 {stock_code}: {e}")
