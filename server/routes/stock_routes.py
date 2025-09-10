@@ -74,6 +74,30 @@ def get_stock_by_id(id):
             'message': f'오류가 발생했습니다: {str(e)}'
         }), 500
 
+
+@stock_bp.route('/code/<stock_code>')
+def get_stock_by_code(stock_code):
+    """종목 코드로 단일 종목 조회 (stock_code)"""
+    try:
+        stock = StockService.get_stock_by_code(stock_code)
+
+        if not stock:
+            return jsonify({
+                'success': False,
+                'message': f'Stock with code {stock_code} not found'
+            }), 404
+
+        return jsonify({
+            'success': True,
+            'data': stock
+        }), 200
+    except Exception as e:
+        current_app.logger.error(f"종목 코드 조회 API 오류: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'오류가 발생했습니다: {str(e)}'
+        }), 500
+
 @stock_bp.route('/ranking')
 def get_stocks_ranking_top28():
     """거래대금 순위 28개 조회"""

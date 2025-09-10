@@ -104,7 +104,7 @@ function WatchList() {
 
 
 function StockRank() {
-    const { navigateToMarket } = useApp();
+    const { navigateToMarket, navigateToStockDetail } = useApp();
     const [stockData, setStockData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -172,7 +172,28 @@ function StockRank() {
             ) : (
                 <ul className="space-y-0">
                     {stockData.map((stock, index) => (
-                        <li key={stock.stock_code || index} className="flex items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0">
+                        <li
+                            key={stock.stock_code || index}
+                            className="flex items-center h-[60px] border-b border-[#E9E9E9] last:border-b-0 cursor-pointer"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => navigateToStockDetail({
+                                stock_code: stock.stock_code,
+                                stock_name: stock.stock_name,
+                                current_price: stock.current_price,
+                                previous_close: stock.previous_close || stock.current_price,
+                                market: stock.market,
+                                company_info: stock.company_info || null,
+                                market_cap: stock.market_cap || null,
+                                shares_outstanding: stock.shares_outstanding || null,
+                                sector: stock.sector || null,
+                                sector_detail: stock.sector_detail || null,
+                                week52_low: stock.week52_low || null,
+                                week52_high: stock.week52_high || null,
+                                per: stock.per || null,
+                                pbr: stock.pbr || null
+                            })}
+                        >
                             <span className="w-6 lg:w-8 text-center font-normal text-base md:text-[18px] flex-shrink-0 text-[#8A8A8A]">{index + 1}</span>
                             <span className="w-32 lg:w-40 font-normal text-base md:text-[18px] text-[#0F250B] min-w-0 ml-4 pr-2 truncate">{stock.stock_name}</span>
                             <div className="hidden lg:block w-40 font-normal text-base md:text-[18px] text-[#0F250B] flex-shrink-0 whitespace-nowrap mr-4 text-right">

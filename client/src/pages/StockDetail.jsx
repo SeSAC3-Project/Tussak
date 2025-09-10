@@ -24,6 +24,8 @@ export default function StockDetail() {
     const { selectedStock, isLoggedIn, authToken } = useApp();
     const { goBack } = useApp();
 
+    const [detailedStock, setDetailedStock] = useState(null);
+
     console.log('StockDetail시작 -- selectedStock:', selectedStock)
 
     // 커스텀 훅으로 차트 상태 관리
@@ -189,6 +191,25 @@ export default function StockDetail() {
         if (!selectedStock || !selectedStock.stock_code || selectedStock.stock_code === '000000') {
             return;
         }
+        // try to fetch full metadata for the selected stock and merge
+        const fetchMeta = async () => {
+            try {
+                const resp = await fetch(`/api/stock/code/${selectedStock.stock_code}`);
+                if (!resp.ok) {
+                    throw new Error('meta fetch failed');
+                }
+                const json = await resp.json();
+                if (json && json.success && json.data) {
+                    setDetailedStock({ ...selectedStock, ...json.data });
+                    return;
+                }
+            } catch (err) {
+                // ignore - fallback to selectedStock only
+                setDetailedStock(selectedStock);
+            }
+        };
+
+        fetchMeta();
 
         const fetchRealtimeData = async () => {
             if (!isMarketOpen()) {
@@ -363,7 +384,7 @@ export default function StockDetail() {
             <div className="pt-[15px] pb-[20px] mx-2 flex flex-col gap-[16px]">
                 {/* 주식 헤더 */}
                 <StockHeader
-                    selectedStock={selectedStock}
+                    selectedStock={detailedStock || selectedStock}
                     currentPrice={displayPrice}
                     realTimePrice={realTimePrice}
                     onBuyClick={handleBuyClick}
@@ -383,8 +404,8 @@ export default function StockDetail() {
 
                 {/* 하단 정보 섹션 */}
                 <div className="flex flex-col lg:flex-row gap-[16px]">
-                    <StockInfo stockData={selectedStock} />
-                    <CompanyOverview companyInfo={selectedStock?.company_info} />
+                    <StockInfo stockData={detailedStock || selectedStock} />
+                    <CompanyOverview companyInfo={(detailedStock || selectedStock)?.company_info} />
                 </div>
             </div>
 

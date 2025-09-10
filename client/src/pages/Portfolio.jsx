@@ -31,7 +31,7 @@ const formatPercentage = (rate) => {
 };
 
 export default function Portfolio() {
-    const { authToken, isLoggedIn } = useApp();
+    const { authToken, isLoggedIn, navigateToStockDetail } = useApp();
     const [portfolioData, setPortfolioData] = useState(null);
     const [portfolioStocks, setPortfolioStocks] = useState([]);
     const [error, setError] = useState(null);
@@ -133,7 +133,32 @@ export default function Portfolio() {
                                 </thead>
                                 <tbody>
                                     {portfolioStocks.map((stock, index) => (
-                                        <tr key={`${stock.stock_code}-${index}`} className="border-b border-[#E9E9E9] last:border-b-0 hover:bg-gray-50">
+                                        <tr
+                                            key={`${stock.stock_code}-${index}`}
+                                            className="border-b border-[#E9E9E9] last:border-b-0 hover:bg-gray-50 cursor-pointer"
+                                                onClick={() => {
+                                                    const detailStock = {
+                                                        stock_code: stock.stock_code,
+                                                        stock_name: stock.name || stock.stock_name,
+                                                        current_price: stock.currentPrice || stock.current_price || 0,
+                                                        previous_close: stock.previous_close || stock.currentPrice || stock.current_price || 0,
+                                                        market: stock.market || '',
+                                                        company_info: stock.company_info || null,
+                                                        market_cap: stock.market_cap || null,
+                                                        shares_outstanding: stock.shares_outstanding || null,
+                                                        sector: stock.sector || null,
+                                                        sector_detail: stock.sector_detail || null,
+                                                        week52_low: stock.week52_low || null,
+                                                        week52_high: stock.week52_high || null,
+                                                        per: stock.per || null,
+                                                        pbr: stock.pbr || null,
+                                                        average_price: stock.averageCost || stock.average_price || null
+                                                    };
+                                                    navigateToStockDetail(detailStock);
+                                                }}
+                                            role="button"
+                                            tabIndex={0}
+                                        >
                                             <td className="py-4 px-4 text-gray-800 font-normal text-base">{stock.name}</td>
                                             <td className="py-4 px-2 text-gray-700 font-normal text-base">{stock.quantity}주</td>
                                             <td className="py-4 px-2 text-gray-800 font-normal text-base">{formatKRW(stock.evaluationAmount)}</td>
@@ -158,7 +183,30 @@ export default function Portfolio() {
                         {/* 카드 형태 - lg 미만 */}
                         <div className="block lg:hidden space-y-3">
                             {portfolioStocks.map((stock, index) => (
-                                <div key={`${stock.stock_code}-${index}`} className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                                <div
+                                    key={`${stock.stock_code}-${index}`}
+                                    className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                                    onClick={() => {
+                                        const detailStock = {
+                                            stock_code: stock.stock_code,
+                                            stock_name: stock.name || stock.stock_name,
+                                            current_price: stock.currentPrice || stock.current_price || 0,
+                                            previous_close: stock.previous_close || stock.currentPrice || stock.current_price || 0,
+                                            market: stock.market || '',
+                                            company_info: stock.company_info || null,
+                                            market_cap: stock.market_cap || null,
+                                            shares_outstanding: stock.shares_outstanding || null,
+                                            sector: stock.sector || null,
+                                            sector_detail: stock.sector_detail || null,
+                                            week52_low: stock.week52_low || null,
+                                            week52_high: stock.week52_high || null,
+                                            per: stock.per || null,
+                                            pbr: stock.pbr || null,
+                                            average_price: stock.averageCost || stock.average_price || null
+                                        };
+                                        navigateToStockDetail(detailStock);
+                                    }}
+                                >
                                     {/* 주식명과 보유수량 */}
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
