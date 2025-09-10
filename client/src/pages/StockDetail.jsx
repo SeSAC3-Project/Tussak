@@ -172,12 +172,15 @@ export default function StockDetail() {
             }
         };
 
-        fetchRealTimePrice();
+    // 폴링은 장중일 때만 수행
+    if (!isMarketOpen()) return;
 
-        // 3초마다 실시간 가격 업데이트
-        const interval = setInterval(fetchRealTimePrice, 3000);
+    fetchRealTimePrice();
 
-        return () => clearInterval(interval);
+    // 3초마다 실시간 가격 업데이트
+    const interval = setInterval(fetchRealTimePrice, 3000);
+
+    return () => clearInterval(interval);
 
     }, [selectedStock?.stock_code]);
 
@@ -206,13 +209,16 @@ export default function StockDetail() {
             }
         };
 
-        // 초기 로드
-        fetchRealtimeData();
+    // 폴링은 장중일 때만 수행
+    if (!isMarketOpen()) return;
 
-        // 2초마다 실시간 데이터 가져오기
-        const interval = setInterval(fetchRealtimeData, 2000);
+    // 초기 로드
+    fetchRealtimeData();
 
-        return () => clearInterval(interval);
+    // 2초마다 실시간 데이터 가져오기
+    const interval = setInterval(fetchRealtimeData, 2000);
+
+    return () => clearInterval(interval);
     }, [selectedStock]);
 
     // 포트폴리오 데이터 로드
@@ -240,6 +246,11 @@ export default function StockDetail() {
             alert('로그인이 필요한 서비스입니다');
             return;
         }
+        // 장외시간 검사: 장외이면 얼럿 표시 후 중단
+        if (!isMarketOpen()) {
+            alert('주문 가능한 시간이 아닙니다. 장중(09:00-15:30)에만 주문 가능합니다.');
+            return;
+        }
         // 모달이 열릴 때의 현재 가격을 고정 (StockHeader와 동일한 우선순위)
         const price = currentRealtimeData?.current_price || realTimePrice || currentPrice || 0;
         setBuyModalPrice(price);
@@ -264,6 +275,11 @@ export default function StockDetail() {
     const handleSellClick = () => {
         if (!isLoggedIn) {
             alert('로그인이 필요한 서비스입니다');
+            return;
+        }
+        // 장외시간 검사: 장외이면 얼럿 표시 후 중단
+        if (!isMarketOpen()) {
+            alert('주문 가능한 시간이 아닙니다. 장중(09:00-15:30)에만 주문 가능합니다.');
             return;
         }
         // 매도 버튼 클릭 시점의 가격을 고정

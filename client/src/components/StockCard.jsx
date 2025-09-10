@@ -1,5 +1,6 @@
 // API에서 받아온 데이터 구조에 맞게 stock 필드명 설정하기
 import { useState, useEffect } from 'react';
+import { isMarketOpen } from '../utils/timeUtils';
 import { useApp } from '../AppContext'
 
 
@@ -27,6 +28,9 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
     // 실시간 데이터 업데이트 (2초마다)
     useEffect(() => {
         const fetchRealtimeData = async () => {
+            // 장중이 아니면 실시간 데이터 요청하지 않음
+            if (!isMarketOpen()) return;
+
             try {
                 const response = await fetch(`/api/stock/realtime/${stockCode}`);
                 if (response.ok) {
@@ -40,13 +44,15 @@ const StockCard = ({ stock, realtimeData, navigateToStockDetail }) => {
             }
         };
 
-        // 초기 로드
-        fetchRealtimeData();
+    // 초기 로드 및 폴링은 장중일 때만 수행
+    if (!isMarketOpen()) return;
 
-        // 2초마다 실시간 데이터 가져오기
-        const interval = setInterval(fetchRealtimeData, 2000);
+    fetchRealtimeData();
 
-        return () => clearInterval(interval);
+    // 2초마다 실시간 데이터 가져오기
+    const interval = setInterval(fetchRealtimeData, 2000);
+
+    return () => clearInterval(interval);
     }, [stockCode]);
 
     // const sector = stock.sector || '';

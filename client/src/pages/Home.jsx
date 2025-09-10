@@ -7,6 +7,7 @@ import StockCard from '../components/StockCard.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import EmptyStockCard from '../components/EmptyStockCard.jsx'
 import { stockApi } from '../services/stockApi.js'
+import { isMarketOpen } from '../utils/timeUtils';
 import { rankingApi } from '../services/rankingApi.js'
 import portfolioApi from '../services/portfolioApi.js'
 
@@ -134,12 +135,17 @@ function StockRank() {
 
         initialLoad();
 
-        // 2초마다 업데이트 (로딩 표시 없이)
-        const interval = setInterval(() => {
-            fetchVolumeRanking();
-        }, 2000);
+        // 장중에만 2초 간격 실시간 업데이트를 사용
+        let interval = null;
+        if (isMarketOpen()) {
+            interval = setInterval(() => {
+                fetchVolumeRanking();
+            }, 2000);
+        }
 
-        return () => clearInterval(interval);
+        return () => {
+            if (interval) clearInterval(interval);
+        };
     }, []);
 
     return (
@@ -250,6 +256,12 @@ function LoginCard() {
     const totalAssets = currentBalance + (portfolioData?.portfolio_summary?.total_current_value || 0);
     const rankDisplay = userRanking?.rank ? `랭킹 ${userRanking.rank}위` : '랭킹 정보 없음';
 
+    // 금액 표시용 포맷터 (소수점 제거, 반올림)
+    const formatWon = (value) => {
+        const n = Number(value) || 0;
+        return Math.round(n).toLocaleString();
+    };
+
     return (
         <div className="bg-white rounded-[20px] h-[345px] p-6 flex flex-col" style={{ fontFamily: 'DM Sans' }}>
             {/* 랭킹 표시 */}
@@ -287,15 +299,15 @@ function LoginCard() {
             <div className="flex-1 space-y-1 px-2">
                 <div className="flex justify-between items-center">
                     <span className="font-regular text-[#7F867E]" style={{ fontFamily: 'DM Sans', fontSize: '13px' }}>현금잔고</span>
-                    <span className="font-semibold text-[#0F250B]" style={{ fontFamily: 'DM Sans', fontSize: '15px' }}>{currentBalance.toLocaleString()}원</span>
+                    <span className="font-semibold text-[#0F250B]" style={{ fontFamily: 'DM Sans', fontSize: '15px' }}>{formatWon(currentBalance)}원</span>
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="font-regular text-[#7F867E]" style={{ fontFamily: 'DM Sans', fontSize: '13px' }}>평가금액</span>
-                    <span className="font-semibold text-[#0F250B]" style={{ fontFamily: 'DM Sans', fontSize: '15px' }}>{totalInvestment.toLocaleString()}원</span>
+                    <span className="font-semibold text-[#0F250B]" style={{ fontFamily: 'DM Sans', fontSize: '15px' }}>{formatWon(totalInvestment)}원</span>
                 </div>
                     <div className="flex justify-between items-center">
                         <span className="text-[#7F867E] font-regular" style={{ fontFamily: 'DM Sans', fontSize: '13px' }}>총 자산</span>
-                        <span className="font-bold text-[#0F250B]" style={{ fontFamily: 'DM Sans', fontSize: '18px' }}>{totalAssets.toLocaleString()}원</span>
+                        <span className="font-bold text-[#0F250B]" style={{ fontFamily: 'DM Sans', fontSize: '18px' }}>{formatWon(totalAssets)}원</span>
                     </div>
             </div>
         </div>

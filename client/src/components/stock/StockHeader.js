@@ -50,13 +50,15 @@ const StockHeader = ({ selectedStock, currentPrice, realTimePrice, onBuyClick, o
             }
         };
 
-        // 초기 로드
-        fetchRealtimeData();
+    // 초기 로드 및 폴링은 장중일 때만 수행
+    if (!isMarketOpen()) return;
 
-        // 2초마다 실시간 데이터 가져오기
-        const interval = setInterval(fetchRealtimeData, 2000);
+    fetchRealtimeData();
 
-        return () => clearInterval(interval);
+    // 2초마다 실시간 데이터 가져오기
+    const interval = setInterval(fetchRealtimeData, 2000);
+
+    return () => clearInterval(interval);
     }, [selectedStock, stockCode]);
 
     if (!selectedStock) return null;

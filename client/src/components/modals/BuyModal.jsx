@@ -83,6 +83,16 @@ const BuyModal = ({
     const handleBuy = async () => {
         if (!isValidOrder) return;
 
+        // 장외시간 검사: 모달이 열려있던 경우에도 제출 전 검사
+        const now = new Date();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const currentTime = hour * 100 + minute;
+        if (currentTime < 900 || currentTime > 1530) {
+            alert('주문 가능한 시간이 아닙니다. 장중(09:00-15:30)에만 주문 가능합니다.');
+            return;
+        }
+
         setIsSubmitting(true);
         setError('');
 

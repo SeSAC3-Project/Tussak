@@ -12,6 +12,15 @@ class TransactionService:
     @staticmethod
     def create_transaction(user_id, stock_code, transaction_type, quantity, price):
         try:
+            # 서버 측 시장 시간 검사 (장중: 09:00 ~ 15:30)
+            from datetime import datetime
+            now = datetime.now()
+            hour = now.hour
+            minute = now.minute
+            current_time = hour * 100 + minute
+            if current_time < 900 or current_time > 1530:
+                raise ValueError('주문 가능한 시간이 아닙니다. 장중(09:00-15:30)에만 주문 가능합니다.')
+
             total_amount = Decimal(str(quantity)) * Decimal(str(price))
             
             # 사용자 조회
