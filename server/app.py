@@ -89,6 +89,7 @@ def create_app():
 
 
         # -> 전체 종목, history update 호출되서 시간 오래걸리니 한번 app 시작되면 하기 try... except 주석처리하기!
+
         # try:
         #     StockService.all_stocks()  # 앱 시작 시 종목 데이터 동기화
         #     app.logger.info("✅ 앱 시작 시 주식 종목 데이터 동기화 완료")
