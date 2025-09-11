@@ -4,12 +4,10 @@ import { useChartState } from '../hooks/useChartState';
 import { useStockData } from '../hooks/useStockData';
 import { useChartInteraction } from '../hooks/useChartInteraction';
 import { getPriceRange } from '../utils/stockDataGenerator';
-import CandlestickChart from '../components/charts/CandlestickChart';
-import VolumeChart from '../components/charts/VolumeChart';
-import ChartControls from '../components/charts/ChartControls';
 import StockHeader from '../components/stock/StockHeader';
 import StockInfo from '../components/stock/StockInfo';
 import CompanyOverview from '../components/stock/CompanyOverview';
+import KISStockChart from '../components/charts/KISStockChart';
 
 // 모달 구현용 
 import { useState, useEffect } from 'react';
@@ -18,12 +16,15 @@ import SellModal from '../components/modals/SellModal';
 import OrderConfirmedModal from '../components/modals/OrderConfirmedModal';
 import SellConfirmedModal from '../components/modals/SellConfirmedModal';
 import { stockApi } from '../services/stockApi';
+import portfolioApi from '../services/portfolioApi';
 
 
 export default function StockDetail() {
 
-    const { selectedStock, isLoggedIn } = useApp();
+    const { selectedStock, isLoggedIn, authToken } = useApp();
     const { goBack } = useApp();
+
+    const [detailedStock, setDetailedStock] = useState(null);
 
     console.log('StockDetail시작 -- selectedStock:', selectedStock)
 
@@ -139,11 +140,29 @@ export default function StockDetail() {
     const [orderDetails, setOrderDetails] = useState(null);
 
     const [realTimePrice, setRealTimePrice] = useState(null);
+    const [buyModalPrice, setBuyModalPrice] = useState(null);
+    const [sellModalPrice, setSellModalPrice] = useState(null);
+    const [currentRealtimeData, setCurrentRealtimeData] = useState(null);
+    const [portfolioData, setPortfolioData] = useState(null);
+
+    // 장 시간 체크 함수
+    const isMarketOpen = () => {
+        const now = new Date();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const currentTime = hour * 100 + minute;
+        return currentTime >= 900 && currentTime <= 1530;
+    };
 
     useEffect(() => {
         if (!selectedStock?.stock_code) return;
 
         const fetchRealTimePrice = async () => {
+            if (!isMarketOpen()) {
+                // console.log('장 시간이 아닙니다.');
+                return;
+            }
+
             try {
                 const price = await stockApi.fetchRealTimePrice(selectedStock.stock_code);
                 setRealTimePrice(price);
@@ -151,21 +170,111 @@ export default function StockDetail() {
                 console.warn('실시간 데이터 불러오는데 실패하였습니다:', error)
                 // setRealTimePrice 더미 vs 여기서 또 더미
                 // 그냥 임의로
-                setRealTimePrice(20000); 
+                setRealTimePrice(20000);
             }
         };
 
-        fetchRealTimePrice();
+    // 폴링은 장중일 때만 수행
+    if (!isMarketOpen()) return;
 
-        // 여기서 fetch 간격 5초 주기 vs stockApi 에서 이미 5초 설정
+    fetchRealTimePrice();
+
+    // 3초마다 실시간 가격 업데이트
+    const interval = setInterval(fetchRealTimePrice, 3000);
+
+    return () => clearInterval(interval);
 
     }, [selectedStock?.stock_code]);
+
+    // StockHeader와 동일한 실시간 데이터 로직
+    useEffect(() => {
+        if (!selectedStock || !selectedStock.stock_code || selectedStock.stock_code === '000000') {
+            return;
+        }
+        // try to fetch full metadata for the selected stock and merge
+        const fetchMeta = async () => {
+            try {
+                const resp = await fetch(`/api/stock/code/${selectedStock.stock_code}`);
+                if (!resp.ok) {
+                    throw new Error('meta fetch failed');
+                }
+                const json = await resp.json();
+                if (json && json.success && json.data) {
+                    setDetailedStock({ ...selectedStock, ...json.data });
+                    return;
+                }
+            } catch (err) {
+                // ignore - fallback to selectedStock only
+                setDetailedStock(selectedStock);
+            }
+        };
+
+        fetchMeta();
+
+        const fetchRealtimeData = async () => {
+            if (!isMarketOpen()) {
+                // console.log('장 시간이 아닙니다.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/stock/realtime/${selectedStock.stock_code}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data) {
+                        setCurrentRealtimeData(data.data);
+                    }
+                }
+            } catch (error) {
+                console.log('실시간 데이터 업데이트 실패:', error);
+            }
+        };
+
+    // 폴링은 장중일 때만 수행
+    if (!isMarketOpen()) return;
+
+    // 초기 로드
+    fetchRealtimeData();
+
+    // 2초마다 실시간 데이터 가져오기
+    const interval = setInterval(fetchRealtimeData, 2000);
+
+    return () => clearInterval(interval);
+    }, [selectedStock]);
+
+    // 포트폴리오 데이터 로드
+    useEffect(() => {
+        const fetchPortfolioData = async () => {
+            if (!isLoggedIn || !authToken) {
+                return;
+            }
+
+            try {
+                const response = await portfolioApi.getPortfolio(authToken);
+                if (response) {
+                    setPortfolioData(response);
+                }
+            } catch (error) {
+                console.error('포트폴리오 데이터 로드 실패:', error);
+            }
+        };
+
+        fetchPortfolioData();
+    }, [isLoggedIn, authToken]);
 
     const handleBuyClick = () => {
         if (!isLoggedIn) {
             alert('로그인이 필요한 서비스입니다');
             return;
         }
+        // 장외시간 검사: 장외이면 얼럿 표시 후 중단
+        if (!isMarketOpen()) {
+            alert('주문 가능한 시간이 아닙니다. 장중(09:00-15:30)에만 주문 가능합니다.');
+            return;
+        }
+        // 모달이 열릴 때의 현재 가격을 고정 (StockHeader와 동일한 우선순위)
+        const price = currentRealtimeData?.current_price || realTimePrice || currentPrice || 0;
+        setBuyModalPrice(price);
         setIsBuyModalOpen(true);
     };
 
@@ -189,11 +298,35 @@ export default function StockDetail() {
             alert('로그인이 필요한 서비스입니다');
             return;
         }
+        // 장외시간 검사: 장외이면 얼럿 표시 후 중단
+        if (!isMarketOpen()) {
+            alert('주문 가능한 시간이 아닙니다. 장중(09:00-15:30)에만 주문 가능합니다.');
+            return;
+        }
+        // 매도 버튼 클릭 시점의 가격을 고정
+        const price = currentRealtimeData?.current_price || realTimePrice || currentPrice || 0;
+        setSellModalPrice(price);
         setIsSellModalOpen(true);
     };
 
     const handleSellModalClose = () => {
         setIsSellModalOpen(false);
+    };
+
+    // 해당 종목의 보유 수량을 포트폴리오 데이터에서 가져오기
+    const getHoldingQuantity = (stockCode) => {
+        console.log('getHoldingQuantity Debug:', { stockCode, portfolioData });
+
+        if (!portfolioData?.portfolios || !stockCode) {
+            console.log('No portfolio data or stock code:', { portfolioData, stockCode });
+            return 0;
+        }
+
+        // 포트폴리오에서 해당 종목 찾기 (Portfolio.jsx와 동일한 구조 사용)
+        const holding = portfolioData.portfolios.find(item => item.stock_code === stockCode);
+        console.log('Found holding:', holding);
+
+        return holding ? holding.quantity : 0;
     };
 
     const handleSellComplete = (orderDetails) => {
@@ -247,61 +380,32 @@ export default function StockDetail() {
     }
 
     return (
-        <div>
-            <div className="max-w-7xl mx-auto space-y-6">
-                {/* 뒤로 가기 */}
-                <button onClick={goBack}>뒤로 가기</button>
-                
+        <div className="max-w-7xl mx-auto">
+            <div className="pt-[15px] pb-[20px] mx-2 flex flex-col gap-[16px]">
                 {/* 주식 헤더 */}
                 <StockHeader
-                    selectedStock={selectedStock}
+                    selectedStock={detailedStock || selectedStock}
                     currentPrice={displayPrice}
+                    realTimePrice={realTimePrice}
                     onBuyClick={handleBuyClick}
                     onSellClick={handleSellClick}
                 />
 
                 {/* 차트 섹션 */}
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                    <ChartControls
-                        chartState={chartState}
-                        onPeriodChange={handlePeriodChange}
-                    />
+                <div className="bg-white rounded-[20px] h-[400px] py-[19px] px-[28px]" style={{fontFamily: 'DM Sans'}}>
+                    
 
                     {/* 캔들스틱 차트 */}
-                    <CandlestickChart
-                        stockData={{
-                            candleData: visibleData,
-                            priceRange: priceRange
-                        }}
-                        chartState={chartState}
-                        currentPrice={currentPrice}
-                        chartRef={chartRef}
-                    // handleWheel={handleWheel}
-                    // handleMouseDown={handleMouseDown}
-                    // handleMouseMoveChart={handleMouseMoveChart}
-                    // handleMouseLeaveChart={handleMouseLeaveChart}
-                    />
-
-                    {/* 거래량 차트 */}
-                    <div className="mt-4 border-t border-gray-100 pt-2">
-                        <div className="flex items-center mb-2">
-                            <span className="text-xs text-gray-500 ml-10">거래량</span>
-                        </div>
-                        <VolumeChart
-                            stockData={{
-                                candleData: visibleData,
-                                priceRange: priceRange,
-                                timeData: timeData
-                            }}
-                            chartState={chartState}
-                        />
+                    <div className="w-full h-full overflow-hidden">
+                        <KISStockChart stockCode={selectedStock?.stock_code} />
                     </div>
+
                 </div>
 
                 {/* 하단 정보 섹션 */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <StockInfo />
-                    <CompanyOverview />
+                <div className="flex flex-col lg:flex-row gap-[16px]">
+                    <StockInfo stockData={detailedStock || selectedStock} />
+                    <CompanyOverview companyInfo={(detailedStock || selectedStock)?.company_info} />
                 </div>
             </div>
 
@@ -312,7 +416,7 @@ export default function StockDetail() {
                 onBuyComplete={handleBuyComplete}
                 stockCode={selectedStock?.stock_code || ''}
                 stockName={selectedStock?.stock_name || ''}
-                initialPrice={displayPrice}
+                initialPrice={buyModalPrice}
             />
 
             <OrderConfirmedModal
@@ -328,9 +432,8 @@ export default function StockDetail() {
                 onSellComplete={handleSellComplete}
                 stockCode={selectedStock?.stock_code || ''}
                 stockName={selectedStock?.stock_name || ''}
-                // 필드명 고민 initialPrice VS currentPrice
-                initialPrice={displayPrice} 
-                holdingQuantity={100}
+                initialPrice={sellModalPrice}
+                holdingQuantity={getHoldingQuantity(selectedStock?.stock_code)}
             />
 
             <SellConfirmedModal

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from services.stock_service import StockService
 from services.websocket_service import get_websocket_service
+from utils.kis_api import KisAPI
 
 stock_bp = Blueprint('stock', __name__, url_prefix='/api/stock')
 
@@ -73,6 +74,30 @@ def get_stock_by_id(id):
             'message': f'오류가 발생했습니다: {str(e)}'
         }), 500
 
+
+@stock_bp.route('/code/<stock_code>')
+def get_stock_by_code(stock_code):
+    """종목 코드로 단일 종목 조회 (stock_code)"""
+    try:
+        stock = StockService.get_stock_by_code(stock_code)
+
+        if not stock:
+            return jsonify({
+                'success': False,
+                'message': f'Stock with code {stock_code} not found'
+            }), 404
+
+        return jsonify({
+            'success': True,
+            'data': stock
+        }), 200
+    except Exception as e:
+        current_app.logger.error(f"종목 코드 조회 API 오류: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'오류가 발생했습니다: {str(e)}'
+        }), 500
+
 @stock_bp.route('/ranking')
 def get_stocks_ranking_top28():
     """거래대금 순위 28개 조회"""
@@ -97,9 +122,10 @@ def get_stocks_ranking_top28():
 @stock_bp.route('/realtime')
 def get_realtime_top28():
     try:
+        limit = request.args.get('limit', 28, type=int)
         
         websocket_service = get_websocket_service(current_app._get_current_object())
-        stocks = websocket_service.get_realtime_ranking(28)
+        stocks = websocket_service.get_realtime_ranking(limit)
         
         return jsonify({
             'success': True,
@@ -124,7 +150,7 @@ def get_realtime_by_stock_code(stock_code):
         # 디버깅: Redis 키 확인
         if websocket_service.redis_client:
             keys = websocket_service.redis_client.keys('realtime_price:*')
-            current_app.logger.info(f"Redis에 저장된 종목들: {keys}")
+            # current_app.logger.info(f"Redis에 저장된 종목들: {keys}")
 
         realtime_data = websocket_service.get_realtime_price(stock_code)
         
@@ -265,166 +291,219 @@ def get_realtime_status():
             'message': f'오류가 발생했습니다: {str(e)}'
         }), 500
 
-@stock_bp.route('/chart/<stock_code>')
-def get_stock_chart_data(stock_code):
-    """주식 차트 데이터 조회 (통합 API)"""
+# @stock_bp.route('/chart/<stock_code>')
+# def get_stock_chart_data(stock_code):
+#     """주식 차트 데이터 조회 (통합 API)"""
+#     try:
+#         # 요청 파라미터 처리
+#         timeframe = request.args.get('timeframe', '1d')
+#         period = request.args.get('period', 30, type=int)
+        
+#         # 지원하는 차트 타입 검증
+#         supported_timeframes = {
+#             '5m': '1일 5분봉',
+#             '1h': '1주 1시간봉',
+#             '1d': '1개월 일봉'
+#         }
+        
+#         if timeframe not in supported_timeframes:
+#             return jsonify({
+#                 'success': False,
+#                 'message': f'지원하지 않는 차트 타입입니다.',
+#                 'supported_timeframes': supported_timeframes
+#             }), 400
+        
+#         # 비즈니스 로직 호출
+#         chart_data = StockService.get_chart_data(stock_code, timeframe, period)
+        
+#         # 응답 처리
+#         if chart_data is None:
+#             return jsonify({
+#                 'success': False,
+#                 'message': '차트 데이터 조회에 실패했습니다.'
+#             }), 500
+        
+#         if not chart_data:
+#             return jsonify({
+#                 'success': False,
+#                 'message': '조회된 차트 데이터가 없습니다.'
+#             }), 404
+        
+#         # 성공 응답
+#         return jsonify({
+#             'success': True,
+#             'chart_info': {
+#                 'stock_code': stock_code,
+#                 'timeframe': timeframe,
+#                 'timeframe_name': supported_timeframes[timeframe],
+#                 'period_days': period if timeframe == '1d' else None,
+#                 'data_count': len(chart_data)
+#             },
+#             'data': chart_data
+#         }), 200
+        
+#     except Exception as e:
+#         current_app.logger.error(f"차트 데이터 조회 API 오류: {e}")
+#         return jsonify({
+#             'success': False,
+#             'message': f'서버 오류가 발생했습니다: {str(e)}'
+#         }), 500
+
+# @stock_bp.route('/chart/<stock_code>/5m')
+# def get_5min_chart(stock_code):
+#     """1일 5분봉 차트 전용 API"""
+#     try:
+#         # 비즈니스 로직 호출
+#         chart_data = StockService.get_chart_data(stock_code, '5m')
+        
+#         # 응답 처리
+#         if not chart_data:
+#             return jsonify({
+#                 'success': False,
+#                 'message': '5분봉 데이터가 없습니다.'
+#             }), 404
+        
+#         return jsonify({
+#             'success': True,
+#             'chart_info': {
+#                 'stock_code': stock_code,
+#                 'timeframe': '5m',
+#                 'name': '1일 5분봉',
+#                 'data_count': len(chart_data)
+#             },
+#             'data': chart_data
+#         }), 200
+        
+#     except Exception as e:
+#         current_app.logger.error(f"5분봉 차트 API 오류: {e}")
+#         return jsonify({
+#             'success': False,
+#             'message': f'서버 오류가 발생했습니다: {str(e)}'
+#         }), 500
+
+# @stock_bp.route('/chart/<stock_code>/1h')
+# def get_1hour_chart(stock_code):
+#     """1주 1시간봉 차트 전용 API"""
+#     try:
+#         # 비즈니스 로직 호출
+#         chart_data = StockService.get_chart_data(stock_code, '1h')
+        
+#         # 응답 처리
+#         if not chart_data:
+#             return jsonify({
+#                 'success': False,
+#                 'message': '1시간봉 데이터가 없습니다.'
+#             }), 404
+        
+#         return jsonify({
+#             'success': True,
+#             'chart_info': {
+#                 'stock_code': stock_code,
+#                 'timeframe': '1h',
+#                 'name': '1주 1시간봉',
+#                 'data_count': len(chart_data)
+#             },
+#             'data': chart_data
+#         }), 200
+        
+#     except Exception as e:
+#         current_app.logger.error(f"1시간봉 차트 API 오류: {e}")
+#         return jsonify({
+#             'success': False,
+#             'message': f'서버 오류가 발생했습니다: {str(e)}'
+#         }), 500
+
+# @stock_bp.route('/chart/<stock_code>/1d')
+# def get_daily_chart(stock_code):
+#     """1개월 일봉 차트 전용 API"""
+#     try:
+#         # 요청 파라미터 처리
+#         period = request.args.get('period', 30, type=int)
+        
+#         # 파라미터 검증
+#         if period < 1 or period > 365:
+#             return jsonify({
+#                 'success': False,
+#                 'message': '기간은 1일에서 365일 사이여야 합니다.'
+#             }), 400
+        
+#         # 비즈니스 로직 호출
+#         chart_data = StockService.get_chart_data(stock_code, '1d', period)
+        
+#         # 응답 처리
+#         if not chart_data:
+#             return jsonify({
+#                 'success': False,
+#                 'message': '일봉 데이터가 없습니다.'
+#             }), 404
+        
+#         return jsonify({
+#             'success': True,
+#             'chart_info': {
+#                 'stock_code': stock_code,
+#                 'timeframe': '1d',
+#                 'name': f'{period}일 일봉',
+#                 'period_days': period,
+#                 'data_count': len(chart_data)
+#             },
+#             'data': chart_data
+#         }), 200
+        
+#     except Exception as e:
+#         current_app.logger.error(f"일봉 차트 API 오류: {e}")
+#         return jsonify({
+#             'success': False,
+#             'message': f'서버 오류가 발생했습니다: {str(e)}'
+#         }), 500
+
+@stock_bp.route('/kis-chart/<stock_code>')
+def get_kis_chart_data(stock_code):
+    """KIS API를 사용한 주식 차트 데이터 조회"""
     try:
         # 요청 파라미터 처리
-        timeframe = request.args.get('timeframe', '1d')
-        period = request.args.get('period', 30, type=int)
-        
-        # 지원하는 차트 타입 검증
-        supported_timeframes = {
-            '5m': '1일 5분봉',
-            '1h': '1주 1시간봉',
-            '1d': '1개월 일봉'
+        period = request.args.get('period', 'D')
+
+        # 지원하는 기간 검증
+        supported_periods = {
+            'D': '일봉',
+            'W': '주봉',
+            'M': '월봉',
+            'Y': '년봉'
         }
-        
-        if timeframe not in supported_timeframes:
+
+        if period not in supported_periods:
             return jsonify({
                 'success': False,
-                'message': f'지원하지 않는 차트 타입입니다.',
-                'supported_timeframes': supported_timeframes
+                'message': f'지원하지 않는 기간입니다.',
+                'supported_periods': supported_periods
             }), 400
-        
-        # 비즈니스 로직 호출
-        chart_data = StockService.get_chart_data(stock_code, timeframe, period)
-        
-        # 응답 처리
-        if chart_data is None:
+
+        # 종목코드 패딩 (6자리로 맞춤)
+        stock_code = stock_code.zfill(6)
+
+        # KIS API 호출
+        kis_api = KisAPI()
+        result = kis_api.fetch_daily_chart_data(stock_code, period)
+
+        if not result['success']:
             return jsonify({
                 'success': False,
-                'message': '차트 데이터 조회에 실패했습니다.'
+                'message': result['message']
             }), 500
-        
-        if not chart_data:
-            return jsonify({
-                'success': False,
-                'message': '조회된 차트 데이터가 없습니다.'
-            }), 404
-        
-        # 성공 응답
-        return jsonify({
-            'success': True,
-            'chart_info': {
-                'stock_code': stock_code,
-                'timeframe': timeframe,
-                'timeframe_name': supported_timeframes[timeframe],
-                'period_days': period if timeframe == '1d' else None,
-                'data_count': len(chart_data)
-            },
-            'data': chart_data
-        }), 200
-        
-    except Exception as e:
-        current_app.logger.error(f"차트 데이터 조회 API 오류: {e}")
-        return jsonify({
-            'success': False,
-            'message': f'서버 오류가 발생했습니다: {str(e)}'
-        }), 500
 
-@stock_bp.route('/chart/<stock_code>/5m')
-def get_5min_chart(stock_code):
-    """1일 5분봉 차트 전용 API"""
-    try:
-        # 비즈니스 로직 호출
-        chart_data = StockService.get_chart_data(stock_code, '5m')
-        
-        # 응답 처리
-        if not chart_data:
-            return jsonify({
-                'success': False,
-                'message': '5분봉 데이터가 없습니다.'
-            }), 404
-        
         return jsonify({
             'success': True,
             'chart_info': {
                 'stock_code': stock_code,
-                'timeframe': '5m',
-                'name': '1일 5분봉',
-                'data_count': len(chart_data)
+                'period': period,
+                'period_name': supported_periods[period],
+                'data_count': len(result['data']['candleData']) if result['data'] else 0
             },
-            'data': chart_data
+            'data': result['data']
         }), 200
-        
-    except Exception as e:
-        current_app.logger.error(f"5분봉 차트 API 오류: {e}")
-        return jsonify({
-            'success': False,
-            'message': f'서버 오류가 발생했습니다: {str(e)}'
-        }), 500
 
-@stock_bp.route('/chart/<stock_code>/1h')
-def get_1hour_chart(stock_code):
-    """1주 1시간봉 차트 전용 API"""
-    try:
-        # 비즈니스 로직 호출
-        chart_data = StockService.get_chart_data(stock_code, '1h')
-        
-        # 응답 처리
-        if not chart_data:
-            return jsonify({
-                'success': False,
-                'message': '1시간봉 데이터가 없습니다.'
-            }), 404
-        
-        return jsonify({
-            'success': True,
-            'chart_info': {
-                'stock_code': stock_code,
-                'timeframe': '1h',
-                'name': '1주 1시간봉',
-                'data_count': len(chart_data)
-            },
-            'data': chart_data
-        }), 200
-        
     except Exception as e:
-        current_app.logger.error(f"1시간봉 차트 API 오류: {e}")
-        return jsonify({
-            'success': False,
-            'message': f'서버 오류가 발생했습니다: {str(e)}'
-        }), 500
-
-@stock_bp.route('/chart/<stock_code>/1d')
-def get_daily_chart(stock_code):
-    """1개월 일봉 차트 전용 API"""
-    try:
-        # 요청 파라미터 처리
-        period = request.args.get('period', 30, type=int)
-        
-        # 파라미터 검증
-        if period < 1 or period > 365:
-            return jsonify({
-                'success': False,
-                'message': '기간은 1일에서 365일 사이여야 합니다.'
-            }), 400
-        
-        # 비즈니스 로직 호출
-        chart_data = StockService.get_chart_data(stock_code, '1d', period)
-        
-        # 응답 처리
-        if not chart_data:
-            return jsonify({
-                'success': False,
-                'message': '일봉 데이터가 없습니다.'
-            }), 404
-        
-        return jsonify({
-            'success': True,
-            'chart_info': {
-                'stock_code': stock_code,
-                'timeframe': '1d',
-                'name': f'{period}일 일봉',
-                'period_days': period,
-                'data_count': len(chart_data)
-            },
-            'data': chart_data
-        }), 200
-        
-    except Exception as e:
-        current_app.logger.error(f"일봉 차트 API 오류: {e}")
+        current_app.logger.error(f"KIS 차트 데이터 조회 API 오류: {e}")
         return jsonify({
             'success': False,
             'message': f'서버 오류가 발생했습니다: {str(e)}'

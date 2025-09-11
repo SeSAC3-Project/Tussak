@@ -1,6 +1,7 @@
 // 카카오 로그인 관련 API 서비스 - 기존 서버 API 활용
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:5000';
+// 프로덕션에서는 환경변수 사용, 개발환경에서는 프록시 사용
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 export const authApi = {
     // 카카오 로그인 - 서버의 /api/auth/kakao/login 사용
@@ -116,7 +117,7 @@ export const kakaoAuth = {
         });
     },
 
-    // 카카오 로그아웃
+    // 카카오 로그아웃 (완전한 세션 해제)
     logout: () => {
         return new Promise((resolve, reject) => {
             if (!window.Kakao) {
@@ -125,13 +126,31 @@ export const kakaoAuth = {
             }
 
             try {
-                // 최신 SDK에서는 logout 함수 사용
+                // 1단계: 액세스 토큰이 있으면 로그아웃 처리
                 if (window.Kakao.Auth.getAccessToken()) {
+                    console.log('카카오 로그아웃 시작...');
+                    
+                    // 카카오 로그아웃 (세션 해제)
                     window.Kakao.Auth.logout(() => {
-                        console.log('카카오 로그아웃 완료');
+                        console.log('✅ 카카오 세션 로그아웃 완료');
+                        
+                        // 2단계: 앱 연결 해제 (선택사항 - 개발환경에서만)
+                        if (window.Kakao.API && window.Kakao.API.request) {
+                            window.Kakao.API.request({
+                                url: '/v1/user/unlink',
+                                success: () => {
+                                    console.log('✅ 카카오 앱 연결 해제 완료');
+                                },
+                                fail: (error) => {
+                                    console.log('앱 연결 해제 실패 (무시):', error);
+                                }
+                            });
+                        }
+                        
                         resolve();
                     });
                 } else {
+                    console.log('카카오 액세스 토큰이 없음');
                     resolve();
                 }
             } catch (error) {

@@ -89,6 +89,7 @@ def create_app():
 
 
         # -> 전체 종목, history update 호출되서 시간 오래걸리니 한번 app 시작되면 하기 try... except 주석처리하기!
+
         # try:
         #     StockService.all_stocks()  # 앱 시작 시 종목 데이터 동기화
         #     app.logger.info("✅ 앱 시작 시 주식 종목 데이터 동기화 완료")
@@ -100,19 +101,19 @@ def create_app():
         #     app.logger.error(f"❌ 앱 시작 시 주식 종목 데이터 동기화 실패: {e}")
 
         # WebSocket 서비스 시작 (앱 시작 후 3초 지연)
-        # try:
-        #     def delayed_websocket_start():
-        #         time.sleep(3)  # 앱 완전 시작 후 3초 대기
-        #         start_websocket_service(app)
+        try:
+            def delayed_websocket_start():
+                time.sleep(3)  # 앱 완전 시작 후 3초 대기
+                start_websocket_service(app)
             
-        #     ws_thread = threading.Thread(target=delayed_websocket_start)
-        #     ws_thread.daemon = True
-        #     ws_thread.start()
+            ws_thread = threading.Thread(target=delayed_websocket_start)
+            ws_thread.daemon = True
+            ws_thread.start()
             
-        #     app.logger.info("✅ WebSocket 서비스 시작 스레드 생성 완료")
+            app.logger.info("✅ WebSocket 서비스 시작 스레드 생성 완료")
             
-        # except Exception as e:
-        #     app.logger.error(f"❌ WebSocket 서비스 시작 실패: {e}")
+        except Exception as e:
+            app.logger.error(f"❌ WebSocket 서비스 시작 실패: {e}")
 
     return app
 
@@ -280,77 +281,4 @@ def register_blueprints(app):
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True)
-
-# 로그 사용 방법
-# from flask import current_app
-# DEBUG: 상세한 디버깅 정보 (개발 시에만) 
-# -> 개발 중 변수 값 확인, 함수 진입/종료 추적
-# current_app.logger.debug(f"API 요청 데이터: {request.json}")
-
-# INFO: 일반적인 정보 (정상 동작) 
-# -> 시스템 상태, 정상적인 비즈니스 로직 흐름
-# current_app.logger.info("사용자 로그인 성공")
-
-# WARNING: 경고 (문제가 될 수 있지만 동작은 계속) 
-# -> 권한이나 접근 관련, 문제가 될 수 있지만 계속 진행
-# current_app.logger.warning("데이터베이스 연결이 느립니다")
-
-# ERROR: 에러 (기능이 실패했지만 앱은 계속 실행) 
-# -> 외부 API 호출 실패, 기능 실패, 예외 발생
-# current_app.logger.error("주식 데이터 조회 실패")
-
-# CRITICAL: 심각한 에러 (앱이 중단될 수 있음) 
-# -> 시스템 전체에 영향, 중요 데이터 손실, 중요 기능 중단
-# current_app.logger.critical("데이터베이스 연결 완전 실패")
-
-# redis 사용법
-# from config import get_redis
-# redis 저장
-# redis_client = get_redis()
-# if redis_client:
-#     session_key = f'user_session:{user_id}'
-#     redis_client.hset(session_key, mapping={
-#         'nickname': user_data['nickname'],
-#         'email': user_data['email'],
-#         'login_time': datetime.now().isoformat(),
-#         'last_activity': datetime.now().isoformat(),
-#         'portfolio_value': str(user_data.get('portfolio_value', 0))
-#     })
-#     redis_client.expire(session_key, 86400)  # 24시간
-
-# 저장된 redis 데이터 가져오기
-# 특정 필드 조회 
-# -> redis_client.hget('key', 'field')
-# redis_client = get_redis()
-# if redis_client:
-#     # 닉네임만 조회
-#     nickname = redis_client.hget(f'user_session:{user_id}', 'nickname')
-#     return nickname
-# return None
-
-# 여러 필드 조회 
-# -> redis_client.hmget('key', ['field1', 'field2'])
-# redis_client = get_redis()
-# if redis_client:
-#     # 여러 필드 한번에 조회
-#     user_info = redis_client.hmget(
-#         f'user_session:{user_id}', 
-#         ['nickname', 'email', 'last_activity']
-#     )
-    
-#     return {
-#         'nickname': user_info[0],
-#         'email': user_info[1], 
-#         'last_activity': user_info[2]
-#     }
-# return None
-
-# 모든 필드 조회 
-# -> redis_client.hgetall('key')
-# redis_client = get_redis()
-# if redis_client:
-#     # 모든 필드 조회
-#     all_data = redis_client.hgetall(f'user_session:{user_id}')
-#     return all_data  # 딕셔너리 형태로 반환
-# return {}
+    app.run(debug=True, port=5001)

@@ -1,4 +1,7 @@
 import { generatePeriodData, getPriceRange, formatDate } from '../utils/stockDataGenerator';
+import { isMarketOpen } from '../utils/timeUtils';
+
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 // stockApi 객체 내부에 추가하는 더미 데이터 생성 합본 함수
 const generateMockStockData = (symbol, period) => {
@@ -85,17 +88,62 @@ const stockApi = {
 
     // 실시간 현재가 업데이트
     fetchRealTimePrice: async (symbol) => {
-        try {
-            const response = await fetch('#');
-            const data = await response.json();
-            return data.currentPrice;
+        // 장외이면 네트워크 요청을 하지 않고 null 반환
+        if (!isMarketOpen()) return null;
 
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/stock/realtime/${symbol}`);
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error('실시간 데이터 조회 실패');
+            }
+            return data.currentPrice;
         } catch (error) {
             console.error('실시간 가격 조회에 실패하였습니다: ', error);
-            // 더미용 랜덤 변동
-            const basePrice = 235000;
-            const variation = (Math.random() - 0.5) * 5000;
-            return Math.round(basePrice + variation);
+            return null; // 목데이터 대신 null 반환
+        }
+    },
+
+    // 거래량 순위 조회 (실시간 데이터 포함)
+    fetchVolumeRanking: async (limit = 4) => {
+        try {
+            // 먼저 기본 거래대금 순위(서버가 제공하는 정적/집계 데이터)를 항상 가져옵니다.
+            const rankingResp = await fetch(`${API_BASE_URL}/api/stock/ranking?limit=${limit}`);
+            const rankingData = await rankingResp.json();
+
+            if (!rankingResp.ok || !rankingData.success) {
+                throw new Error(rankingData.message || '거래대금 순위 조회에 실패했습니다');
+            }
+
+            let resultData = rankingData.data || [];
+
+            // 장중일 때만 추가로 실시간 가격/등락 정보를 보강합니다.
+            if (isMarketOpen()) {
+                try {
+                    const symbolsParam = resultData.map(r => r.stock_code).join(',');
+                    // 서버에서 여러 종목 실시간을 지원하지 않으면 기존 endpoint를 사용
+                    const realtimeResp = await fetch(`${API_BASE_URL}/api/stock/realtime?symbols=${encodeURIComponent(symbolsParam)}`);
+                    if (realtimeResp.ok) {
+                        const realtimeData = await realtimeResp.json();
+                        if (realtimeData.success && Array.isArray(realtimeData.data)) {
+                            const realtimeMap = new Map(realtimeData.data.map(d => [d.stock_code, d]));
+                            resultData = resultData.map(item => ({
+                                ...item,
+                                current_price: realtimeMap.get(item.stock_code)?.current_price ?? item.current_price,
+                                change_amount: realtimeMap.get(item.stock_code)?.change_amount ?? item.change_amount,
+                                change_rate: realtimeMap.get(item.stock_code)?.change_rate ?? item.change_rate
+                            }));
+                        }
+                    }
+                } catch (err) {
+                    console.warn('실시간 추가 정보 로드 실패:', err);
+                }
+            }
+
+            return { success: true, data: resultData };
+        } catch (error) {
+            console.error('거래량 순위 조회 API 오류:', error);
+            return { success: false, data: [], error: error.message };
         }
     }
 };
