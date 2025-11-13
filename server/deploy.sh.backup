@@ -1,13 +1,13 @@
 #!/bin/bash
 
 ###############################################
-# Tussak 서버 자동 배포 스크립트 (sudo 제거 버전)
+# Tussak 서버 자동 배포 스크립트
 ###############################################
 
 PROJECT_DIR="/home/tussak/Tussak/server"
 VENV_PATH="$PROJECT_DIR/venv"
 LOG_FILE="$PROJECT_DIR/logs/deploy.log"
-APP_NAME="app:create_app()"
+SERVICE_NAME="tussak-app"
 
 # 로그 디렉토리 생성
 mkdir -p "$PROJECT_DIR/logs"
@@ -57,56 +57,24 @@ else
     exit 1
 fi
 
-# 기존 gunicorn 프로세스 찾기
-log "🔄 기존 Gunicorn 프로세스 종료 중..."
-OLD_PIDS=$(pgrep -f "gunicorn.*tussak")
+# 서비스 재시작
+log "🔄 서비스 재시작 중..."
+sudo systemctl restart "$SERVICE_NAME"
 
-if [ -n "$OLD_PIDS" ]; then
-    log "기존 프로세스 발견 (PIDs: $OLD_PIDS)"
-    echo "$OLD_PIDS" | xargs kill -TERM 2>/dev/null
-    
-    # 프로세스 종료 대기 (최대 10초)
-    for i in {1..10}; do
-        if ! pgrep -f "gunicorn.*tussak" > /dev/null; then
-            log "✅ 프로세스 정상 종료"
-            break
-        fi
-        sleep 1
-    done
-    
-    # 강제 종료 (혹시 아직 살아있다면)
-    if pgrep -f "gunicorn.*tussak" > /dev/null; then
-        log "⚠️  강제 종료 실행"
-        pgrep -f "gunicorn.*tussak" | xargs kill -KILL 2>/dev/null
-        sleep 2
-    fi
-else
-    log "실행 중인 프로세스 없음"
-fi
-
-# 새 Gunicorn 프로세스 시작
-log "🚀 새 Gunicorn 프로세스 시작..."
-nohup $VENV_PATH/bin/gunicorn \
-    --bind 127.0.0.1:5000 \
-    --workers 4 \
-    --threads 2 \
-    --timeout 60 \
-    --access-logfile /var/log/tussak-app-access.log \
-    --error-logfile /var/log/tussak-app-error.log \
-    "$APP_NAME" \
-    >> "$LOG_FILE" 2>&1 &
-
-NEW_PID=$!
-log "새 프로세스 시작 (PID: $NEW_PID)"
-
-# 프로세스 시작 대기
+# 재시작 대기
 log "⏳ 서비스 시작 대기 중..."
 sleep 3
 
-# 프로세스 확인
-if ps -p $NEW_PID > /dev/null 2>&1; then
+# 서비스 상태 확인
+if sudo systemctl is-active --quiet "$SERVICE_NAME"; then
     log "✅ 서비스가 정상적으로 실행 중입니다"
     
+    # 서비스 상태 출력
+    log ""
+    log "=== 서비스 상태 ==="
+    sudo systemctl status "$SERVICE_NAME" --no-pager -l | tee -a "$LOG_FILE"
+    
+    # gunicorn 프로세스 확인
     log ""
     log "=== Gunicorn 프로세스 ==="
     ps aux | grep gunicorn | grep -v grep | tee -a "$LOG_FILE"
@@ -118,9 +86,10 @@ if ps -p $NEW_PID > /dev/null 2>&1; then
 else
     log "❌ 서비스 시작 실패"
     
+    # 에러 로그 출력
     log ""
     log "=== 에러 로그 (최근 30줄) ==="
-    tail -30 /var/log/tussak-app-error.log 2>/dev/null | tee -a "$LOG_FILE"
+    sudo journalctl -u "$SERVICE_NAME" -n 30 --no-pager | tee -a "$LOG_FILE"
     
     log ""
     log "❌ 배포 실패!"

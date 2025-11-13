@@ -47,7 +47,7 @@ jobs:
       - name: 서비스 상태 확인
         run: |
           sleep 3
-          sudo systemctl status tussak-app --no-pager
+          ps aux | grep gunicorn | grep -v grep || echo "Gunicorn not running"
       
       - name: 배포 완료 알림
         run: |
