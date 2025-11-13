@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################
-# Tussak 서버 자동 배포 스크립트 (sudo 제거 버전)
+# Tussak 서버 자동 배포 스크립트
 ###############################################
 
 PROJECT_DIR="/home/tussak/Tussak/server"
@@ -21,9 +21,24 @@ log() {
 log "========================================"
 log "🚀 Tussak 서버 배포 시작"
 
-# 프로젝트 디렉토리로 이동
-cd "$PROJECT_DIR" || {
+# 프로젝트 루트로 이동
+cd /home/tussak/Tussak || {
     log "❌ 프로젝트 디렉토리로 이동 실패"
+    exit 1
+}
+
+# Git Pull
+log "📥 최신 코드 가져오기..."
+git pull origin main >> "$LOG_FILE" 2>&1
+if [ $? -eq 0 ]; then
+    log "✅ 최신 코드 업데이트 완료"
+else
+    log "⚠️  Git Pull 중 경고 발생 (계속 진행)"
+fi
+
+# 서버 디렉토리로 이동
+cd "$PROJECT_DIR" || {
+    log "❌ 서버 디렉토리로 이동 실패"
     exit 1
 }
 log "📂 작업 디렉토리: $(pwd)"
