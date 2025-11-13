@@ -27,13 +27,12 @@ cd /home/tussak/Tussak || {
     exit 1
 }
 
-# Git Pull
+# Git Pull + Git 강제 동기화 (서버 수정 내용 삭제)
 log "📥 최신 코드 가져오기..."
-git pull origin main >> "$LOG_FILE" 2>&1
-if [ $? -eq 0 ]; then
+if git fetch origin >> "$LOG_FILE" 2>&1 && git reset --hard origin/main >> "$LOG_FILE" 2>&1; then
     log "✅ 최신 코드 업데이트 완료"
 else
-    log "⚠️  Git Pull 중 경고 발생 (계속 진행)"
+    log "⚠️  Git 동기화 중 경고 발생 (계속 진행)"
 fi
 
 # 서버 디렉토리로 이동
