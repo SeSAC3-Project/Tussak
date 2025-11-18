@@ -93,7 +93,7 @@
 ## 😎 팀 구성원 및 역할
 |                          송화진                          |                          김태희                           |                          박주현                           |                         고현민                         |
 | :------------------------------------------------------: | :-------------------------------------------------------: | :-------------------------------------------------------: | :----------------------------------------------------: |
-| <img src="Docs/developer/shj.png" width="200"/> | <img src="Docs/developer/kth.PNG" width="200"/> | <img src="Docs/developer/pjh.png" width="200"/> | <img src="Docs/developer/khm.png" width="200"/> |
+| <img src="Docs/developer/shj.png" width="200"/> | <img src="Docs/developer/kth.png" width="200"/> | <img src="Docs/developer/pjh.png" width="200"/> | <img src="Docs/developer/khm.png" width="200"/> |
 |                 팀장, KIS API 연동, Redis 연동 API, 전체 및 상세 주식, 챗봇, 랭킹                |        전체 프론트 페이지 개발 (Home, Market, Insight, Portfolio, History)        |                소셜로그인, 인증, 뉴스 API 연동, 워드클라우드, 주식거래(매수/매도), 포트폴리오, 히스토리                |       개발 초기 세팅       |
 
 ## 📑 프로젝트 산출물
