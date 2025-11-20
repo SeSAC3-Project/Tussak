@@ -66,25 +66,25 @@
 
 | Category | Technology | Version |
 |----------|------------|---------|
-| **Frontend** | Node.js | - |
-| | npm | - |
+| **Frontend** | Node.js | 24.11 |
+| | npm | 11.6.1 |
 | | React | 19.1.1 |
 | | React Router | 7.8.2 |
 | | Tailwind CSS | 3.4.17 |
-| **Backend** | Python | 3.10+ |
+| **Backend** | Python | 3.10 |
 | | Flask | 3.1.2 |
 | | Flask-SQLAlchemy | 3.1.1 |
 | | PyMySQL | 1.1.2 |
-| **Database** | MySQL | 8.0.34 |
-| | Redis | 6.4.0 |
+| **Database** | MySQL | 8.0.43 |
+| | Redis | 6.0.16 |
 | **AI & Libraries** | LangChain | 0.3.27 |
 | | LangChain-OpenAI | 0.3.31 |
 | | APScheduler | 3.11.0 |
 | | Beautiful Soup | 4.13.5 |
 | | WebSocket Client | 1.8.0 |
 | | PyJWT | 2.10.1 |
-| **DevOps** | Gunicorn | - |
-| | Nginx | - |
+| **DevOps** | Gunicorn | 23.0.0 |
+| | Nginx | 1.18.0 |
 | | GitHub Actions | - |
 
 ## 📆 개발 기간
